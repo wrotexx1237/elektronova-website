@@ -71,12 +71,13 @@ export const WORK_TYPES = [
 // --- Data Structures ---
 
 // Table 1 Data: Keyed by Item Name, then by Room Name. Value is quantity (number).
-// Example: { "Shteg EM2": { "Salloni": 2, "Kuzhina": 1 } }
 export const table1DataSchema = z.record(z.string(), z.record(z.string(), z.number()));
 
 // Table 2 Data: Keyed by Item Name. Value is quantity (number).
-// Example: { "Kabell 5x10": 100 }
 export const table2DataSchema = z.record(z.string(), z.number());
+
+// Price Data: Keyed by Item Name. Value is price (number).
+export const priceDataSchema = z.record(z.string(), z.number());
 
 // --- Database Schema ---
 
@@ -86,13 +87,16 @@ export const jobs = pgTable("jobs", {
   clientName: text("client_name").notNull(),
   clientPhone: text("client_phone"),
   clientAddress: text("client_address").notNull(),
-  workDate: text("work_date").notNull(), // Storing as text for simplicity (YYYY-MM-DD), or date object
+  workDate: text("work_date").notNull(), 
   workType: text("work_type").notNull(),
   notes: text("notes"),
   
   // Material Data
   table1Data: jsonb("table1_data").$type<z.infer<typeof table1DataSchema>>().notNull().default({}),
   table2Data: jsonb("table2_data").$type<z.infer<typeof table2DataSchema>>().notNull().default({}),
+  
+  // Pricing Data
+  prices: jsonb("prices").$type<z.infer<typeof priceDataSchema>>().notNull().default({}),
   
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -107,6 +111,7 @@ export const insertJobSchema = createInsertSchema(jobs).omit({
 }).extend({
   table1Data: table1DataSchema,
   table2Data: table2DataSchema,
+  prices: priceDataSchema,
 });
 
 export type Job = typeof jobs.$inferSelect;
