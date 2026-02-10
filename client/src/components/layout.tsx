@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Zap, LayoutDashboard, PlusCircle, Menu, X } from "lucide-react";
+import { Zap, LayoutDashboard, PlusCircle, Menu, X, Package } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -10,6 +10,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const navItems = [
     { label: "Dashboard", href: "/", icon: LayoutDashboard },
     { label: "Procesverbal i Ri", href: "/new", icon: PlusCircle },
+    { label: "Katalogu", href: "/admin", icon: Package },
   ];
 
   return (
