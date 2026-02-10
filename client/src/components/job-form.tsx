@@ -192,7 +192,7 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
     const result: ItemQtyInfo[] = [];
 
     if (tabVis.showPajisje) {
-      pajisjeItems.forEach(c => {
+      pajisjeItems.forEach((c: CatalogItem) => {
         const rd = data.table1Data?.[c.name] || {};
         const qty = Object.values(rd).reduce((a: number, b: number) => a + (b || 0), 0);
         if (qty > 0) result.push({ name: c.name, unit: c.unit, qty, salePrice: data.prices?.[c.name] || 0, purchasePrice: data.purchasePrices?.[c.name] || 0 });
@@ -207,7 +207,7 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
       ...(tabVis.showSherbime ? [{ items: serviceItems, data: data.serviceData }] : []),
     ];
     sections.forEach(sec => {
-      sec.items.forEach(c => {
+      sec.items.forEach((c: CatalogItem) => {
         const qty = sec.data?.[c.name] || 0;
         if (qty > 0) result.push({ name: c.name, unit: c.unit, qty, salePrice: data.prices?.[c.name] || 0, purchasePrice: data.purchasePrices?.[c.name] || 0 });
       });
@@ -418,7 +418,7 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
           </tr>
         </thead>
         <tbody className="divide-y">
-          {pajisjeItems.map(c => {
+          {pajisjeItems.map((c: CatalogItem) => {
             const qty = getQtyForRoomItem(c.name);
             const price = form.watch(`prices.${c.name}`) || 0;
             return (
@@ -643,6 +643,43 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
           </DropdownMenu>
 
           <Button type="button" onClick={() => {
+            const cleanNumericRecord = (rec: Record<string, any> | undefined) => {
+              if (!rec) return {};
+              const cleaned: Record<string, number> = {};
+              for (const [k, v] of Object.entries(rec)) {
+                const num = Number(v);
+                if (!isNaN(num)) cleaned[k] = num;
+              }
+              return cleaned;
+            };
+            const cleanTable1 = (rec: Record<string, any> | undefined) => {
+              if (!rec) return {};
+              const cleaned: Record<string, Record<string, number>> = {};
+              for (const [item, rooms] of Object.entries(rec)) {
+                if (rooms && typeof rooms === 'object') {
+                  cleaned[item] = cleanNumericRecord(rooms);
+                }
+              }
+              return cleaned;
+            };
+            const vals = form.getValues();
+            vals.table1Data = cleanTable1(vals.table1Data);
+            vals.table2Data = cleanNumericRecord(vals.table2Data);
+            vals.cameraData = cleanNumericRecord(vals.cameraData);
+            vals.intercomData = cleanNumericRecord(vals.intercomData);
+            vals.alarmData = cleanNumericRecord(vals.alarmData);
+            vals.serviceData = cleanNumericRecord(vals.serviceData);
+            vals.prices = cleanNumericRecord(vals.prices);
+            vals.purchasePrices = cleanNumericRecord(vals.purchasePrices);
+            for (const key of Object.keys(vals.table1Data || {})) {
+              if (Object.keys(vals.table1Data![key]).length === 0) delete vals.table1Data![key];
+            }
+            for (const field of ['table2Data', 'cameraData', 'intercomData', 'alarmData', 'serviceData'] as const) {
+              for (const [k, v] of Object.entries(vals[field] || {})) {
+                if (v === 0 || isNaN(v as number)) delete (vals[field] as any)[k];
+              }
+            }
+            form.reset(vals);
             form.handleSubmit(onSubmit, (errors) => {
               const errorFields = Object.keys(errors);
               toast({ title: "Ploteso fushat e detyrueshme", description: `Kthehu te tab-i "Klienti" dhe ploteso: ${errorFields.join(', ')}`, variant: "destructive" });
