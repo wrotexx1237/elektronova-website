@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Save, FileDown, ArrowLeft, Loader2, Banknote, Camera, PhoneCall, Package, Info, Settings } from "lucide-react";
+import { Save, FileDown, ArrowLeft, Loader2, Banknote, Camera, PhoneCall, Package, Info, Settings, AlertCircle } from "lucide-react";
 import { Link } from "wouter";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -50,12 +50,23 @@ export function JobForm({ initialData, onSubmit, isPending, title }: JobFormProp
     let total = 0;
 
     TABLE_1_ITEMS.forEach(item => {
-      const qty = Object.values(data.table1Data?.[item] || {}).reduce((a, b) => (a || 0) + (b || 0), 0);
+      const rowData = data.table1Data?.[item] || {};
+      const qty = Object.values(rowData).reduce((a, b) => (a || 0) + (b || 0), 0);
       total += qty * (data.prices?.[item] || 0);
     });
 
-    [...TABLE_2_ITEMS, ...CAMERA_ITEMS, ...INTERCOM_ITEMS].forEach(item => {
-      const qty = (data.table2Data?.[item] || 0) + (data.cameraData?.[item] || 0) + (data.intercomData?.[item] || 0);
+    TABLE_2_ITEMS.forEach(item => {
+      const qty = data.table2Data?.[item] || 0;
+      total += qty * (data.prices?.[item] || 0);
+    });
+
+    CAMERA_ITEMS.forEach(item => {
+      const qty = data.cameraData?.[item] || 0;
+      total += qty * (data.prices?.[item] || 0);
+    });
+
+    INTERCOM_ITEMS.forEach(item => {
+      const qty = data.intercomData?.[item] || 0;
       total += qty * (data.prices?.[item] || 0);
     });
 
@@ -65,7 +76,7 @@ export function JobForm({ initialData, onSubmit, isPending, title }: JobFormProp
   const generatePDF = () => {
     const data = form.getValues();
     const doc = new jsPDF();
-    const themeColor = [41, 128, 185];
+    const themeColor: [number, number, number] = [41, 128, 185];
 
     doc.setFontSize(22);
     doc.setTextColor(themeColor[0], themeColor[1], themeColor[2]);
@@ -89,11 +100,12 @@ export function JobForm({ initialData, onSubmit, isPending, title }: JobFormProp
 
     const table1Headers = ["Pajisja", ...ROOMS, "Total", "Cmimi", "Vlera"];
     const table1Body = TABLE_1_ITEMS.map(item => {
-      const totalQty = Object.values(data.table1Data?.[item] || {}).reduce((a, b) => a + b, 0);
+      const rowData = data.table1Data?.[item] || {};
+      const totalQty = Object.values(rowData).reduce((a: number, b: number) => a + (b || 0), 0);
       const price = data.prices?.[item] || 0;
       return [
         item,
-        ...ROOMS.map(r => data.table1Data?.[item]?.[r] || ""),
+        ...ROOMS.map(r => rowData[r] || ""),
         totalQty > 0 ? totalQty.toString() : "",
         price > 0 ? price.toFixed(2) : "",
         (totalQty * price) > 0 ? (totalQty * price).toFixed(2) : ""
@@ -112,6 +124,7 @@ export function JobForm({ initialData, onSubmit, isPending, title }: JobFormProp
 
     doc.addPage();
     doc.setFontSize(14);
+    doc.setTextColor(themeColor[0], themeColor[1], themeColor[2]);
     doc.text("Materialet, Kamera & Interfoni", 14, 20);
 
     const sections = [
@@ -131,6 +144,7 @@ export function JobForm({ initialData, onSubmit, isPending, title }: JobFormProp
 
       if (body.length > 0) {
         doc.setFontSize(10);
+        doc.setTextColor(0);
         doc.text(sec.name, 14, currentY);
         autoTable(doc, {
           startY: currentY + 2,
@@ -189,7 +203,7 @@ export function JobForm({ initialData, onSubmit, isPending, title }: JobFormProp
                   <FormItem><FormLabel>Emri i Klientit</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                 )} />
                 <FormField control={form.control} name="clientPhone" render={({ field }) => (
-                  <FormItem><FormLabel>Telefoni</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>
+                  <FormItem><FormLabel>Telefoni</FormLabel><FormControl><Input {...field} value={field.value || ""} /></FormControl></FormItem>
                 )} />
               </div>
               <FormField control={form.control} name="clientAddress" render={({ field }) => (
@@ -211,7 +225,8 @@ export function JobForm({ initialData, onSubmit, isPending, title }: JobFormProp
             <TabsContent value="pajisje"><Card className="overflow-x-auto"><table className="w-full text-xs">
               <thead><tr className="bg-muted border-b"><th className="p-2 text-left sticky left-0 bg-muted z-10 w-32 border-r">Pajisja</th>{ROOMS.map(r => <th key={r} className="p-2 text-center min-w-[50px]">{r}</th>)}<th className="p-2 text-center font-bold bg-primary/5">Sasia</th><th className="p-2 text-center font-bold bg-primary/10">Vlera</th></tr></thead>
               <tbody className="divide-y">{TABLE_1_ITEMS.map(item => {
-                const qty = Object.values(form.watch(`table1Data.${item}`) || {}).reduce((a, b) => (a || 0) + (b || 0), 0);
+                const rowValues = form.watch(`table1Data.${item}`) || {};
+                const qty = Object.values(rowValues).reduce((a: number, b: number) => a + (b || 0), 0);
                 const price = form.watch(`prices.${item}`) || 0;
                 return (<tr key={item} className="hover:bg-muted/30">
                   <td className="p-2 font-medium sticky left-0 bg-background z-10 border-r">{item}</td>
@@ -225,20 +240,20 @@ export function JobForm({ initialData, onSubmit, isPending, title }: JobFormProp
             </table></Card></TabsContent>
 
             {[
-              { id: "materiale", items: TABLE_2_ITEMS, field: "table2Data" },
-              { id: "kamera", items: CAMERA_ITEMS, field: "cameraData" },
-              { id: "interfon", items: INTERCOM_ITEMS, field: "intercomData" }
+              { id: "materiale", items: TABLE_2_ITEMS, field: "table2Data" as const },
+              { id: "kamera", items: CAMERA_ITEMS, field: "cameraData" as const },
+              { id: "interfon", items: INTERCOM_ITEMS, field: "intercomData" as const }
             ].map(sec => (
               <TabsContent key={sec.id} value={sec.id}>
                 <Card><CardContent className="pt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {sec.items.map(item => {
-                    const qty = form.watch(`${sec.field}.${item}`) || 0;
+                    const qty = form.watch(`${sec.field}.${item}` as any) || 0;
                     const price = form.watch(`prices.${item}`) || 0;
                     const unit = item.toLowerCase().includes("kabell") || item.toLowerCase().includes("ceve") ? "m" : "cope";
                     return (<div key={item} className="p-2 border rounded-lg flex items-center justify-between gap-2 hover:border-primary/50 transition-colors">
                       <div className="flex flex-col min-w-0"><span className="text-xs font-bold truncate">{item}</span><span className="text-[10px] text-primary font-black">{(qty * price).toFixed(2)} €</span></div>
-                      <FormField control={form.control} name={`${sec.field}.${item}`} render={({ field }) => (
-                        <div className="flex items-center bg-muted/50 rounded overflow-hidden w-20 shrink-0 border"><Input type="number" className="h-7 border-0 bg-transparent text-right px-1 text-xs" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} value={field.value || ""} /><span className="text-[9px] px-1 bg-muted uppercase font-bold border-l">{unit}</span></div>
+                      <FormField control={form.control} name={`${sec.field}.${item}` as any} render={({ field }) => (
+                        <div className="flex items-center bg-muted/50 rounded overflow-hidden w-20 shrink-0 border"><Input type="number" className="h-7 border-0 bg-transparent text-right px-1 text-xs" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} value={(field.value as any) || ""} /><span className="text-[9px] px-1 bg-muted uppercase font-bold border-l">{unit}</span></div>
                       )} />
                     </div>);
                   })}
