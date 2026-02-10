@@ -9,14 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Save, FileDown, ArrowLeft, Loader2, AlertCircle } from "lucide-react";
+import { Save, FileDown, ArrowLeft, Loader2, AlertCircle, Banknote } from "lucide-react";
 import { Link } from "wouter";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-// We need to extend the schema because Zod resolver expects stricter types for nested records
-// that the auto-generated types from drizzle-zod might not perfectly match for forms
 const formSchema = insertJobSchema;
 
 type JobFormValues = z.infer<typeof formSchema>;
@@ -29,7 +26,6 @@ interface JobFormProps {
 }
 
 export function JobForm({ initialData, onSubmit, isPending, title }: JobFormProps) {
-  // Default values for new form
   const defaultValues: JobFormValues = initialData || {
     clientName: "",
     clientPhone: "",
@@ -39,6 +35,7 @@ export function JobForm({ initialData, onSubmit, isPending, title }: JobFormProp
     notes: "",
     table1Data: {},
     table2Data: {},
+    prices: {},
   };
 
   const form = useForm<JobFormValues>({
@@ -46,12 +43,30 @@ export function JobForm({ initialData, onSubmit, isPending, title }: JobFormProp
     defaultValues,
   });
 
+  const calculateGrandTotal = () => {
+    const data = form.getValues();
+    let total = 0;
+
+    TABLE_1_ITEMS.forEach(item => {
+      const qty = Object.values(data.table1Data?.[item] || {}).reduce((a, b) => (a || 0) + (b || 0), 0);
+      const price = data.prices?.[item] || 0;
+      total += qty * price;
+    });
+
+    TABLE_2_ITEMS.forEach(item => {
+      const qty = data.table2Data?.[item] || 0;
+      const price = data.prices?.[item] || 0;
+      total += qty * price;
+    });
+
+    return total;
+  };
+
   const generatePDF = () => {
     const data = form.getValues();
     const doc = new jsPDF();
-    const themeColor = [44, 62, 80]; // Dark blue
+    const themeColor = [44, 62, 80];
 
-    // --- Header ---
     doc.setFontSize(22);
     doc.setTextColor(themeColor[0], themeColor[1], themeColor[2]);
     doc.setFont("helvetica", "bold");
@@ -61,7 +76,6 @@ export function JobForm({ initialData, onSubmit, isPending, title }: JobFormProp
     doc.setFont("helvetica", "normal");
     doc.text("Procesverbal i Punimeve Elektrike", 105, 28, { align: "center" });
 
-    // --- Client Info ---
     doc.setDrawColor(200);
     doc.line(14, 35, 196, 35);
     
@@ -73,71 +87,80 @@ export function JobForm({ initialData, onSubmit, isPending, title }: JobFormProp
     doc.text(`Data: ${data.workDate}`, 120, 45);
     doc.text(`Lloji i punës: ${data.workType}`, 120, 50);
 
-    // --- Table 1: Materials Matrix ---
-    const table1Headers = ["Pajisja", ...ROOMS, "Total"];
+    const table1Headers = ["Pajisja", ...ROOMS, "Total", "Cmimi", "Vlera"];
     const table1Body = TABLE_1_ITEMS.map(item => {
       const rowData = ROOMS.map(room => {
         const qty = data.table1Data?.[item]?.[room] || 0;
         return qty > 0 ? qty.toString() : "";
       });
       
-      // Calculate row total
-      const total = Object.values(data.table1Data?.[item] || {}).reduce((a, b) => a + b, 0);
+      const totalQty = Object.values(data.table1Data?.[item] || {}).reduce((a, b) => a + b, 0);
+      const price = data.prices?.[item] || 0;
+      const value = totalQty * price;
       
-      return [item, ...rowData, total > 0 ? total.toString() : ""];
+      return [
+        item, 
+        ...rowData, 
+        totalQty > 0 ? totalQty.toString() : "",
+        price > 0 ? price.toFixed(2) : "",
+        value > 0 ? value.toFixed(2) : ""
+      ];
     });
-
-    // Filter out empty rows to save space? Optional. 
-    // Let's keep them all for completeness as per requirement.
 
     autoTable(doc, {
       startY: 65,
       head: [table1Headers],
       body: table1Body,
       theme: 'grid',
-      headStyles: { fillColor: [41, 128, 185], fontSize: 6, cellPadding: 1 },
-      styles: { fontSize: 6, cellPadding: 1, overflow: 'linebreak' },
-      columnStyles: { 0: { fontStyle: 'bold', cellWidth: 25 } }, // First col wider
+      headStyles: { fillColor: [41, 128, 185], fontSize: 5, cellPadding: 0.5 },
+      styles: { fontSize: 5, cellPadding: 0.5, overflow: 'linebreak' },
+      columnStyles: { 0: { fontStyle: 'bold', cellWidth: 20 } },
     });
 
-    // --- Page 2 ---
     doc.addPage();
     
     doc.setFontSize(14);
-    doc.text("Materialet e Harxhuara (Tabela 2)", 14, 20);
+    doc.text("Materialet (Tabela 2)", 14, 20);
 
     const table2Body = TABLE_2_ITEMS.map(item => {
       const qty = data.table2Data?.[item] || 0;
-      return [item, qty > 0 ? qty.toString() : ""];
-    }).filter(row => row[1] !== ""); // Only show used items for cleaner PDF
+      const price = data.prices?.[item] || 0;
+      const value = qty * price;
+      const unit = item.toLowerCase().includes("kabell") || item.toLowerCase().includes("ceve") ? "m" : "cope";
+      
+      return [
+        item, 
+        qty > 0 ? `${qty} ${unit}` : "",
+        price > 0 ? price.toFixed(2) : "",
+        value > 0 ? value.toFixed(2) : ""
+      ];
+    }).filter(row => row[1] !== "");
 
     if (table2Body.length > 0) {
       autoTable(doc, {
         startY: 25,
-        head: [["Materiali", "Sasia"]],
+        head: [["Materiali", "Sasia", "Cmimi", "Vlera"]],
         body: table2Body,
         theme: 'striped',
         headStyles: { fillColor: [41, 128, 185] },
         styles: { fontSize: 10 },
       });
-    } else {
-      doc.setFontSize(10);
-      doc.setTextColor(100);
-      doc.text("Nuk ka materiale shtesë të regjistruara.", 14, 35);
     }
 
-    // --- Notes ---
     const finalY = (doc as any).lastAutoTable?.finalY || 40;
+    const grandTotal = calculateGrandTotal();
+
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Totali i Pergjithshem: ${grandTotal.toFixed(2)} EUR`, 14, finalY + 10);
     
     if (data.notes) {
-      doc.setFontSize(12);
-      doc.setTextColor(0);
-      doc.text("Shënime:", 14, finalY + 15);
       doc.setFontSize(10);
-      doc.text(data.notes, 14, finalY + 22, { maxWidth: 180 });
+      doc.setFont("helvetica", "normal");
+      doc.text("Shenime:", 14, finalY + 20);
+      doc.text(data.notes, 14, finalY + 27, { maxWidth: 180 });
     }
 
-    // --- Signatures ---
     const pageHeight = doc.internal.pageSize.height;
     const signY = pageHeight - 40;
     
@@ -146,8 +169,8 @@ export function JobForm({ initialData, onSubmit, isPending, title }: JobFormProp
     doc.line(130, signY, 190, signY);
     
     doc.setFontSize(10);
-    doc.text("Nënshkrimi i Klientit", 30, signY + 5);
-    doc.text("Punëkryerësi (Elektronova)", 140, signY + 5);
+    doc.text("Nenshkrimi i Klientit", 30, signY + 5);
+    doc.text("Puneryerresi (Elektronova)", 140, signY + 5);
 
     doc.save(`Procesverbal_${data.clientName.replace(/\s+/g, '_')}_${data.workDate}.pdf`);
   };
@@ -163,235 +186,142 @@ export function JobForm({ initialData, onSubmit, isPending, title }: JobFormProp
           </Link>
           <h1 className="text-xl font-bold">{title}</h1>
         </div>
-        <div className="flex gap-2 w-full sm:w-auto">
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={generatePDF}
-            className="flex-1 sm:flex-none border-primary/20 hover:bg-primary/5 text-primary"
-          >
-            <FileDown className="mr-2 h-4 w-4" />
-            PDF
-          </Button>
-          <Button 
-            onClick={form.handleSubmit(onSubmit)} 
-            disabled={isPending}
-            className="flex-1 sm:flex-none shadow-lg shadow-primary/20"
-          >
-            {isPending ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Save className="mr-2 h-4 w-4" />
-            )}
-            Ruaj
-          </Button>
+        <div className="flex items-center gap-4">
+          <div className="text-right hidden sm:block">
+            <p className="text-xs text-muted-foreground">Totali</p>
+            <p className="text-lg font-bold text-primary">{calculateGrandTotal().toFixed(2)} €</p>
+          </div>
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" onClick={generatePDF}>
+              <FileDown className="mr-2 h-4 w-4" /> PDF
+            </Button>
+            <Button onClick={form.handleSubmit(onSubmit)} disabled={isPending}>
+              {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />} Ruaj
+            </Button>
+          </div>
         </div>
       </div>
 
       <Form {...form}>
         <form className="space-y-8">
           <Tabs defaultValue="info" className="w-full">
-            <TabsList className="w-full grid grid-cols-3 h-12 p-1 bg-muted/50 rounded-xl mb-6">
-              <TabsTrigger value="info" className="rounded-lg data-[state=active]:shadow-sm">Info Klienti</TabsTrigger>
-              <TabsTrigger value="pajisje" className="rounded-lg data-[state=active]:shadow-sm">Tabela 1 (Pajisje)</TabsTrigger>
-              <TabsTrigger value="materiale" className="rounded-lg data-[state=active]:shadow-sm">Tabela 2 (Materiale)</TabsTrigger>
+            <TabsList className="w-full grid grid-cols-4 h-12 p-1 bg-muted/50 rounded-xl mb-6">
+              <TabsTrigger value="info">Info</TabsTrigger>
+              <TabsTrigger value="pajisje">Pajisje</TabsTrigger>
+              <TabsTrigger value="materiale">Materiale</TabsTrigger>
+              <TabsTrigger value="cmimet">Cmimet</TabsTrigger>
             </TabsList>
 
-            {/* TAB 1: CLIENT INFO */}
-            <TabsContent value="info" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <Card>
-                <CardContent className="pt-6 grid gap-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                      control={form.control}
-                      name="clientName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Emri i Klientit</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Filan Fisteku" {...field} className="h-12 text-lg" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="clientPhone"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Numri i Telefonit</FormLabel>
-                          <FormControl>
-                            <Input placeholder="+383 4X XXX XXX" {...field} className="h-12 text-lg" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <FormField
-                    control={form.control}
-                    name="clientAddress"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Adresa</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Rruga, Qyteti..." {...field} className="h-12 text-lg" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                      control={form.control}
-                      name="workDate"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Data e Punimeve</FormLabel>
-                          <FormControl>
-                            <Input type="date" {...field} className="h-12" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="workType"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Lloji i Punës</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger className="h-12">
-                                <SelectValue placeholder="Zgjidh llojin" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {WORK_TYPES.map((type) => (
-                                <SelectItem key={type} value={type}>{type}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <FormField
-                    control={form.control}
-                    name="notes"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Shënime Shtesë</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            placeholder="Detaje tjera rreth punës..." 
-                            className="min-h-[120px] resize-none" 
-                            {...field} 
-                            value={field.value || ""} // Handle null
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* TAB 2: PAJISJE MATRIX */}
-            <TabsContent value="pajisje" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <Card className="overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="bg-muted border-b">
-                        <th className="p-3 text-left font-semibold sticky left-0 bg-muted z-10 w-48 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Pajisja</th>
-                        {ROOMS.map(room => (
-                          <th key={room} className="p-3 text-center min-w-[80px] font-medium text-muted-foreground">{room}</th>
-                        ))}
-                        <th className="p-3 text-center font-bold min-w-[60px] bg-primary/5">Total</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y">
-                      {TABLE_1_ITEMS.map((item, idx) => {
-                        // Calculate row total for display
-                        const rowValues = form.watch(`table1Data.${item}`) || {};
-                        const rowTotal = Object.values(rowValues).reduce((a, b) => (a || 0) + (b || 0), 0);
-                        
-                        return (
-                          <tr key={item} className="hover:bg-muted/30 transition-colors">
-                            <td className="p-3 font-medium sticky left-0 bg-background z-10 border-r shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
-                              {item}
-                            </td>
-                            {ROOMS.map(room => (
-                              <td key={`${item}-${room}`} className="p-1">
-                                <FormField
-                                  control={form.control}
-                                  name={`table1Data.${item}.${room}`}
-                                  render={({ field }) => (
-                                    <input
-                                      type="number"
-                                      min="0"
-                                      className="w-full h-8 text-center rounded border border-transparent hover:border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all bg-transparent focus:bg-background"
-                                      {...field}
-                                      onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                                      value={field.value || ""}
-                                      placeholder="-"
-                                    />
-                                  )}
-                                />
-                              </td>
-                            ))}
-                            <td className="p-3 text-center font-bold text-primary bg-primary/5">
-                              {rowTotal || "-"}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+            <TabsContent value="info">
+              <Card><CardContent className="pt-6 grid gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField control={form.control} name="clientName" render={({ field }) => (
+                    <FormItem><FormLabel>Emri i Klientit</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={form.control} name="clientPhone" render={({ field }) => (
+                    <FormItem><FormLabel>Telefoni</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
                 </div>
-              </Card>
-              <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-                <AlertCircle className="h-4 w-4" />
-                <p>Këshillë: Përdorni tastin Tab për të lëvizur shpejt nëpër qeliza.</p>
-              </div>
+                <FormField control={form.control} name="clientAddress" render={({ field }) => (
+                  <FormItem><FormLabel>Adresa</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField control={form.control} name="workDate" render={({ field }) => (
+                    <FormItem><FormLabel>Data</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={form.control} name="workType" render={({ field }) => (
+                    <FormItem><FormLabel>Lloji i Punes</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                        <SelectContent>{WORK_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </FormItem>
+                  )} />
+                </div>
+                <FormField control={form.control} name="notes" render={({ field }) => (
+                  <FormItem><FormLabel>Shenime</FormLabel><FormControl><Textarea {...field} value={field.value || ""} /></FormControl></FormItem>
+                )} />
+              </CardContent></Card>
             </TabsContent>
 
-            {/* TAB 3: MATERIALE LIST */}
-            <TabsContent value="materiale" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4">
-                    {TABLE_2_ITEMS.map((item) => (
-                      <div key={item} className="flex items-center justify-between gap-4 p-2 rounded-lg hover:bg-muted/50 border border-transparent hover:border-border transition-all">
-                        <span className="text-sm font-medium break-words max-w-[70%]">{item}</span>
-                        <FormField
-                          control={form.control}
-                          name={`table2Data.${item}`}
-                          render={({ field }) => (
-                            <Input
-                              type="number"
-                              min="0"
-                              className="w-24 h-9 text-right font-mono"
-                              placeholder="0"
-                              {...field}
-                              onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                              value={field.value || ""}
-                            />
-                          )}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
+            <TabsContent value="pajisje">
+              <Card className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="bg-muted border-b">
+                      <th className="p-2 text-left sticky left-0 bg-muted z-10 w-32 shadow-md">Pajisja</th>
+                      {ROOMS.map(r => <th key={r} className="p-2 text-center min-w-[50px]">{r}</th>)}
+                      <th className="p-2 text-center font-bold bg-primary/5">Sasia</th>
+                      <th className="p-2 text-center font-bold bg-primary/10">Vlera</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {TABLE_1_ITEMS.map(item => {
+                      const rowValues = form.watch(`table1Data.${item}`) || {};
+                      const rowQty = Object.values(rowValues).reduce((a, b) => (a || 0) + (b || 0), 0);
+                      const price = form.watch(`prices.${item}`) || 0;
+                      return (
+                        <tr key={item} className="hover:bg-muted/30">
+                          <td className="p-2 font-medium sticky left-0 bg-background z-10 border-r">{item}</td>
+                          {ROOMS.map(r => (
+                            <td key={r} className="p-0.5">
+                              <FormField control={form.control} name={`table1Data.${item}.${r}`} render={({ field }) => (
+                                <input type="number" className="w-full h-7 text-center bg-transparent outline-none focus:bg-white" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} value={field.value || ""} />
+                              )} />
+                            </td>
+                          ))}
+                          <td className="p-2 text-center font-bold">{rowQty || "-"}</td>
+                          <td className="p-2 text-center text-primary font-bold">{(rowQty * price).toFixed(2)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="materiale">
+              <Card><CardContent className="pt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {TABLE_2_ITEMS.map(item => {
+                  const qty = form.watch(`table2Data.${item}`) || 0;
+                  const price = form.watch(`prices.${item}`) || 0;
+                  const unit = item.toLowerCase().includes("kabell") || item.toLowerCase().includes("ceve") ? "m" : "cope";
+                  return (
+                    <div key={item} className="p-3 border rounded-lg flex flex-col gap-2">
+                      <div className="flex justify-between items-start">
+                        <span className="text-sm font-semibold leading-tight">{item}</span>
+                        <span className="text-xs font-bold text-primary">{(qty * price).toFixed(2)} €</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <FormField control={form.control} name={`table2Data.${item}`} render={({ field }) => (
+                          <div className="flex-1 flex items-center bg-muted/30 rounded px-2">
+                            <Input type="number" className="h-8 border-0 bg-transparent text-right" placeholder="0" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} value={field.value || ""} />
+                            <span className="text-[10px] text-muted-foreground ml-1 uppercase">{unit}</span>
+                          </div>
+                        )} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </CardContent></Card>
+            </TabsContent>
+
+            <TabsContent value="cmimet">
+              <Card><CardContent className="pt-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {[...TABLE_1_ITEMS, ...TABLE_2_ITEMS].map(item => (
+                    <div key={item} className="flex items-center justify-between p-2 border rounded hover:bg-muted/30">
+                      <span className="text-xs font-medium truncate flex-1 mr-2">{item}</span>
+                      <FormField control={form.control} name={`prices.${item}`} render={({ field }) => (
+                        <div className="flex items-center bg-primary/5 rounded px-2 w-24">
+                          <Banknote className="h-3 w-3 text-primary mr-1" />
+                          <Input type="number" step="0.01" className="h-8 border-0 bg-transparent text-right p-0" placeholder="0.00" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} value={field.value || ""} />
+                        </div>
+                      )} />
+                    </div>
+                  ))}
+                </div>
+              </CardContent></Card>
             </TabsContent>
           </Tabs>
         </form>
