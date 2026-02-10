@@ -1,0 +1,203 @@
+1) “Opsionet” duhet me qenë katalog (vetëm Admin e ndryshon)
+Si me u organizu katalogu (strukturë profesionale)
+
+Kategori → Artikuj → Njësi → Çmim → Shënime
+
+Elektrikë (Punë/Shërbime)
+
+Pajisje elektrike (pajisje/elemente)
+
+Kabllo & Gypa (metra)
+
+Alarm (sistem + aksesorë)
+
+Kamera (kamera + DVR/NVR + HDD + aksesorë)
+
+Interfon (panel + monitor + PSU + kabllo)
+
+Çdo artikull ka:
+
+Emri
+
+Njësia: copë / metër / set / orë
+
+Çmimi (blerje) (opsional)
+
+Çmimi (shërbim/instalim) (opsional)
+
+Minimum rekomanduar (p.sh. 1 PSU për 1 panel)
+
+Checklist items (çka duhet me u kujtu)
+
+✅ Kjo bën që ti të mos shtosh “manual” çdo herë – vetëm e zgjedh.
+
+2) “Admin-only”: si me e bo praktikisht
+
+Dy mënyra:
+
+A) Super thjeshtë (më e shpejta)
+
+login me role: admin dhe user
+
+vetëm admini sheh menunë: “Katalog / Çmimet / Opsionet”
+
+user vetëm plotëson punë & gjeneron PDF
+
+B) Akoma më e sigurt
+
+admin ndryshon vetëm nga një /admin URL + password
+
+opsionet ruhen në DB (SQLite) ose JSON (po DB është ma mirë)
+
+3) “Alarmi & gjëra që s’duhet me i harru” – Checklist inteligjente
+
+Në çdo punë, ti duhet me pas:
+
+✅ Checklist e përgjithshme (elektrikë)
+
+Ndrrim i llusterit
+
+Ndrrim i shtikerit
+
+Ndrrim i ndërprerësit
+
+Shtim pike rryme
+
+Riparim linje / shkurtim
+
+Montim panel / kuti / sigurime
+
+Testim: tension / vazhdimësi / RCD
+
+✅ Checklist për Kamera
+
+Kamera (sa copë)
+
+DVR/NVR
+
+HDD (kapaciteti)
+
+PSU / trafo
+
+Konektorë BNC/RJ45
+
+Kabllo kamera (metra)
+
+Switch/Router (nëse IP)
+
+Konfigurim (remote view)
+
+Testim natën / IR / kënd
+
+✅ Checklist për Alarm
+
+Panel alarmi
+
+Tastierë
+
+Sirenë brenda/jashtë
+
+Sensorë lëvizje (PIR)
+
+Magnetë dere/dritare
+
+Battery 12V
+
+Kabllo (metra)
+
+Programim zonash
+
+Testim sirene + zonash
+
+✅ Checklist për Interfon
+
+Panel jashtë
+
+Monitor brenda
+
+PSU/transformator
+
+Kabllo (metra)
+
+Montim kasete / gyp
+
+Testim audio/video + hapje dere
+
+📌 Si funksionon në app:
+
+ti zgjedh “Kamera” → automatikisht të hapet checklist kamera
+
+ti zgjedh “Alarm” → automatikisht checklist alarmi
+
+çdo item ka checkbox + sasi + çmim (nëse don)
+
+4) “Mos me harru asgjë” → Alarmi/kujtesa brenda punës
+
+Shto një panel: “⚠️ Kujtesë para se të mbyllet puna”
+
+ Foto të instalimit
+
+ Testim final
+
+ Password/QR për klientin
+
+ Remote access
+
+ Garanci / shënime
+
+ Nënshkrimi i klientit
+
+Edhe një funksion shumë i fortë:
+✅ “Kontroll final” → nëse s’janë shënuar disa gjëra kritike (p.sh. HDD te DVR), aplikacioni të jep warning:
+“Po mungon HDD / PSU / kabllo metra …”
+
+5) Opsionet konkrete që të propozoj t’i shtosh (për terren)
+Punë/Shërbime (shembuj)
+
+Ndrrim llusteri (copë)
+
+Ndrrim shtikeri (copë)
+
+Ndrrim ndërprerësi (copë)
+
+Hapje kanal / shparingu (metër)
+
+Montim gypi (metër)
+
+Montim kutie modulare (copë)
+
+Montim tabelë siguresash (copë)
+
+Konfigurim kamera (set)
+
+Konfigurim alarmi (set)
+
+Shërbim terreni (orë)
+
+Pajisje & aksesorë (kamera/alarm)
+
+Kamera Dahua 5MP (copë)
+
+DVR/NVR (copë)
+
+HDD 1TB/2TB/4TB
+
+PSU 12V
+
+Konektorë (BNC/RJ45)
+
+Switch PoE (copë)
+
+PIR sensor
+
+Magnet dere
+
+Sirenë
+
+Panel alarmi
+
+Tastierë alarmi
+
+Panel interfon
+
+Monitor interfon
