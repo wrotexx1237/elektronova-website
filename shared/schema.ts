@@ -60,6 +60,29 @@ export const TABLE_2_ITEMS = [
   "Vazhduese gypi",
 ] as const;
 
+export const CAMERA_ITEMS = [
+  "Kamera Dahua 5mpx",
+  "Kamera Hikvision 5mpx",
+  "Kamera Dahua 2mpx",
+  "DVR/NVR 4 kanale",
+  "DVR/NVR 8 kanale",
+  "HDD 1TB",
+  "HDD 2TB",
+  "Konektor BNC",
+  "Konektor DC",
+  "Kuti per kamera",
+  "Adapter 12V",
+  "Switch POE",
+] as const;
+
+export const INTERCOM_ITEMS = [
+  "Monitor Interfoni",
+  "Njesia e jashtme",
+  "Adapter Interfoni",
+  "Kuti per monitor",
+  "Kabell Interfoni UTP",
+] as const;
+
 export const WORK_TYPES = [
   "Instalim i ri",
   "Riparim",
@@ -70,20 +93,16 @@ export const WORK_TYPES = [
 
 // --- Data Structures ---
 
-// Table 1 Data: Keyed by Item Name, then by Room Name. Value is quantity (number).
 export const table1DataSchema = z.record(z.string(), z.record(z.string(), z.number()));
-
-// Table 2 Data: Keyed by Item Name. Value is quantity (number).
 export const table2DataSchema = z.record(z.string(), z.number());
-
-// Price Data: Keyed by Item Name. Value is price (number).
+export const cameraDataSchema = z.record(z.string(), z.number());
+export const intercomDataSchema = z.record(z.string(), z.number());
 export const priceDataSchema = z.record(z.string(), z.number());
 
 // --- Database Schema ---
 
 export const jobs = pgTable("jobs", {
   id: serial("id").primaryKey(),
-  // Client Info
   clientName: text("client_name").notNull(),
   clientPhone: text("client_phone"),
   clientAddress: text("client_address").notNull(),
@@ -91,18 +110,16 @@ export const jobs = pgTable("jobs", {
   workType: text("work_type").notNull(),
   notes: text("notes"),
   
-  // Material Data
   table1Data: jsonb("table1_data").$type<z.infer<typeof table1DataSchema>>().notNull().default({}),
   table2Data: jsonb("table2_data").$type<z.infer<typeof table2DataSchema>>().notNull().default({}),
+  cameraData: jsonb("camera_data").$type<z.infer<typeof cameraDataSchema>>().notNull().default({}),
+  intercomData: jsonb("intercom_data").$type<z.infer<typeof intercomDataSchema>>().notNull().default({}),
   
-  // Pricing Data
   prices: jsonb("prices").$type<z.infer<typeof priceDataSchema>>().notNull().default({}),
   
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
-
-// --- Zod Schemas ---
 
 export const insertJobSchema = createInsertSchema(jobs).omit({ 
   id: true, 
@@ -111,13 +128,14 @@ export const insertJobSchema = createInsertSchema(jobs).omit({
 }).extend({
   table1Data: table1DataSchema,
   table2Data: table2DataSchema,
+  cameraData: cameraDataSchema,
+  intercomData: intercomDataSchema,
   prices: priceDataSchema,
 });
 
 export type Job = typeof jobs.$inferSelect;
 export type InsertJob = z.infer<typeof insertJobSchema>;
 
-// Explicit API Types
 export type CreateJobRequest = InsertJob;
 export type UpdateJobRequest = Partial<InsertJob>;
 export type JobResponse = Job;
