@@ -12,11 +12,13 @@ Key features:
 - **Category-based Form**: Job form shows only relevant tabs/sections for the selected category
 - **Job Form**: Client details + material tables organized by rooms (11 room columns + totals)
 - **6 Material Categories**: Pajisje elektrike, Kabllo & Gypa, Kamera, Interfon, Alarm, Punë/Shërbime
-- **Dynamic Catalog System**: Admin-managed catalog of items with units, prices per category
+- **Dynamic Catalog System**: Admin-managed catalog of items with units, dual pricing (purchase/sale) per category
+- **Dual Pricing**: Each catalog item has purchase price (cost) and sale price (client price), with price snapshots saved per job
+- **Admin Mode**: localStorage-based admin toggle in header — reveals purchase costs, profit margins, and cost analysis in job form
 - **Intelligent Checklists**: Category-specific checklists (Elektrike, Kamera, Alarm, Interfon, Final)
-- **Auto-calculation**: Row totals computed automatically from room quantities
-- **PDF Generation**: Client-side PDF export using jsPDF + jspdf-autotable with category info
-- **Pricing support**: Per-item pricing with grand total calculation (scoped to category)
+- **Auto-calculation**: Row totals computed automatically from room quantities, with sale/purchase/profit totals
+- **PDF Generation (2 variants)**: Client PDF (Faturë/Ofertë with sale prices) and Purchase PDF (Lista e Blerjes with purchase prices)
+- **Pricing support**: Per-item dual pricing with grand total calculation (scoped to category)
 - **Warnings system**: Final control warnings for incomplete checklist items
 - **Category Filter**: Dashboard filter by category with badge display on job cards
 
@@ -60,12 +62,13 @@ Preferred communication style: Simple, everyday language.
 ### Data Model
 
 **`catalog_items` table:**
-- id, category, name, unit, purchasePrice, servicePrice, notes, sortOrder, createdAt
+- id, category, name, unit, purchasePrice, salePrice, notes, sortOrder, createdAt
 
 **`jobs` table:**
 - Client fields: clientName, clientPhone, clientAddress, workDate, workType, notes
 - Material data as JSONB: table1Data (equipment by room), table2Data (cables), cameraData, intercomData, alarmData, serviceData
-- prices (per-item pricing as JSONB)
+- prices (per-item sale pricing as JSONB)
+- purchasePrices (per-item purchase pricing as JSONB)
 - checklistData (checklist completion as JSONB)
 - Timestamps: createdAt, updatedAt
 
