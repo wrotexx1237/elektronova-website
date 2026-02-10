@@ -24,6 +24,16 @@ export const WORK_TYPES = [
   "Instalim i ri", "Riparim", "Kamera", "Interfon", "Alarm", "Tjetër",
 ] as const;
 
+export const JOB_CATEGORIES = ["electric", "camera", "alarm", "intercom"] as const;
+export type JobCategory = typeof JOB_CATEGORIES[number];
+
+export const JOB_CATEGORY_LABELS: Record<JobCategory, string> = {
+  electric: "Rrymë (Elektrike)",
+  camera: "Kamera",
+  alarm: "Alarm",
+  intercom: "Interfon",
+};
+
 // --- Checklist Templates ---
 export const CHECKLIST_ELEKTRIKE = [
   "Ndërrim i llusterit",
@@ -112,6 +122,7 @@ export const jobs = pgTable("jobs", {
   clientAddress: text("client_address").notNull(),
   workDate: text("work_date").notNull(),
   workType: text("work_type").notNull(),
+  category: text("category").default("electric"),
   notes: text("notes"),
 
   table1Data: jsonb("table1_data").$type<Record<string, Record<string, number>>>().notNull().default({}),
@@ -134,6 +145,7 @@ export const insertJobSchema = z.object({
   clientAddress: z.string().min(1, "Adresa eshte e detyrueshme"),
   workDate: z.string().min(1),
   workType: z.string().min(1),
+  category: z.enum(JOB_CATEGORIES).optional().default("electric"),
   notes: z.string().nullable().optional(),
   table1Data: z.record(z.string(), z.record(z.string(), z.number())).optional().default({}),
   table2Data: z.record(z.string(), z.number()).optional().default({}),

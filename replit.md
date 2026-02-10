@@ -7,15 +7,18 @@ This is a full-stack web application for **Elektronova**, an electrical services
 The application is built in Albanian language and is designed to be mobile-responsive for use in the field (on phones at client sites).
 
 Key features:
-- **Dashboard**: List, search, edit, and delete saved jobs
+- **Dashboard**: List, search, edit, and delete saved jobs + Quick Create by Category cards
+- **Job Categories**: 4 work categories (Rrymë/Elektrike, Kamera, Alarm, Interfon) with category-specific UI filtering
+- **Category-based Form**: Job form shows only relevant tabs/sections for the selected category
 - **Job Form**: Client details + material tables organized by rooms (11 room columns + totals)
 - **6 Material Categories**: Pajisje elektrike, Kabllo & Gypa, Kamera, Interfon, Alarm, Punë/Shërbime
 - **Dynamic Catalog System**: Admin-managed catalog of items with units, prices per category
-- **Intelligent Checklists**: Work-type-specific checklists (Elektrike, Kamera, Alarm, Interfon, Final)
+- **Intelligent Checklists**: Category-specific checklists (Elektrike, Kamera, Alarm, Interfon, Final)
 - **Auto-calculation**: Row totals computed automatically from room quantities
-- **PDF Generation**: Client-side PDF export using jsPDF + jspdf-autotable
-- **Pricing support**: Per-item pricing with grand total calculation
+- **PDF Generation**: Client-side PDF export using jsPDF + jspdf-autotable with category info
+- **Pricing support**: Per-item pricing with grand total calculation (scoped to category)
 - **Warnings system**: Final control warnings for incomplete checklist items
+- **Category Filter**: Dashboard filter by category with badge display on job cards
 
 ## User Preferences
 

@@ -2,9 +2,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
-  insertJobSchema, ROOMS, WORK_TYPES,
+  insertJobSchema, ROOMS, WORK_TYPES, JOB_CATEGORY_LABELS,
   CHECKLIST_ELEKTRIKE, CHECKLIST_KAMERA, CHECKLIST_ALARM, CHECKLIST_INTERFON, CHECKLIST_FINAL,
-  type InsertJob, type CatalogItem
+  type InsertJob, type CatalogItem, type JobCategory
 } from "@shared/schema";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -17,7 +17,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import {
   Save, FileDown, ArrowLeft, Loader2, Banknote, Camera, PhoneCall,
-  Package, Info, Settings, ShieldAlert, Wrench, CheckCircle2, AlertTriangle
+  Package, Info, Settings, ShieldAlert, Wrench, CheckCircle2, AlertTriangle, Zap, Phone
 } from "lucide-react";
 import { Link } from "wouter";
 import { useCatalog } from "@/hooks/use-catalog";
@@ -33,16 +33,73 @@ interface JobFormProps {
   onSubmit: (data: InsertJob) => void;
   isPending: boolean;
   title: string;
+  defaultCategory?: JobCategory;
 }
 
-export function JobForm({ initialData, onSubmit, isPending, title }: JobFormProps) {
+const CATEGORY_ICON_MAP: Record<string, typeof Zap> = {
+  electric: Zap,
+  camera: Camera,
+  alarm: ShieldAlert,
+  intercom: Phone,
+};
+
+function getTabsForCategory(category: JobCategory) {
+  switch (category) {
+    case "electric":
+      return { showPajisje: true, showMateriale: true, showKamera: false, showInterfon: false, showAlarm: false, showSherbime: true };
+    case "camera":
+      return { showPajisje: false, showMateriale: true, showKamera: true, showInterfon: false, showAlarm: false, showSherbime: true };
+    case "alarm":
+      return { showPajisje: false, showMateriale: true, showKamera: false, showInterfon: false, showAlarm: true, showSherbime: true };
+    case "intercom":
+      return { showPajisje: false, showMateriale: true, showKamera: false, showInterfon: true, showAlarm: false, showSherbime: true };
+    default:
+      return { showPajisje: true, showMateriale: true, showKamera: true, showInterfon: true, showAlarm: true, showSherbime: true };
+  }
+}
+
+function getChecklistsForCategory(category: JobCategory) {
+  const sections: { title: string; items: string[] }[] = [];
+  switch (category) {
+    case "electric":
+      sections.push({ title: "Checklist Elektrike", items: CHECKLIST_ELEKTRIKE });
+      break;
+    case "camera":
+      sections.push({ title: "Checklist Kamera", items: CHECKLIST_KAMERA });
+      break;
+    case "alarm":
+      sections.push({ title: "Checklist Alarm", items: CHECKLIST_ALARM });
+      break;
+    case "intercom":
+      sections.push({ title: "Checklist Interfon", items: CHECKLIST_INTERFON });
+      break;
+  }
+  sections.push({ title: "Kontroll Final", items: CHECKLIST_FINAL });
+  return sections;
+}
+
+function getWorkTypesForCategory(category: JobCategory) {
+  switch (category) {
+    case "electric": return ["Instalim i ri", "Riparim", "Tjetër"];
+    case "camera": return ["Kamera"];
+    case "alarm": return ["Alarm"];
+    case "intercom": return ["Interfon"];
+    default: return [...WORK_TYPES];
+  }
+}
+
+export function JobForm({ initialData, onSubmit, isPending, title, defaultCategory }: JobFormProps) {
   const { data: catalog } = useCatalog();
   const { toast } = useToast();
+
+  const resolvedCategory: JobCategory = (initialData?.category || defaultCategory || "electric") as JobCategory;
 
   const defaultValues: JobFormValues = initialData || {
     clientName: "", clientPhone: "", clientAddress: "",
     workDate: new Date().toISOString().split('T')[0],
-    workType: "Instalim i ri", notes: "",
+    workType: getWorkTypesForCategory(resolvedCategory)[0],
+    category: resolvedCategory,
+    notes: "",
     table1Data: {}, table2Data: {}, cameraData: {},
     intercomData: {}, alarmData: {}, serviceData: {},
     prices: {}, checklistData: {},
@@ -52,6 +109,10 @@ export function JobForm({ initialData, onSubmit, isPending, title }: JobFormProp
     resolver: zodResolver(formSchema),
     defaultValues,
   });
+
+  const category = (form.watch("category") || resolvedCategory) as JobCategory;
+  const tabVis = getTabsForCategory(category);
+  const CatIcon = CATEGORY_ICON_MAP[category] || Zap;
 
   const grouped = (catalog || []).reduce((acc: Record<string, CatalogItem[]>, item: CatalogItem) => {
     if (!acc[item.category]) acc[item.category] = [];
@@ -65,7 +126,17 @@ export function JobForm({ initialData, onSubmit, isPending, title }: JobFormProp
   const intercomItems = grouped["Interfon"] || [];
   const alarmItems = grouped["Alarm"] || [];
   const serviceItems = grouped["Punë/Shërbime"] || [];
-  const allItemNames = (catalog || []).map((c: CatalogItem) => c.name);
+
+  const getVisibleItems = () => {
+    const items: CatalogItem[] = [];
+    if (tabVis.showPajisje) items.push(...pajisjeItems);
+    if (tabVis.showMateriale) items.push(...materialItems);
+    if (tabVis.showKamera) items.push(...cameraItems);
+    if (tabVis.showInterfon) items.push(...intercomItems);
+    if (tabVis.showAlarm) items.push(...alarmItems);
+    if (tabVis.showSherbime) items.push(...serviceItems);
+    return items;
+  };
 
   const getQtyForRoomItem = (item: string) => {
     const rowData = form.watch(`table1Data.${item}`) || {};
@@ -79,17 +150,19 @@ export function JobForm({ initialData, onSubmit, isPending, title }: JobFormProp
   const calculateGrandTotal = () => {
     const data = form.getValues();
     let total = 0;
-    pajisjeItems.forEach(c => {
-      const rd = data.table1Data?.[c.name] || {};
-      const qty = Object.values(rd).reduce((a: number, b: number) => a + (b || 0), 0);
-      total += qty * (data.prices?.[c.name] || 0);
-    });
+    if (tabVis.showPajisje) {
+      pajisjeItems.forEach(c => {
+        const rd = data.table1Data?.[c.name] || {};
+        const qty = Object.values(rd).reduce((a: number, b: number) => a + (b || 0), 0);
+        total += qty * (data.prices?.[c.name] || 0);
+      });
+    }
     const sections = [
-      { items: materialItems, data: data.table2Data },
-      { items: cameraItems, data: data.cameraData },
-      { items: intercomItems, data: data.intercomData },
-      { items: alarmItems, data: data.alarmData },
-      { items: serviceItems, data: data.serviceData },
+      ...(tabVis.showMateriale ? [{ items: materialItems, data: data.table2Data }] : []),
+      ...(tabVis.showKamera ? [{ items: cameraItems, data: data.cameraData }] : []),
+      ...(tabVis.showInterfon ? [{ items: intercomItems, data: data.intercomData }] : []),
+      ...(tabVis.showAlarm ? [{ items: alarmItems, data: data.alarmData }] : []),
+      ...(tabVis.showSherbime ? [{ items: serviceItems, data: data.serviceData }] : []),
     ];
     sections.forEach(sec => {
       sec.items.forEach(c => {
@@ -103,32 +176,15 @@ export function JobForm({ initialData, onSubmit, isPending, title }: JobFormProp
   const getChecklistWarnings = () => {
     const data = form.getValues();
     const warnings: string[] = [];
-    const workType = data.workType;
-
     const checkedCount = Object.values(data.checklistData || {}).filter(Boolean).length;
     if (checkedCount === 0) {
       warnings.push("Checklist nuk eshte plotesuar");
     }
-
-    if (workType === "Kamera") {
-      const hasCameraItems = cameraItems.some(c => (data.cameraData?.[c.name] || 0) > 0);
-      if (!hasCameraItems) warnings.push("Nuk ka artikuj te kamerave te regjistruar");
-    }
-    if (workType === "Alarm") {
-      const hasAlarmItems = alarmItems.some(c => (data.alarmData?.[c.name] || 0) > 0);
-      if (!hasAlarmItems) warnings.push("Nuk ka artikuj te alarmit te regjistruar");
-    }
-    if (workType === "Interfon") {
-      const hasIntercomItems = intercomItems.some(c => (data.intercomData?.[c.name] || 0) > 0);
-      if (!hasIntercomItems) warnings.push("Nuk ka artikuj te interfonit te regjistruar");
-    }
-
     CHECKLIST_FINAL.forEach(item => {
       if (!data.checklistData?.[item]) {
         warnings.push(`Mungon: ${item}`);
       }
     });
-
     return warnings;
   };
 
@@ -150,25 +206,28 @@ export function JobForm({ initialData, onSubmit, isPending, title }: JobFormProp
     doc.text(`Tel: ${data.clientPhone || '-'}`, 14, 55);
     doc.text(`Data: ${data.workDate}`, 120, 45);
     doc.text(`Lloji: ${data.workType}`, 120, 50);
+    doc.text(`Kategoria: ${JOB_CATEGORY_LABELS[category] || category}`, 120, 55);
 
-    const t1Headers = ["Pajisja", ...ROOMS, "Total", "Cmimi", "Vlera"];
-    const t1Body = pajisjeItems.map(c => {
-      const rd = data.table1Data?.[c.name] || {};
-      const qty = Object.values(rd).reduce((a: number, b: number) => a + (b || 0), 0);
-      const price = data.prices?.[c.name] || 0;
-      return [c.name, ...ROOMS.map(r => rd[r] || ""), qty > 0 ? qty.toString() : "", price > 0 ? price.toFixed(2) : "", (qty * price) > 0 ? (qty * price).toFixed(2) : ""];
-    }).filter(row => row.some((v, i) => i > 0 && v !== ""));
+    if (tabVis.showPajisje) {
+      const t1Headers = ["Pajisja", ...ROOMS, "Total", "Cmimi", "Vlera"];
+      const t1Body = pajisjeItems.map(c => {
+        const rd = data.table1Data?.[c.name] || {};
+        const qty = Object.values(rd).reduce((a: number, b: number) => a + (b || 0), 0);
+        const price = data.prices?.[c.name] || 0;
+        return [c.name, ...ROOMS.map(r => rd[r] || ""), qty > 0 ? qty.toString() : "", price > 0 ? price.toFixed(2) : "", (qty * price) > 0 ? (qty * price).toFixed(2) : ""];
+      }).filter(row => row.some((v, i) => i > 0 && v !== ""));
 
-    if (t1Body.length > 0) {
-      autoTable(doc, { startY: 65, head: [t1Headers], body: t1Body, theme: 'grid', headStyles: { fillColor: tc, fontSize: 5 }, styles: { fontSize: 5 }, columnStyles: { 0: { fontStyle: 'bold', cellWidth: 20 } } });
+      if (t1Body.length > 0) {
+        autoTable(doc, { startY: 65, head: [t1Headers], body: t1Body, theme: 'grid', headStyles: { fillColor: tc, fontSize: 5 }, styles: { fontSize: 5 }, columnStyles: { 0: { fontStyle: 'bold', cellWidth: 20 } } });
+      }
     }
 
     const secs = [
-      { name: "Kabllo & Materiale", items: materialItems, data: data.table2Data },
-      { name: "Kamera", items: cameraItems, data: data.cameraData },
-      { name: "Interfoni", items: intercomItems, data: data.intercomData },
-      { name: "Alarmi", items: alarmItems, data: data.alarmData },
-      { name: "Pune/Sherbime", items: serviceItems, data: data.serviceData },
+      ...(tabVis.showMateriale ? [{ name: "Kabllo & Materiale", items: materialItems, data: data.table2Data }] : []),
+      ...(tabVis.showKamera ? [{ name: "Kamera", items: cameraItems, data: data.cameraData }] : []),
+      ...(tabVis.showInterfon ? [{ name: "Interfoni", items: intercomItems, data: data.intercomData }] : []),
+      ...(tabVis.showAlarm ? [{ name: "Alarmi", items: alarmItems, data: data.alarmData }] : []),
+      ...(tabVis.showSherbime ? [{ name: "Pune/Sherbime", items: serviceItems, data: data.serviceData }] : []),
     ];
 
     let hasSecondPage = false;
@@ -279,17 +338,7 @@ export function JobForm({ initialData, onSubmit, isPending, title }: JobFormProp
   );
 
   const renderChecklist = () => {
-    const workType = form.watch("workType");
-    const sections: { title: string; items: string[] }[] = [];
-
-    if (["Instalim i ri", "Riparim", "Tjetër"].includes(workType)) {
-      sections.push({ title: "Checklist Elektrike", items: CHECKLIST_ELEKTRIKE });
-    }
-    if (workType === "Kamera") sections.push({ title: "Checklist Kamera", items: CHECKLIST_KAMERA });
-    if (workType === "Alarm") sections.push({ title: "Checklist Alarm", items: CHECKLIST_ALARM });
-    if (workType === "Interfon") sections.push({ title: "Checklist Interfon", items: CHECKLIST_INTERFON });
-    sections.push({ title: "Kontroll Final", items: CHECKLIST_FINAL });
-
+    const sections = getChecklistsForCategory(category);
     return (
       <div className="space-y-4">
         {sections.map(sec => (
@@ -336,38 +385,49 @@ export function JobForm({ initialData, onSubmit, isPending, title }: JobFormProp
     );
   };
 
-  const renderPricing = () => (
-    <Card>
-      <CardContent className="pt-6">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-          {allItemNames.map(name => (
-            <div key={name} className="flex flex-col p-2 border rounded bg-muted/10">
-              <span className="text-[10px] font-bold truncate mb-1">{name}</span>
-              <FormField control={form.control} name={`prices.${name}`} render={({ field }) => (
-                <div className="flex items-center bg-background rounded border px-1">
-                  <Banknote className="w-3 h-3 text-primary mr-1" />
-                  <Input type="number" step="0.01" className="h-6 border-0 bg-transparent text-right text-xs p-0" placeholder="0.00" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} value={field.value || ""} data-testid={`price-${name}`} />
-                </div>
-              )} />
-            </div>
-          ))}
-          {allItemNames.length === 0 && <p className="text-muted-foreground col-span-full text-center text-sm py-4">Ngarko katalogun...</p>}
-        </div>
-      </CardContent>
-    </Card>
-  );
+  const renderPricing = () => {
+    const visibleItems = getVisibleItems();
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+            {visibleItems.map(c => (
+              <div key={c.id} className="flex flex-col p-2 border rounded bg-muted/10">
+                <span className="text-[10px] font-bold truncate mb-1">{c.name}</span>
+                <FormField control={form.control} name={`prices.${c.name}`} render={({ field }) => (
+                  <div className="flex items-center bg-background rounded border px-1">
+                    <Banknote className="w-3 h-3 text-primary mr-1" />
+                    <Input type="number" step="0.01" className="h-6 border-0 bg-transparent text-right text-xs p-0" placeholder="0.00" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} value={field.value || ""} data-testid={`price-${c.name}`} />
+                  </div>
+                )} />
+              </div>
+            ))}
+            {visibleItems.length === 0 && <p className="text-muted-foreground col-span-full text-center text-sm py-4">Ngarko katalogun...</p>}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  const availableWorkTypes = getWorkTypesForCategory(category);
+
+  const firstVisibleTab = "info";
 
   return (
     <div className="space-y-6 pb-20">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-card p-4 rounded-xl border shadow-sm sticky top-16 z-10 backdrop-blur-md">
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <Link href="/"><Button variant="ghost" size="icon" data-testid="button-back"><ArrowLeft /></Button></Link>
-          <h1 className="text-xl font-bold truncate">{title}</h1>
+          <div className="flex items-center gap-2 min-w-0">
+            <CatIcon className="w-5 h-5 text-primary shrink-0" />
+            <h1 className="text-xl font-bold truncate" data-testid="text-form-title">{title}</h1>
+          </div>
+          <Badge variant="outline" className="text-[10px] shrink-0" data-testid="badge-form-category">{JOB_CATEGORY_LABELS[category]}</Badge>
         </div>
         <div className="flex items-center gap-4 flex-wrap">
           <div className="text-right">
             <p className="text-xs text-muted-foreground">Vlera Totale</p>
-            <p className="text-xl font-black text-primary">{calculateGrandTotal().toFixed(2)} €</p>
+            <p className="text-xl font-black text-primary" data-testid="text-grand-total">{calculateGrandTotal().toFixed(2)} €</p>
           </div>
           <Button type="button" variant="outline" onClick={generatePDF} data-testid="button-pdf"><FileDown className="mr-2" /> PDF</Button>
           <Button type="button" onClick={() => {
@@ -383,16 +443,16 @@ export function JobForm({ initialData, onSubmit, isPending, title }: JobFormProp
 
       <Form {...form}>
         <form className="space-y-6">
-          <Tabs defaultValue="info" className="w-full">
+          <Tabs defaultValue={firstVisibleTab} className="w-full">
             <div className="overflow-x-auto pb-2">
               <TabsList className="flex w-max min-w-full bg-muted/50 p-1 rounded-xl">
                 <TabsTrigger value="info" className="gap-2" data-testid="tab-info"><Info className="w-4 h-4" /> Klienti</TabsTrigger>
-                <TabsTrigger value="pajisje" className="gap-2" data-testid="tab-pajisje"><Package className="w-4 h-4" /> Pajisje</TabsTrigger>
-                <TabsTrigger value="materiale" className="gap-2" data-testid="tab-materiale"><Settings className="w-4 h-4" /> Materiale</TabsTrigger>
-                <TabsTrigger value="kamera" className="gap-2" data-testid="tab-kamera"><Camera className="w-4 h-4" /> Kamera</TabsTrigger>
-                <TabsTrigger value="interfon" className="gap-2" data-testid="tab-interfon"><PhoneCall className="w-4 h-4" /> Interfon</TabsTrigger>
-                <TabsTrigger value="alarm" className="gap-2" data-testid="tab-alarm"><ShieldAlert className="w-4 h-4" /> Alarm</TabsTrigger>
-                <TabsTrigger value="sherbime" className="gap-2" data-testid="tab-sherbime"><Wrench className="w-4 h-4" /> Shërbime</TabsTrigger>
+                {tabVis.showPajisje && <TabsTrigger value="pajisje" className="gap-2" data-testid="tab-pajisje"><Package className="w-4 h-4" /> Pajisje</TabsTrigger>}
+                {tabVis.showMateriale && <TabsTrigger value="materiale" className="gap-2" data-testid="tab-materiale"><Settings className="w-4 h-4" /> Materiale</TabsTrigger>}
+                {tabVis.showKamera && <TabsTrigger value="kamera" className="gap-2" data-testid="tab-kamera"><Camera className="w-4 h-4" /> Kamera</TabsTrigger>}
+                {tabVis.showInterfon && <TabsTrigger value="interfon" className="gap-2" data-testid="tab-interfon"><PhoneCall className="w-4 h-4" /> Interfon</TabsTrigger>}
+                {tabVis.showAlarm && <TabsTrigger value="alarm" className="gap-2" data-testid="tab-alarm"><ShieldAlert className="w-4 h-4" /> Alarm</TabsTrigger>}
+                {tabVis.showSherbime && <TabsTrigger value="sherbime" className="gap-2" data-testid="tab-sherbime"><Wrench className="w-4 h-4" /> Shërbime</TabsTrigger>}
                 <TabsTrigger value="checklist" className="gap-2" data-testid="tab-checklist"><CheckCircle2 className="w-4 h-4" /> Checklist</TabsTrigger>
                 <TabsTrigger value="cmimet" className="gap-2" data-testid="tab-cmimet"><Banknote className="w-4 h-4" /> Çmimet</TabsTrigger>
               </TabsList>
@@ -410,7 +470,7 @@ export function JobForm({ initialData, onSubmit, isPending, title }: JobFormProp
                     )} />
                   </div>
                   <FormField control={form.control} name="clientAddress" render={({ field }) => (
-                    <FormItem><FormLabel>Adresa</FormLabel><FormControl><Input {...field} data-testid="input-client-address" /></FormControl></FormItem>
+                    <FormItem><FormLabel>Adresa</FormLabel><FormControl><Input {...field} data-testid="input-client-address" /></FormControl><FormMessage /></FormItem>
                   )} />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField control={form.control} name="workDate" render={({ field }) => (
@@ -421,7 +481,9 @@ export function JobForm({ initialData, onSubmit, isPending, title }: JobFormProp
                         <FormLabel>Lloji i Punes</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl><SelectTrigger data-testid="select-work-type"><SelectValue /></SelectTrigger></FormControl>
-                          <SelectContent>{WORK_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                          <SelectContent>
+                            {availableWorkTypes.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                          </SelectContent>
                         </Select>
                       </FormItem>
                     )} />
@@ -433,12 +495,12 @@ export function JobForm({ initialData, onSubmit, isPending, title }: JobFormProp
               </Card>
             </TabsContent>
 
-            <TabsContent value="pajisje">{renderRoomTable()}</TabsContent>
-            <TabsContent value="materiale">{renderSimpleSection(materialItems, "table2Data")}</TabsContent>
-            <TabsContent value="kamera">{renderSimpleSection(cameraItems, "cameraData")}</TabsContent>
-            <TabsContent value="interfon">{renderSimpleSection(intercomItems, "intercomData")}</TabsContent>
-            <TabsContent value="alarm">{renderSimpleSection(alarmItems, "alarmData")}</TabsContent>
-            <TabsContent value="sherbime">{renderSimpleSection(serviceItems, "serviceData")}</TabsContent>
+            {tabVis.showPajisje && <TabsContent value="pajisje">{renderRoomTable()}</TabsContent>}
+            {tabVis.showMateriale && <TabsContent value="materiale">{renderSimpleSection(materialItems, "table2Data")}</TabsContent>}
+            {tabVis.showKamera && <TabsContent value="kamera">{renderSimpleSection(cameraItems, "cameraData")}</TabsContent>}
+            {tabVis.showInterfon && <TabsContent value="interfon">{renderSimpleSection(intercomItems, "intercomData")}</TabsContent>}
+            {tabVis.showAlarm && <TabsContent value="alarm">{renderSimpleSection(alarmItems, "alarmData")}</TabsContent>}
+            {tabVis.showSherbime && <TabsContent value="sherbime">{renderSimpleSection(serviceItems, "serviceData")}</TabsContent>}
             <TabsContent value="checklist">{renderChecklist()}</TabsContent>
             <TabsContent value="cmimet">{renderPricing()}</TabsContent>
           </Tabs>
