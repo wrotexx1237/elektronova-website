@@ -1,11 +1,14 @@
 import { Link, useLocation } from "wouter";
-import { Zap, LayoutDashboard, PlusCircle, Menu, X, Package } from "lucide-react";
+import { Zap, LayoutDashboard, PlusCircle, Menu, X, Package, Shield, ShieldOff } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { useAdmin } from "@/hooks/use-admin";
+import { Badge } from "@/components/ui/badge";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { isAdmin, toggleAdmin } = useAdmin();
 
   const navItems = [
     { label: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -15,9 +18,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between gap-2">
           <Link href="/" className="flex items-center gap-2 group">
             <div className="bg-primary/10 p-2 rounded-lg group-hover:bg-primary/20 transition-colors">
               <Zap className="h-6 w-6 text-primary" />
@@ -25,7 +27,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <span className="font-display font-bold text-xl tracking-tight">Elektronova</span>
           </Link>
 
-          {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-6">
             {navItems.map((item) => (
               <Link 
@@ -42,16 +43,30 @@ export function Layout({ children }: { children: React.ReactNode }) {
             ))}
           </nav>
 
-          {/* Mobile Menu Toggle */}
-          <button 
-            className="md:hidden p-2 text-foreground"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? <X /> : <Menu />}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={toggleAdmin}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors border",
+                isAdmin
+                  ? "bg-amber-500/10 text-amber-600 border-amber-500/30"
+                  : "bg-muted/50 text-muted-foreground border-transparent hover:border-border"
+              )}
+              data-testid="button-admin-toggle"
+            >
+              {isAdmin ? <Shield className="h-3.5 w-3.5" /> : <ShieldOff className="h-3.5 w-3.5" />}
+              {isAdmin ? "Admin" : "User"}
+            </button>
+
+            <button 
+              className="md:hidden p-2 text-foreground"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? <X /> : <Menu />}
+            </button>
+          </div>
         </div>
 
-        {/* Mobile Nav */}
         {mobileMenuOpen && (
           <div className="md:hidden border-t bg-background p-4 flex flex-col gap-4 shadow-lg animate-in slide-in-from-top-5">
             {navItems.map((item) => (
@@ -72,15 +87,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
         )}
       </header>
 
-      {/* Main Content */}
       <main className="flex-1 container mx-auto px-4 py-8">
         {children}
       </main>
 
-      {/* Footer */}
       <footer className="border-t py-6 bg-muted/30 mt-auto">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} Elektronova. Të gjitha të drejtat e rezervuara.</p>
+          <p>&copy; {new Date().getFullYear()} Elektronova. Të gjitha të drejtat e rezervuara.</p>
         </div>
       </footer>
     </div>

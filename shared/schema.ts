@@ -100,7 +100,7 @@ export const catalogItems = pgTable("catalog_items", {
   name: text("name").notNull(),
   unit: text("unit").notNull().default("copë"),
   purchasePrice: real("purchase_price").default(0),
-  servicePrice: real("service_price").default(0),
+  salePrice: real("sale_price").default(0),
   notes: text("notes"),
   sortOrder: integer("sort_order").default(0),
   createdAt: timestamp("created_at").defaultNow(),
@@ -133,6 +133,7 @@ export const jobs = pgTable("jobs", {
   serviceData: jsonb("service_data").$type<Record<string, number>>().notNull().default({}),
 
   prices: jsonb("prices").$type<Record<string, number>>().notNull().default({}),
+  purchasePrices: jsonb("purchase_prices").$type<Record<string, number>>().notNull().default({}),
   checklistData: jsonb("checklist_data").$type<Record<string, boolean>>().notNull().default({}),
 
   createdAt: timestamp("created_at").defaultNow(),
@@ -154,6 +155,7 @@ export const insertJobSchema = z.object({
   alarmData: z.record(z.string(), z.number()).optional().default({}),
   serviceData: z.record(z.string(), z.number()).optional().default({}),
   prices: z.record(z.string(), z.number()).optional().default({}),
+  purchasePrices: z.record(z.string(), z.number()).optional().default({}),
   checklistData: z.record(z.string(), z.boolean()).optional().default({}),
 });
 

@@ -3,6 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AdminContext, useAdminState } from "@/hooks/use-admin";
 import Dashboard from "@/pages/dashboard";
 import CreateJob from "@/pages/create-job";
 import EditJob from "@/pages/edit-job";
@@ -22,11 +23,15 @@ function Router() {
 }
 
 function App() {
+  const adminState = useAdminState();
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Router />
+        <AdminContext.Provider value={adminState}>
+          <Toaster />
+          <Router />
+        </AdminContext.Provider>
       </TooltipProvider>
     </QueryClientProvider>
   );

@@ -16,12 +16,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import {
   Save, FileDown, ArrowLeft, Loader2, Banknote, Camera, PhoneCall,
-  Package, Info, Settings, ShieldAlert, Wrench, CheckCircle2, AlertTriangle, Zap, Phone
+  Package, Info, Settings, ShieldAlert, Wrench, CheckCircle2, AlertTriangle, Zap, Phone,
+  ChevronDown, ShoppingCart, FileText, Eye, EyeOff
 } from "lucide-react";
 import { Link } from "wouter";
 import { useCatalog } from "@/hooks/use-catalog";
+import { useAdmin } from "@/hooks/use-admin";
 import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -88,9 +94,19 @@ function getWorkTypesForCategory(category: JobCategory) {
   }
 }
 
+interface ItemQtyInfo {
+  name: string;
+  unit: string;
+  qty: number;
+  salePrice: number;
+  purchasePrice: number;
+}
+
 export function JobForm({ initialData, onSubmit, isPending, title, defaultCategory }: JobFormProps) {
   const { data: catalog } = useCatalog();
   const { toast } = useToast();
+  const { isAdmin } = useAdmin();
+  const [showCost, setShowCost] = useState(false);
 
   const resolvedCategory: JobCategory = (initialData?.category || defaultCategory || "electric") as JobCategory;
 
@@ -102,7 +118,7 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
     notes: "",
     table1Data: {}, table2Data: {}, cameraData: {},
     intercomData: {}, alarmData: {}, serviceData: {},
-    prices: {}, checklistData: {},
+    prices: {}, purchasePrices: {}, checklistData: {},
   };
 
   const form = useForm<JobFormValues>({
@@ -127,6 +143,30 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
   const alarmItems = grouped["Alarm"] || [];
   const serviceItems = grouped["Punë/Shërbime"] || [];
 
+  useEffect(() => {
+    if (!catalog || catalog.length === 0) return;
+    const currentPrices = form.getValues("prices") || {};
+    const currentPurchasePrices = form.getValues("purchasePrices") || {};
+    let salePricesChanged = false;
+    let purchasePricesChanged = false;
+    const newSalePrices = { ...currentPrices };
+    const newPurchasePrices = { ...currentPurchasePrices };
+
+    catalog.forEach((item: CatalogItem) => {
+      if (!(item.name in newSalePrices) && item.salePrice && item.salePrice > 0) {
+        newSalePrices[item.name] = item.salePrice;
+        salePricesChanged = true;
+      }
+      if (!(item.name in newPurchasePrices) && item.purchasePrice && item.purchasePrice > 0) {
+        newPurchasePrices[item.name] = item.purchasePrice;
+        purchasePricesChanged = true;
+      }
+    });
+
+    if (salePricesChanged) form.setValue("prices", newSalePrices);
+    if (purchasePricesChanged) form.setValue("purchasePrices", newPurchasePrices);
+  }, [catalog]);
+
   const getVisibleItems = () => {
     const items: CatalogItem[] = [];
     if (tabVis.showPajisje) items.push(...pajisjeItems);
@@ -147,16 +187,18 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
     return (form.watch as any)(`${field}.${item}`) || 0;
   };
 
-  const calculateGrandTotal = () => {
+  const getAllItemsWithQty = (): ItemQtyInfo[] => {
     const data = form.getValues();
-    let total = 0;
+    const result: ItemQtyInfo[] = [];
+
     if (tabVis.showPajisje) {
       pajisjeItems.forEach(c => {
         const rd = data.table1Data?.[c.name] || {};
         const qty = Object.values(rd).reduce((a: number, b: number) => a + (b || 0), 0);
-        total += qty * (data.prices?.[c.name] || 0);
+        if (qty > 0) result.push({ name: c.name, unit: c.unit, qty, salePrice: data.prices?.[c.name] || 0, purchasePrice: data.purchasePrices?.[c.name] || 0 });
       });
     }
+
     const sections = [
       ...(tabVis.showMateriale ? [{ items: materialItems, data: data.table2Data }] : []),
       ...(tabVis.showKamera ? [{ items: cameraItems, data: data.cameraData }] : []),
@@ -167,10 +209,18 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
     sections.forEach(sec => {
       sec.items.forEach(c => {
         const qty = sec.data?.[c.name] || 0;
-        total += qty * (data.prices?.[c.name] || 0);
+        if (qty > 0) result.push({ name: c.name, unit: c.unit, qty, salePrice: data.prices?.[c.name] || 0, purchasePrice: data.purchasePrices?.[c.name] || 0 });
       });
     });
-    return total;
+
+    return result;
+  };
+
+  const calculateTotals = () => {
+    const items = getAllItemsWithQty();
+    const totalSale = items.reduce((sum, i) => sum + i.qty * i.salePrice, 0);
+    const totalPurchase = items.reduce((sum, i) => sum + i.qty * i.purchasePrice, 0);
+    return { totalSale, totalPurchase, profit: totalSale - totalPurchase };
   };
 
   const getChecklistWarnings = () => {
@@ -188,91 +238,172 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
     return warnings;
   };
 
-  const generatePDF = () => {
-    const data = form.getValues();
-    const doc = new jsPDF();
+  const addPDFHeader = (doc: jsPDF) => {
     const tc: [number, number, number] = [41, 128, 185];
     const pageW = doc.internal.pageSize.width;
-
     doc.setFontSize(22); doc.setTextColor(tc[0], tc[1], tc[2]); doc.setFont("helvetica", "bold");
-    doc.text("ELEKTRONOVA", pageW / 2, 20, { align: "center" });
-    doc.setFontSize(12); doc.setFont("helvetica", "normal");
-    doc.text("Procesverbal i Punimeve", pageW / 2, 28, { align: "center" });
-    doc.setDrawColor(200); doc.line(14, 35, pageW - 14, 35);
+    doc.text("ELEKTRONOVA", pageW / 2, 18, { align: "center" });
+    doc.setFontSize(9); doc.setFont("helvetica", "normal"); doc.setTextColor(100);
+    doc.text("Punime Elektrike | Tel: +383 4X XXX XXX", pageW / 2, 24, { align: "center" });
+    doc.setDrawColor(41, 128, 185); doc.setLineWidth(0.5);
+    doc.line(14, 28, pageW - 14, 28);
+  };
 
-    doc.setFontSize(10); doc.setTextColor(0);
-    doc.text(`Klienti: ${data.clientName}`, 14, 45);
-    doc.text(`Adresa: ${data.clientAddress}`, 14, 50);
-    doc.text(`Tel: ${data.clientPhone || '-'}`, 14, 55);
-    doc.text(`Data: ${data.workDate}`, 120, 45);
-    doc.text(`Lloji: ${data.workType}`, 120, 50);
-    doc.text(`Kategoria: ${JOB_CATEGORY_LABELS[category] || category}`, 120, 55);
+  const addPDFFooter = (doc: jsPDF, pageNum: number, totalPages: number) => {
+    const pageW = doc.internal.pageSize.width;
+    const pageH = doc.internal.pageSize.height;
+    doc.setDrawColor(200); doc.setLineWidth(0.3);
+    doc.line(14, pageH - 15, pageW - 14, pageH - 15);
+    doc.setFontSize(7); doc.setTextColor(140); doc.setFont("helvetica", "normal");
+    doc.text("Punime elektrike - Procesverbal materiali", 14, pageH - 10);
+    doc.text(`Faqja ${pageNum} / ${totalPages}`, pageW - 14, pageH - 10, { align: "right" });
+  };
 
-    if (tabVis.showPajisje) {
-      const t1Headers = ["Pajisja", ...ROOMS, "Total", "Cmimi", "Vlera"];
-      const t1Body = pajisjeItems.map(c => {
-        const rd = data.table1Data?.[c.name] || {};
-        const qty = Object.values(rd).reduce((a: number, b: number) => a + (b || 0), 0);
-        const price = data.prices?.[c.name] || 0;
-        return [c.name, ...ROOMS.map(r => rd[r] || ""), qty > 0 ? qty.toString() : "", price > 0 ? price.toFixed(2) : "", (qty * price) > 0 ? (qty * price).toFixed(2) : ""];
-      }).filter(row => row.some((v, i) => i > 0 && v !== ""));
+  const addSignatures = (doc: jsPDF) => {
+    const signY = doc.internal.pageSize.height - 40;
+    doc.setDrawColor(150); doc.setLineWidth(0.3);
+    doc.line(20, signY, 85, signY); doc.line(125, signY, 190, signY);
+    doc.setFontSize(9); doc.setTextColor(80); doc.setFont("helvetica", "normal");
+    doc.text("Nenshkrimi i Klientit", 35, signY + 6);
+    doc.text("Punekryeresi (Elektronova)", 130, signY + 6);
+  };
 
-      if (t1Body.length > 0) {
-        autoTable(doc, { startY: 65, head: [t1Headers], body: t1Body, theme: 'grid', headStyles: { fillColor: tc, fontSize: 5 }, styles: { fontSize: 5 }, columnStyles: { 0: { fontStyle: 'bold', cellWidth: 20 } } });
-      }
-    }
+  const generateClientPDF = () => {
+    const data = form.getValues();
+    const items = getAllItemsWithQty();
+    const { totalSale } = calculateTotals();
+    const tc: [number, number, number] = [41, 128, 185];
+    const doc = new jsPDF();
+    const pageW = doc.internal.pageSize.width;
 
-    const secs = [
-      ...(tabVis.showMateriale ? [{ name: "Kabllo & Materiale", items: materialItems, data: data.table2Data }] : []),
-      ...(tabVis.showKamera ? [{ name: "Kamera", items: cameraItems, data: data.cameraData }] : []),
-      ...(tabVis.showInterfon ? [{ name: "Interfoni", items: intercomItems, data: data.intercomData }] : []),
-      ...(tabVis.showAlarm ? [{ name: "Alarmi", items: alarmItems, data: data.alarmData }] : []),
-      ...(tabVis.showSherbime ? [{ name: "Pune/Sherbime", items: serviceItems, data: data.serviceData }] : []),
-    ];
+    addPDFHeader(doc);
 
-    let hasSecondPage = false;
-    secs.forEach(sec => {
-      const body = sec.items.map(c => {
-        const qty = sec.data?.[c.name] || 0;
-        const price = data.prices?.[c.name] || 0;
-        return [c.name, qty > 0 ? `${qty} ${c.unit}` : "", price > 0 ? price.toFixed(2) : "", (qty * price) > 0 ? (qty * price).toFixed(2) : ""];
-      }).filter(r => r[1] !== "");
+    doc.setFontSize(14); doc.setTextColor(0); doc.setFont("helvetica", "bold");
+    doc.text("FATURE / OFERTE", pageW / 2, 38, { align: "center" });
 
-      if (body.length > 0) {
-        if (!hasSecondPage) { doc.addPage(); hasSecondPage = true; }
-        const curY = (doc as any).lastAutoTable?.finalY ? (doc as any).lastAutoTable.finalY + 10 : 20;
-        doc.setFontSize(11); doc.setTextColor(tc[0], tc[1], tc[2]); doc.setFont("helvetica", "bold");
-        doc.text(sec.name, 14, curY);
-        autoTable(doc, { startY: curY + 3, head: [["Artikulli", "Sasia", "Cmimi", "Vlera"]], body, theme: 'striped', headStyles: { fillColor: tc }, styles: { fontSize: 9 } });
-      }
-    });
+    doc.setFontSize(10); doc.setFont("helvetica", "normal"); doc.setTextColor(0);
+    doc.text(`Klienti: ${data.clientName}`, 14, 48);
+    doc.text(`Adresa: ${data.clientAddress}`, 14, 53);
+    doc.text(`Tel: ${data.clientPhone || '-'}`, 14, 58);
+    doc.text(`Data: ${data.workDate}`, pageW - 60, 48);
+    doc.text(`Lloji: ${data.workType}`, pageW - 60, 53);
+    doc.text(`Kategoria: ${JOB_CATEGORY_LABELS[category] || category}`, pageW - 60, 58);
 
-    const finalY = (doc as any).lastAutoTable?.finalY ? (doc as any).lastAutoTable.finalY + 15 : doc.internal.pageSize.height - 60;
-    doc.setFontSize(13); doc.setTextColor(0); doc.setFont("helvetica", "bold");
-    doc.text(`Totali: ${calculateGrandTotal().toFixed(2)} EUR`, 14, finalY);
+    if (items.length > 0) {
+      let nr = 1;
+      const body = items.map(i => [
+        (nr++).toString(),
+        i.name,
+        i.unit,
+        i.qty.toString(),
+        i.salePrice > 0 ? i.salePrice.toFixed(2) : "-",
+        (i.qty * i.salePrice) > 0 ? (i.qty * i.salePrice).toFixed(2) : "-",
+      ]);
 
-    const checkedItems = Object.entries(data.checklistData || {}).filter(([, v]) => v).map(([k]) => k);
-    if (checkedItems.length > 0) {
-      const clY = finalY + 10;
-      doc.setFontSize(10); doc.setFont("helvetica", "bold");
-      doc.text("Checklist:", 14, clY);
-      doc.setFont("helvetica", "normal"); doc.setFontSize(8);
-      checkedItems.forEach((item, i) => {
-        doc.text(`[x] ${item}`, 16, clY + 5 + i * 4);
+      autoTable(doc, {
+        startY: 65,
+        head: [["Nr.", "Pershkrimi", "Njesia", "Sasia", "Cmimi (EUR)", "Totali (EUR)"]],
+        body,
+        theme: 'striped',
+        headStyles: { fillColor: tc, fontSize: 9, fontStyle: 'bold' },
+        styles: { fontSize: 8, cellPadding: 3 },
+        alternateRowStyles: { fillColor: [245, 249, 252] },
+        columnStyles: {
+          0: { cellWidth: 12, halign: 'center' },
+          1: { cellWidth: 60 },
+          2: { cellWidth: 20, halign: 'center' },
+          3: { cellWidth: 18, halign: 'center' },
+          4: { cellWidth: 28, halign: 'right' },
+          5: { cellWidth: 28, halign: 'right', fontStyle: 'bold' },
+        },
       });
     }
 
-    const signY = doc.internal.pageSize.height - 30;
-    doc.setDrawColor(150);
-    doc.line(20, signY, 80, signY); doc.line(130, signY, 190, signY);
-    doc.setFontSize(9); doc.setTextColor(80);
-    doc.text("Klienti", 45, signY + 5); doc.text("Elektronova", 155, signY + 5);
+    const finalY = (doc as any).lastAutoTable?.finalY ? (doc as any).lastAutoTable.finalY + 10 : 80;
+    doc.setFontSize(12); doc.setTextColor(0); doc.setFont("helvetica", "bold");
+    doc.text(`TOTALI: ${totalSale.toFixed(2)} EUR`, pageW - 14, finalY, { align: "right" });
 
     if (data.notes) {
-      doc.setFontSize(8); doc.text(`Shenime: ${data.notes}`, 14, signY + 15);
+      doc.setFontSize(8); doc.setFont("helvetica", "normal"); doc.setTextColor(80);
+      doc.text(`Shenime: ${data.notes}`, 14, finalY + 10);
     }
 
-    doc.save(`Elektronova_${data.clientName.replace(/\s/g, '_')}_${data.workDate}.pdf`);
+    addSignatures(doc);
+
+    const totalPages = doc.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      addPDFFooter(doc, i, totalPages);
+    }
+
+    doc.save(`Elektronova_Fature_${data.clientName.replace(/\s/g, '_')}_${data.workDate}.pdf`);
+    toast({ title: "PDF per Klient u gjenerua!" });
+  };
+
+  const generatePurchasePDF = () => {
+    const data = form.getValues();
+    const items = getAllItemsWithQty();
+    const { totalPurchase } = calculateTotals();
+    const tc: [number, number, number] = [44, 62, 80];
+    const doc = new jsPDF();
+    const pageW = doc.internal.pageSize.width;
+
+    addPDFHeader(doc);
+
+    doc.setFontSize(14); doc.setTextColor(0); doc.setFont("helvetica", "bold");
+    doc.text("LISTA E BLERJES", pageW / 2, 38, { align: "center" });
+    doc.setFontSize(9); doc.setFont("helvetica", "normal"); doc.setTextColor(100);
+    doc.text(`Per punen: ${data.clientName} - ${data.workDate}`, pageW / 2, 44, { align: "center" });
+
+    if (items.length > 0) {
+      let nr = 1;
+      const body = items.map(i => [
+        (nr++).toString(),
+        i.name,
+        i.unit,
+        i.qty.toString(),
+        i.purchasePrice > 0 ? i.purchasePrice.toFixed(2) : "-",
+        (i.qty * i.purchasePrice) > 0 ? (i.qty * i.purchasePrice).toFixed(2) : "-",
+      ]);
+
+      autoTable(doc, {
+        startY: 52,
+        head: [["Nr.", "Artikulli", "Njesia", "Sasia", "Cmimi Blerjes", "Totali Kosto"]],
+        body,
+        theme: 'striped',
+        headStyles: { fillColor: tc, fontSize: 9, fontStyle: 'bold' },
+        styles: { fontSize: 8, cellPadding: 3 },
+        alternateRowStyles: { fillColor: [240, 240, 240] },
+        columnStyles: {
+          0: { cellWidth: 12, halign: 'center' },
+          1: { cellWidth: 60 },
+          2: { cellWidth: 20, halign: 'center' },
+          3: { cellWidth: 18, halign: 'center' },
+          4: { cellWidth: 28, halign: 'right' },
+          5: { cellWidth: 28, halign: 'right', fontStyle: 'bold' },
+        },
+      });
+    }
+
+    const finalY = (doc as any).lastAutoTable?.finalY ? (doc as any).lastAutoTable.finalY + 10 : 70;
+    doc.setFontSize(12); doc.setTextColor(0); doc.setFont("helvetica", "bold");
+    doc.text(`TOTALI KOSTOS: ${totalPurchase.toFixed(2)} EUR`, pageW - 14, finalY, { align: "right" });
+
+    doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.setTextColor(0);
+    doc.text("Shenime per furnizim:", 14, finalY + 15);
+    doc.setDrawColor(200); doc.setLineWidth(0.2);
+    for (let i = 0; i < 5; i++) {
+      doc.line(14, finalY + 22 + i * 8, pageW - 14, finalY + 22 + i * 8);
+    }
+
+    const totalPages = doc.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      addPDFFooter(doc, i, totalPages);
+    }
+
+    doc.save(`Elektronova_Blerje_${data.clientName.replace(/\s/g, '_')}_${data.workDate}.pdf`);
+    toast({ title: "PDF per Blerje u gjenerua!" });
   };
 
   const renderRoomTable = () => (
@@ -387,31 +518,93 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
 
   const renderPricing = () => {
     const visibleItems = getVisibleItems();
+    const totals = calculateTotals();
     return (
-      <Card>
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-            {visibleItems.map(c => (
-              <div key={c.id} className="flex flex-col p-2 border rounded bg-muted/10">
-                <span className="text-[10px] font-bold truncate mb-1">{c.name}</span>
-                <FormField control={form.control} name={`prices.${c.name}`} render={({ field }) => (
-                  <div className="flex items-center bg-background rounded border px-1">
-                    <Banknote className="w-3 h-3 text-primary mr-1" />
-                    <Input type="number" step="0.01" className="h-6 border-0 bg-transparent text-right text-xs p-0" placeholder="0.00" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} value={field.value || ""} data-testid={`price-${c.name}`} />
-                  </div>
-                )} />
-              </div>
-            ))}
-            {visibleItems.length === 0 && <p className="text-muted-foreground col-span-full text-center text-sm py-4">Ngarko katalogun...</p>}
+      <div className="space-y-4">
+        {isAdmin && (
+          <div className="flex items-center justify-between p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+            <span className="text-sm font-bold text-amber-700">Pamja e Kostos (Admin)</span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowCost(!showCost)}
+              data-testid="button-toggle-cost"
+            >
+              {showCost ? <EyeOff className="w-4 h-4 mr-1" /> : <Eye className="w-4 h-4 mr-1" />}
+              {showCost ? "Fshih Koston" : "Shfaq Koston"}
+            </Button>
           </div>
-        </CardContent>
-      </Card>
+        )}
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="hidden sm:grid grid-cols-12 gap-2 p-2 text-xs font-bold text-muted-foreground border-b mb-2">
+              <span className="col-span-4">Artikulli</span>
+              <span className="col-span-3">Cmimi Shitjes (EUR)</span>
+              {showCost && isAdmin && <span className="col-span-3">Cmimi Blerjes (EUR)</span>}
+              {!showCost && <span className="col-span-3"></span>}
+              <span className="col-span-2"></span>
+            </div>
+            <div className="space-y-1">
+              {visibleItems.map(c => (
+                <div key={c.id} className="grid grid-cols-12 gap-2 items-center p-2 rounded hover:bg-muted/20">
+                  <span className="col-span-4 text-xs font-bold truncate">{c.name}</span>
+                  <div className="col-span-3">
+                    <FormField control={form.control} name={`prices.${c.name}`} render={({ field }) => (
+                      <div className="flex items-center bg-background rounded border px-1">
+                        <Banknote className="w-3 h-3 text-primary mr-1 shrink-0" />
+                        <Input type="number" step="0.01" className="h-7 border-0 bg-transparent text-right text-xs p-0" placeholder="0.00" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} value={field.value || ""} data-testid={`price-sale-${c.name}`} />
+                      </div>
+                    )} />
+                  </div>
+                  {showCost && isAdmin && (
+                    <div className="col-span-3">
+                      <FormField control={form.control} name={`purchasePrices.${c.name}`} render={({ field }) => (
+                        <div className="flex items-center bg-amber-50 dark:bg-amber-950/20 rounded border border-amber-200 dark:border-amber-800 px-1">
+                          <ShoppingCart className="w-3 h-3 text-amber-600 mr-1 shrink-0" />
+                          <Input type="number" step="0.01" className="h-7 border-0 bg-transparent text-right text-xs p-0" placeholder="0.00" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} value={(field.value as any) || ""} data-testid={`price-purchase-${c.name}`} />
+                        </div>
+                      )} />
+                    </div>
+                  )}
+                  {!showCost && <div className="col-span-3"></div>}
+                  <div className="col-span-2"></div>
+                </div>
+              ))}
+            </div>
+            {visibleItems.length === 0 && <p className="text-muted-foreground text-center text-sm py-4">Ngarko katalogun...</p>}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-4">
+            <div className="flex flex-col gap-2">
+              <div className="flex justify-between items-center py-2 border-b">
+                <span className="text-sm font-bold">Totali Shitjes:</span>
+                <span className="text-lg font-black text-primary" data-testid="text-total-sale">{totals.totalSale.toFixed(2)} EUR</span>
+              </div>
+              {showCost && isAdmin && (
+                <>
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="text-sm font-bold text-amber-600">Totali Kostos:</span>
+                    <span className="text-lg font-black text-amber-600" data-testid="text-total-purchase">{totals.totalPurchase.toFixed(2)} EUR</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2">
+                    <span className="text-sm font-bold text-green-600">Fitimi:</span>
+                    <span className="text-lg font-black text-green-600" data-testid="text-profit">{totals.profit.toFixed(2)} EUR</span>
+                  </div>
+                </>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     );
   };
 
   const availableWorkTypes = getWorkTypesForCategory(category);
-
-  const firstVisibleTab = "info";
+  const totals = calculateTotals();
 
   return (
     <div className="space-y-6 pb-20">
@@ -424,16 +617,35 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
           </div>
           <Badge variant="outline" className="text-[10px] shrink-0" data-testid="badge-form-category">{JOB_CATEGORY_LABELS[category]}</Badge>
         </div>
-        <div className="flex items-center gap-4 flex-wrap">
+        <div className="flex items-center gap-3 flex-wrap">
           <div className="text-right">
             <p className="text-xs text-muted-foreground">Vlera Totale</p>
-            <p className="text-xl font-black text-primary" data-testid="text-grand-total">{calculateGrandTotal().toFixed(2)} €</p>
+            <p className="text-xl font-black text-primary" data-testid="text-grand-total">{totals.totalSale.toFixed(2)} €</p>
+            {isAdmin && showCost && (
+              <p className="text-xs font-bold text-green-600" data-testid="text-header-profit">Fitimi: {totals.profit.toFixed(2)} €</p>
+            )}
           </div>
-          <Button type="button" variant="outline" onClick={generatePDF} data-testid="button-pdf"><FileDown className="mr-2" /> PDF</Button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button type="button" variant="outline" data-testid="button-pdf-dropdown">
+                <FileDown className="mr-2" /> PDF <ChevronDown className="ml-1 w-3 h-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={generateClientPDF} data-testid="button-pdf-client">
+                <FileText className="mr-2 w-4 h-4" /> PDF per Klient (Fature/Oferte)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={generatePurchasePDF} data-testid="button-pdf-purchase">
+                <ShoppingCart className="mr-2 w-4 h-4" /> PDF per Blerje (Lista ime)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <Button type="button" onClick={() => {
             form.handleSubmit(onSubmit, (errors) => {
               const errorFields = Object.keys(errors);
-              toast({ title: "Plotëso fushat e detyrueshme", description: `Kthehu te tab-i "Klienti" dhe plotëso: ${errorFields.join(', ')}`, variant: "destructive" });
+              toast({ title: "Ploteso fushat e detyrueshme", description: `Kthehu te tab-i "Klienti" dhe ploteso: ${errorFields.join(', ')}`, variant: "destructive" });
             })();
           }} disabled={isPending} data-testid="button-save">
             {isPending ? <Loader2 className="animate-spin" /> : <Save className="mr-2" />} Ruaj
@@ -443,7 +655,7 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
 
       <Form {...form}>
         <form className="space-y-6">
-          <Tabs defaultValue={firstVisibleTab} className="w-full">
+          <Tabs defaultValue="info" className="w-full">
             <div className="overflow-x-auto pb-2">
               <TabsList className="flex w-max min-w-full bg-muted/50 p-1 rounded-xl">
                 <TabsTrigger value="info" className="gap-2" data-testid="tab-info"><Info className="w-4 h-4" /> Klienti</TabsTrigger>
@@ -452,9 +664,9 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
                 {tabVis.showKamera && <TabsTrigger value="kamera" className="gap-2" data-testid="tab-kamera"><Camera className="w-4 h-4" /> Kamera</TabsTrigger>}
                 {tabVis.showInterfon && <TabsTrigger value="interfon" className="gap-2" data-testid="tab-interfon"><PhoneCall className="w-4 h-4" /> Interfon</TabsTrigger>}
                 {tabVis.showAlarm && <TabsTrigger value="alarm" className="gap-2" data-testid="tab-alarm"><ShieldAlert className="w-4 h-4" /> Alarm</TabsTrigger>}
-                {tabVis.showSherbime && <TabsTrigger value="sherbime" className="gap-2" data-testid="tab-sherbime"><Wrench className="w-4 h-4" /> Shërbime</TabsTrigger>}
+                {tabVis.showSherbime && <TabsTrigger value="sherbime" className="gap-2" data-testid="tab-sherbime"><Wrench className="w-4 h-4" /> Sherbime</TabsTrigger>}
                 <TabsTrigger value="checklist" className="gap-2" data-testid="tab-checklist"><CheckCircle2 className="w-4 h-4" /> Checklist</TabsTrigger>
-                <TabsTrigger value="cmimet" className="gap-2" data-testid="tab-cmimet"><Banknote className="w-4 h-4" /> Çmimet</TabsTrigger>
+                <TabsTrigger value="cmimet" className="gap-2" data-testid="tab-cmimet"><Banknote className="w-4 h-4" /> Cmimet</TabsTrigger>
               </TabsList>
             </div>
 
@@ -479,7 +691,7 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
                     <FormField control={form.control} name="workType" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Lloji i Punes</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl><SelectTrigger data-testid="select-work-type"><SelectValue /></SelectTrigger></FormControl>
                           <SelectContent>
                             {availableWorkTypes.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
@@ -489,7 +701,7 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
                     )} />
                   </div>
                   <FormField control={form.control} name="notes" render={({ field }) => (
-                    <FormItem><FormLabel>Shënime</FormLabel><FormControl><Textarea {...field} value={field.value || ""} data-testid="input-notes" /></FormControl></FormItem>
+                    <FormItem><FormLabel>Shenime</FormLabel><FormControl><Textarea {...field} value={field.value || ""} data-testid="input-notes" /></FormControl></FormItem>
                   )} />
                 </CardContent>
               </Card>
