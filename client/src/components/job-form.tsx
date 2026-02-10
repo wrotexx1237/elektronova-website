@@ -244,7 +244,7 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
     doc.setFontSize(22); doc.setTextColor(tc[0], tc[1], tc[2]); doc.setFont("helvetica", "bold");
     doc.text("ELEKTRONOVA", pageW / 2, 18, { align: "center" });
     doc.setFontSize(9); doc.setFont("helvetica", "normal"); doc.setTextColor(100);
-    doc.text("Punime Elektrike | Tel: +383 4X XXX XXX", pageW / 2, 24, { align: "center" });
+    doc.text("Sherbime Elektrike & Siguri | Tel: +383 49 771 673 / +383 49 205 271", pageW / 2, 24, { align: "center" });
     doc.setDrawColor(41, 128, 185); doc.setLineWidth(0.5);
     doc.line(14, 28, pageW - 14, 28);
   };
