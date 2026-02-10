@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useCallback } from "react";
 
+const ADMIN_PASSWORD = "Endrit123$";
+
 interface AdminContextValue {
   isAdmin: boolean;
   toggleAdmin: () => void;
@@ -25,9 +27,19 @@ export function useAdminState(): AdminContextValue {
 
   const toggleAdmin = useCallback(() => {
     setIsAdmin(prev => {
-      const next = !prev;
-      try { localStorage.setItem("elektronova_admin", String(next)); } catch {}
-      return next;
+      if (prev) {
+        try { localStorage.setItem("elektronova_admin", "false"); } catch {}
+        return false;
+      }
+      const pw = window.prompt("Vendos fjalekalimin per Admin:");
+      if (pw === ADMIN_PASSWORD) {
+        try { localStorage.setItem("elektronova_admin", "true"); } catch {}
+        return true;
+      }
+      if (pw !== null) {
+        window.alert("Fjalekalimi nuk eshte i sakte!");
+      }
+      return false;
     });
   }, []);
 

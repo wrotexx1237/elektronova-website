@@ -516,8 +516,19 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
     );
   };
 
+  const getVisibleCategorySections = (): { label: string; items: CatalogItem[] }[] => {
+    const sections: { label: string; items: CatalogItem[] }[] = [];
+    if (tabVis.showPajisje && pajisjeItems.length > 0) sections.push({ label: "Pajisje Elektrike", items: pajisjeItems });
+    if (tabVis.showMateriale && materialItems.length > 0) sections.push({ label: "Kabllo & Gypa", items: materialItems });
+    if (tabVis.showKamera && cameraItems.length > 0) sections.push({ label: "Kamera", items: cameraItems });
+    if (tabVis.showInterfon && intercomItems.length > 0) sections.push({ label: "Interfon", items: intercomItems });
+    if (tabVis.showAlarm && alarmItems.length > 0) sections.push({ label: "Alarm", items: alarmItems });
+    if (tabVis.showSherbime && serviceItems.length > 0) sections.push({ label: "Pune / Sherbime", items: serviceItems });
+    return sections;
+  };
+
   const renderPricing = () => {
-    const visibleItems = getVisibleItems();
+    const categorySections = getVisibleCategorySections();
     const totals = calculateTotals();
     return (
       <div className="space-y-4">
@@ -537,45 +548,55 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
           </div>
         )}
 
-        <Card>
-          <CardContent className="pt-6">
-            <div className="hidden sm:grid grid-cols-12 gap-2 p-2 text-xs font-bold text-muted-foreground border-b mb-2">
-              <span className="col-span-4">Artikulli</span>
-              <span className="col-span-3">Cmimi Shitjes (EUR)</span>
-              {showCost && isAdmin && <span className="col-span-3">Cmimi Blerjes (EUR)</span>}
-              {!showCost && <span className="col-span-3"></span>}
-              <span className="col-span-2"></span>
-            </div>
-            <div className="space-y-1">
-              {visibleItems.map(c => (
-                <div key={c.id} className="grid grid-cols-12 gap-2 items-center p-2 rounded hover:bg-muted/20">
-                  <span className="col-span-4 text-xs font-bold truncate">{c.name}</span>
-                  <div className="col-span-3">
-                    <FormField control={form.control} name={`prices.${c.name}`} render={({ field }) => (
-                      <div className="flex items-center bg-background rounded border px-1">
-                        <Banknote className="w-3 h-3 text-primary mr-1 shrink-0" />
-                        <Input type="number" step="0.01" className="h-7 border-0 bg-transparent text-right text-xs p-0" placeholder="0.00" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} value={field.value || ""} data-testid={`price-sale-${c.name}`} />
-                      </div>
-                    )} />
-                  </div>
-                  {showCost && isAdmin && (
+        {categorySections.map(section => (
+          <Card key={section.label}>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Banknote className="w-4 h-4 text-primary" />
+                {section.label}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="hidden sm:grid grid-cols-12 gap-2 p-2 text-xs font-bold text-muted-foreground border-b mb-2">
+                <span className="col-span-4">Artikulli</span>
+                <span className="col-span-3">Cmimi Shitjes (EUR)</span>
+                {showCost && isAdmin ? <span className="col-span-3">Cmimi Blerjes (EUR)</span> : <span className="col-span-3"></span>}
+                <span className="col-span-2"></span>
+              </div>
+              <div className="space-y-1">
+                {section.items.map((c: CatalogItem) => (
+                  <div key={c.id} className="grid grid-cols-12 gap-2 items-center p-2 rounded hover:bg-muted/20">
+                    <span className="col-span-4 text-xs font-bold truncate">{c.name}</span>
                     <div className="col-span-3">
-                      <FormField control={form.control} name={`purchasePrices.${c.name}`} render={({ field }) => (
-                        <div className="flex items-center bg-amber-50 dark:bg-amber-950/20 rounded border border-amber-200 dark:border-amber-800 px-1">
-                          <ShoppingCart className="w-3 h-3 text-amber-600 mr-1 shrink-0" />
-                          <Input type="number" step="0.01" className="h-7 border-0 bg-transparent text-right text-xs p-0" placeholder="0.00" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} value={(field.value as any) || ""} data-testid={`price-purchase-${c.name}`} />
+                      <FormField control={form.control} name={`prices.${c.name}`} render={({ field }) => (
+                        <div className="flex items-center bg-background rounded border px-1">
+                          <Banknote className="w-3 h-3 text-primary mr-1 shrink-0" />
+                          <Input type="number" step="0.01" className="h-7 border-0 bg-transparent text-right text-xs p-0" placeholder="0.00" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} value={field.value || ""} data-testid={`price-sale-${c.name}`} />
                         </div>
                       )} />
                     </div>
-                  )}
-                  {!showCost && <div className="col-span-3"></div>}
-                  <div className="col-span-2"></div>
-                </div>
-              ))}
-            </div>
-            {visibleItems.length === 0 && <p className="text-muted-foreground text-center text-sm py-4">Ngarko katalogun...</p>}
-          </CardContent>
-        </Card>
+                    {showCost && isAdmin && (
+                      <div className="col-span-3">
+                        <FormField control={form.control} name={`purchasePrices.${c.name}`} render={({ field }) => (
+                          <div className="flex items-center bg-amber-50 dark:bg-amber-950/20 rounded border border-amber-200 dark:border-amber-800 px-1">
+                            <ShoppingCart className="w-3 h-3 text-amber-600 mr-1 shrink-0" />
+                            <Input type="number" step="0.01" className="h-7 border-0 bg-transparent text-right text-xs p-0" placeholder="0.00" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} value={(field.value as any) || ""} data-testid={`price-purchase-${c.name}`} />
+                          </div>
+                        )} />
+                      </div>
+                    )}
+                    {!(showCost && isAdmin) && <div className="col-span-3"></div>}
+                    <div className="col-span-2"></div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+
+        {categorySections.length === 0 && (
+          <Card><CardContent className="pt-6"><p className="text-muted-foreground text-center text-sm py-4">Ngarko katalogun...</p></CardContent></Card>
+        )}
 
         <Card>
           <CardContent className="pt-4">
