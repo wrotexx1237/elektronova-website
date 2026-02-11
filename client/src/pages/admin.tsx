@@ -12,12 +12,12 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger
 } from "@/components/ui/alert-dialog";
-import { Plus, Trash2, Edit, Loader2, Package, Save, Lock, TrendingUp, Users, DollarSign, ShoppingCart, BarChart3, RefreshCw, Eye, ChevronDown, ChevronUp } from "lucide-react";
-import { useState } from "react";
+import { Plus, Trash2, Edit, Loader2, Package, Save, Lock, TrendingUp, Users, DollarSign, ShoppingCart, BarChart3, RefreshCw, Eye, ChevronDown, ChevronUp, CalendarDays, Award } from "lucide-react";
+import { useState, useMemo } from "react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@shared/routes";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 
 function AddItemForm({ category, onDone }: { category: string; onDone: () => void }) {
   const create = useCreateCatalogItem();
@@ -267,13 +267,38 @@ function ProfitDashboard() {
   const { data: jobs, isLoading } = useJobs();
   const refreshPrices = useRefreshPrices();
   const [expandedJob, setExpandedJob] = useState<number | null>(null);
+  const [dateFilter, setDateFilter] = useState<string>("all");
+  const [dateFrom, setDateFrom] = useState<string>("");
+  const [dateTo, setDateTo] = useState<string>("");
 
   if (isLoading) {
     return <div className="flex justify-center py-10"><Loader2 className="animate-spin h-8 w-8 text-primary" /></div>;
   }
 
-  const jobsList: Job[] = jobs || [];
-  const allTotals = jobsList.map(calculateJobTotals);
+  const jobsList: Job[] = (jobs || []).filter((j: Job) => !j.isTemplate);
+
+  const filteredJobs = useMemo(() => {
+    return jobsList.filter(job => {
+      const d = job.workDate;
+      if (dateFilter === "all") {
+        if (dateFrom && d < dateFrom) return false;
+        if (dateTo && d > dateTo) return false;
+        return true;
+      }
+      const now = new Date();
+      const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+      const thisYear = `${now.getFullYear()}`;
+      if (dateFilter === "month") return d.startsWith(thisMonth);
+      if (dateFilter === "year") return d.startsWith(thisYear);
+      if (dateFilter === "custom") {
+        if (dateFrom && d < dateFrom) return false;
+        if (dateTo && d > dateTo) return false;
+      }
+      return true;
+    });
+  }, [jobsList, dateFilter, dateFrom, dateTo]);
+
+  const allTotals = filteredJobs.map(calculateJobTotals);
 
   const grandTotalSale = allTotals.reduce((s, t) => s + t.totalSale, 0);
   const grandTotalPurchase = allTotals.reduce((s, t) => s + t.totalPurchase, 0);
@@ -313,6 +338,42 @@ function ProfitDashboard() {
     .filter(c => c.sale > 0)
     .map(c => ({ name: c.label, value: parseFloat(c.sale.toFixed(2)) }));
 
+  const monthlyData = useMemo(() => {
+    const months: Record<string, { sale: number; purchase: number; profit: number }> = {};
+    allTotals.forEach(t => {
+      const m = t.workDate?.substring(0, 7);
+      if (!m) return;
+      if (!months[m]) months[m] = { sale: 0, purchase: 0, profit: 0 };
+      months[m].sale += t.totalSale;
+      months[m].purchase += t.totalPurchase;
+      months[m].profit += t.profit;
+    });
+    return Object.entries(months)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, data]) => ({
+        name: month,
+        Shitja: parseFloat(data.sale.toFixed(2)),
+        Blerja: parseFloat(data.purchase.toFixed(2)),
+        Fitimi: parseFloat(data.profit.toFixed(2)),
+      }));
+  }, [allTotals]);
+
+  const topProducts = useMemo(() => {
+    const productMap: Record<string, { name: string; qty: number; totalSale: number; totalPurchase: number; profit: number }> = {};
+    allTotals.forEach(t => {
+      t.products.forEach(p => {
+        if (!productMap[p.name]) productMap[p.name] = { name: p.name, qty: 0, totalSale: 0, totalPurchase: 0, profit: 0 };
+        productMap[p.name].qty += p.qty;
+        productMap[p.name].totalSale += p.totalSale;
+        productMap[p.name].totalPurchase += p.totalPurchase;
+        productMap[p.name].profit += p.profit;
+      });
+    });
+    return Object.values(productMap)
+      .filter(p => p.totalSale > 0 || p.totalPurchase > 0)
+      .sort((a, b) => b.profit - a.profit);
+  }, [allTotals]);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -329,6 +390,47 @@ function ProfitDashboard() {
           {refreshPrices.isPending ? 'Po përditësohen...' : 'Përditëso Çmimet nga Katalogu'}
         </Button>
       </div>
+
+      <Card>
+        <CardContent className="pt-4 pb-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-2">
+              <CalendarDays className="w-4 h-4 text-muted-foreground" />
+              <span className="text-xs font-medium text-muted-foreground">Periudha:</span>
+            </div>
+            <Select value={dateFilter} onValueChange={(v) => { setDateFilter(v); if (v !== "custom" && v !== "all") { setDateFrom(""); setDateTo(""); } }}>
+              <SelectTrigger className="w-[160px]" data-testid="select-date-filter">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Të gjitha</SelectItem>
+                <SelectItem value="month">Ky muaj</SelectItem>
+                <SelectItem value="year">Ky vit</SelectItem>
+                <SelectItem value="custom">Periudhë e caktuar</SelectItem>
+              </SelectContent>
+            </Select>
+            {(dateFilter === "custom" || dateFilter === "all") && (
+              <div className="flex items-center gap-2 flex-wrap">
+                <Input
+                  type="date"
+                  value={dateFrom}
+                  onChange={e => setDateFrom(e.target.value)}
+                  className="w-[150px]"
+                  data-testid="input-date-from"
+                />
+                <span className="text-xs text-muted-foreground">deri</span>
+                <Input
+                  type="date"
+                  value={dateTo}
+                  onChange={e => setDateTo(e.target.value)}
+                  className="w-[150px]"
+                  data-testid="input-date-to"
+                />
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Card>
@@ -565,6 +667,69 @@ function ProfitDashboard() {
           )}
         </CardContent>
       </Card>
+
+      {monthlyData.length > 1 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <CalendarDays className="w-4 h-4 text-primary" />
+              Krahasimi Mujor
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={monthlyData} margin={{ top: 5, right: 10, left: 0, bottom: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                  <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} />
+                  <Tooltip
+                    formatter={(value: number) => `${value.toFixed(2)} €`}
+                    contentStyle={{ borderRadius: '8px', fontSize: '12px' }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: '12px' }} />
+                  <Line type="monotone" dataKey="Shitja" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} />
+                  <Line type="monotone" dataKey="Blerja" stroke="#f59e0b" strokeWidth={2} dot={{ r: 4 }} />
+                  <Line type="monotone" dataKey="Fitimi" stroke="#10b981" strokeWidth={2} dot={{ r: 4 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {topProducts.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Award className="w-4 h-4 text-primary" />
+              Top Produktet (sipas fitimit)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="hidden sm:grid grid-cols-12 gap-2 p-2 text-xs font-bold text-muted-foreground border-b mb-2">
+              <span className="col-span-1 text-center">#</span>
+              <span className="col-span-3">Produkti</span>
+              <span className="col-span-2 text-center">Sasia Tot.</span>
+              <span className="col-span-2 text-right">Shitja Tot.</span>
+              <span className="col-span-2 text-right">Blerja Tot.</span>
+              <span className="col-span-2 text-right">Fitimi</span>
+            </div>
+            <div className="space-y-0">
+              {topProducts.slice(0, 15).map((p, i) => (
+                <div key={p.name} className="grid grid-cols-12 gap-2 items-center p-2 rounded hover:bg-muted/20 text-sm" data-testid={`row-top-product-${i}`}>
+                  <span className="col-span-1 text-center text-xs font-bold text-muted-foreground">{i + 1}</span>
+                  <span className="col-span-3 font-medium truncate">{p.name}</span>
+                  <span className="col-span-2 text-center text-muted-foreground">{p.qty}</span>
+                  <span className="col-span-2 text-right text-primary font-medium">{p.totalSale.toFixed(2)} €</span>
+                  <span className="col-span-2 text-right text-amber-600 font-medium">{p.totalPurchase.toFixed(2)} €</span>
+                  <span className={`col-span-2 text-right font-bold ${p.profit >= 0 ? 'text-green-600' : 'text-destructive'}`}>{p.profit.toFixed(2)} €</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

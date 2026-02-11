@@ -61,6 +61,23 @@ export const api = {
       responses: { 204: z.void(), 404: errorSchemas.notFound },
     },
   },
+  templates: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/templates' as const,
+      responses: { 200: z.array(z.custom<typeof jobs.$inferSelect>()) },
+    },
+    saveAsTemplate: {
+      method: 'POST' as const,
+      path: '/api/jobs/:id/save-template' as const,
+      responses: { 200: z.custom<typeof jobs.$inferSelect>(), 404: errorSchemas.notFound },
+    },
+    useTemplate: {
+      method: 'POST' as const,
+      path: '/api/templates/:id/use' as const,
+      responses: { 200: z.custom<typeof jobs.$inferSelect>(), 404: errorSchemas.notFound },
+    },
+  },
 };
 
 export function buildUrl(path: string, params?: Record<string, string | number>): string {

@@ -145,6 +145,7 @@ export const jobs = pgTable("jobs", {
   category: text("category").default("electric"),
   status: text("status").default("oferte"),
   notes: text("notes"),
+  isTemplate: integer("is_template").default(0),
 
   discountType: text("discount_type").default("percent"),
   discountValue: real("discount_value").default(0),
@@ -174,6 +175,7 @@ export const insertJobSchema = z.object({
   category: z.enum(JOB_CATEGORIES).optional().default("electric"),
   status: z.enum(JOB_STATUSES).optional().default("oferte"),
   notes: z.string().nullable().optional(),
+  isTemplate: z.coerce.number().min(0).max(1).optional().default(0),
   discountType: z.enum(DISCOUNT_TYPES).optional().default("percent"),
   discountValue: z.coerce.number().min(0).optional().default(0),
   table1Data: z.record(z.string(), z.record(z.string(), z.coerce.number().default(0))).optional().default({}),

@@ -1,6 +1,6 @@
 import { useJobs, useDeleteJob, useDuplicateJob } from "@/hooks/use-jobs";
 import { Layout } from "@/components/layout";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { 
   Plus, 
   Search, 
@@ -16,7 +16,9 @@ import {
   ShieldAlert,
   Phone,
   Copy,
-  Hash
+  Hash,
+  BookTemplate,
+  Clock
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -48,7 +50,10 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
-import { JOB_CATEGORY_LABELS, JOB_STATUS_LABELS, type JobCategory, type JobStatus } from "@shared/schema";
+import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { JOB_CATEGORY_LABELS, JOB_STATUS_LABELS, type Job, type JobCategory, type JobStatus } from "@shared/schema";
 
 const CATEGORY_CARDS: { key: JobCategory; label: string; icon: typeof Zap; color: string }[] = [
   { key: "electric", label: "Rrymë (Elektrike)", icon: Zap, color: "text-amber-500" },
@@ -75,20 +80,76 @@ function getStatusBadgeProps(status: string | null | undefined) {
   }
 }
 
+function useSaveAsTemplate() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest('POST', `/api/jobs/${id}/save-template`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/jobs'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/templates'] });
+      toast({ title: "Sukses", description: "Puna u ruajt si shabllone!" });
+    },
+    onError: (e: Error) => toast({ title: "Gabim", description: e.message, variant: "destructive" }),
+  });
+}
+
+function useTemplates() {
+  return useQuery<Job[]>({
+    queryKey: ['/api/templates'],
+  });
+}
+
+function useCreateFromTemplate() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [, navigate] = useLocation();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest('POST', `/api/templates/${id}/use`);
+      return res.json();
+    },
+    onSuccess: (data: Job) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/jobs'] });
+      toast({ title: "Sukses", description: "Punë e re u krijua nga shablloneja!" });
+      navigate(`/edit/${data.id}`);
+    },
+    onError: (e: Error) => toast({ title: "Gabim", description: e.message, variant: "destructive" }),
+  });
+}
+
+function formatTimestamp(ts: string | Date | null | undefined): string {
+  if (!ts) return "-";
+  const d = new Date(ts);
+  return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+}
+
 export default function Dashboard() {
   const { data: jobs, isLoading, error } = useJobs();
   const deleteJob = useDeleteJob();
   const duplicateJob = useDuplicateJob();
+  const saveTemplate = useSaveAsTemplate();
+  const { data: templates } = useTemplates();
+  const createFromTemplate = useCreateFromTemplate();
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [dateFrom, setDateFrom] = useState<string>("");
+  const [dateTo, setDateTo] = useState<string>("");
 
-  const filteredJobs = jobs?.filter(job => {
+  const regularJobs = (jobs || []).filter((j: Job) => !j.isTemplate);
+
+  const filteredJobs = regularJobs.filter((job: Job) => {
     const matchesSearch = job.clientName.toLowerCase().includes(search.toLowerCase()) || 
       job.clientAddress.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = categoryFilter === "all" || (job.category || "electric") === categoryFilter;
     const matchesStatus = statusFilter === "all" || (job.status || "oferte") === statusFilter;
-    return matchesSearch && matchesCategory && matchesStatus;
+    const matchesDateFrom = !dateFrom || job.workDate >= dateFrom;
+    const matchesDateTo = !dateTo || job.workDate <= dateTo;
+    return matchesSearch && matchesCategory && matchesStatus && matchesDateFrom && matchesDateTo;
   });
 
   return (
@@ -124,41 +185,108 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3 mb-8">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-          <Input 
-            placeholder="Kërko sipas emrit të klientit..." 
-            className="pl-10"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            data-testid="input-search"
-          />
+      <div className="flex flex-col gap-3 mb-8">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input 
+              placeholder="Kërko sipas emrit të klientit..." 
+              className="pl-10"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              data-testid="input-search"
+            />
+          </div>
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="w-full sm:w-[200px]" data-testid="select-category-filter">
+              <SelectValue placeholder="Të gjitha" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Të gjitha kategoritë</SelectItem>
+              <SelectItem value="electric">Rrymë (Elektrike)</SelectItem>
+              <SelectItem value="camera">Kamera</SelectItem>
+              <SelectItem value="alarm">Alarm</SelectItem>
+              <SelectItem value="intercom">Interfon</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full sm:w-[180px]" data-testid="select-status-filter">
+              <SelectValue placeholder="Të gjitha statuset" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Të gjitha statuset</SelectItem>
+              <SelectItem value="oferte">Ofertë</SelectItem>
+              <SelectItem value="ne_progres">Në Progres</SelectItem>
+              <SelectItem value="e_perfunduar">E Përfunduar</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-          <SelectTrigger className="w-full sm:w-[200px]" data-testid="select-category-filter">
-            <SelectValue placeholder="Të gjitha" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Të gjitha kategoritë</SelectItem>
-            <SelectItem value="electric">Rrymë (Elektrike)</SelectItem>
-            <SelectItem value="camera">Kamera</SelectItem>
-            <SelectItem value="alarm">Alarm</SelectItem>
-            <SelectItem value="intercom">Interfon</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-[180px]" data-testid="select-status-filter">
-            <SelectValue placeholder="Të gjitha statuset" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Të gjitha statuset</SelectItem>
-            <SelectItem value="oferte">Ofertë</SelectItem>
-            <SelectItem value="ne_progres">Në Progres</SelectItem>
-            <SelectItem value="e_perfunduar">E Përfunduar</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground">Nga:</span>
+            <Input
+              type="date"
+              value={dateFrom}
+              onChange={e => setDateFrom(e.target.value)}
+              className="w-[150px]"
+              data-testid="input-date-from"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">Deri:</span>
+            <Input
+              type="date"
+              value={dateTo}
+              onChange={e => setDateTo(e.target.value)}
+              className="w-[150px]"
+              data-testid="input-date-to"
+            />
+          </div>
+          {(dateFrom || dateTo) && (
+            <Button variant="ghost" size="sm" onClick={() => { setDateFrom(""); setDateTo(""); }} data-testid="button-clear-dates">
+              Pastro datat
+            </Button>
+          )}
+        </div>
       </div>
+
+      {templates && templates.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2" data-testid="text-templates-title">
+            <BookTemplate className="w-4 h-4" /> Shabllone Pune
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            {templates.map((tpl: Job) => {
+              const catBadge = getCategoryBadgeProps(tpl.category);
+              const CatIcon = catBadge.icon;
+              return (
+                <Card key={tpl.id} className="hover-elevate cursor-pointer group" data-testid={`card-template-${tpl.id}`}>
+                  <CardContent className="py-4 flex flex-col gap-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-bold text-sm truncate">{tpl.workType}</span>
+                      <Badge variant="outline" className={`text-[10px] font-bold shrink-0 no-default-hover-elevate no-default-active-elevate ${catBadge.className}`}>
+                        <CatIcon className="h-3 w-3 mr-1" />
+                        {catBadge.label}
+                      </Badge>
+                    </div>
+                    {tpl.notes && <p className="text-xs text-muted-foreground line-clamp-2">{tpl.notes}</p>}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => createFromTemplate.mutate(tpl.id)}
+                      disabled={createFromTemplate.isPending}
+                      data-testid={`button-use-template-${tpl.id}`}
+                    >
+                      <Plus className="w-3 h-3 mr-1" /> Përdor Shabllonën
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-20">
@@ -181,7 +309,7 @@ export default function Dashboard() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredJobs?.map((job) => {
+          {filteredJobs?.map((job: Job) => {
             const catBadge = getCategoryBadgeProps(job.category);
             const CatIcon = catBadge.icon;
             const statusBadge = getStatusBadgeProps(job.status);
@@ -223,6 +351,12 @@ export default function Dashboard() {
                         data-testid={`button-duplicate-${job.id}`}
                       >
                         <Copy className="mr-2 h-4 w-4" /> Duplikato
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => saveTemplate.mutate(job.id)}
+                        data-testid={`button-save-template-${job.id}`}
+                      >
+                        <BookTemplate className="mr-2 h-4 w-4" /> Ruaj si Shabllone
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <AlertDialog>
@@ -279,15 +413,27 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                <div className="mt-6 pt-4 border-t flex justify-between items-center">
-                  <span className="text-xs text-muted-foreground">
-                    {job.invoiceNumber || `#${job.id}`}
-                  </span>
-                  <Link href={`/edit/${job.id}`}>
-                    <Button variant="ghost" size="sm" data-testid={`button-view-${job.id}`}>
-                      Shiko Detajet
-                    </Button>
-                  </Link>
+                <div className="mt-4 pt-3 border-t space-y-2">
+                  <div className="flex items-center gap-3 text-[10px] text-muted-foreground flex-wrap">
+                    <span className="flex items-center gap-1" data-testid={`text-created-${job.id}`}>
+                      <Clock className="w-3 h-3" /> Krijuar: {formatTimestamp(job.createdAt)}
+                    </span>
+                    {job.updatedAt && job.updatedAt !== job.createdAt && (
+                      <span className="flex items-center gap-1" data-testid={`text-updated-${job.id}`}>
+                        <Edit className="w-3 h-3" /> Ndryshuar: {formatTimestamp(job.updatedAt)}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-muted-foreground">
+                      {job.invoiceNumber || `#${job.id}`}
+                    </span>
+                    <Link href={`/edit/${job.id}`}>
+                      <Button variant="ghost" size="sm" data-testid={`button-view-${job.id}`}>
+                        Shiko Detajet
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               </div>
             );

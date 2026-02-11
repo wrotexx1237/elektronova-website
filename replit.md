@@ -8,13 +8,21 @@ The application is built in Albanian language and is designed to be mobile-respo
 
 Key features:
 - **Dashboard**: List, search, edit, and delete saved jobs + Quick Create by Category cards
+- **Advanced Search**: Filter by text, category, status, and date range simultaneously
 - **Job Categories**: 4 work categories (Rrymë/Elektrike, Kamera, Alarm, Interfon) with category-specific UI filtering
+- **Job Status Tracking**: 3 statuses (Ofertë, Në Progres, E Përfunduar) with visual badges
+- **Auto Invoice Numbers**: Category-prefixed invoice numbers (ELK-001, KAM-002, ALM-003, INT-004)
+- **Job Duplication**: Clone any job as a template with "(Kopje)" suffix
+- **Job Templates**: Save jobs as reusable templates, create new jobs from templates via dashboard
+- **Change History**: Created/Updated timestamps displayed on job cards
+- **Discount System**: Percentage or fixed-amount discounts with breakdown in PDFs and profit analytics
 - **Category-based Form**: Job form shows only relevant tabs/sections for the selected category
 - **Job Form**: Client details + material tables organized by rooms (11 room columns + totals)
 - **6 Material Categories**: Pajisje elektrike, Kabllo & Gypa, Kamera, Interfon, Alarm, Punë/Shërbime
 - **Dynamic Catalog System**: Admin-managed catalog of items with units, dual pricing (purchase/sale) per category
 - **Dual Pricing**: Each catalog item has purchase price (cost) and sale price (client price), with price snapshots saved per job
 - **Admin Mode**: localStorage-based admin toggle in header — reveals purchase costs, profit margins, and cost analysis in job form
+- **Admin Profit Dashboard**: Date filtering (month/year/custom), category-level profit breakdown, monthly trend chart, top products ranking
 - **Intelligent Checklists**: Category-specific checklists (Elektrike, Kamera, Alarm, Interfon, Final)
 - **Auto-calculation**: Row totals computed automatically from room quantities, with sale/purchase/profit totals
 - **PDF Generation (2 variants)**: Client PDF (Faturë/Ofertë with sale prices) and Purchase PDF (Lista e Blerjes with purchase prices)
@@ -75,6 +83,8 @@ Preferred communication style: Simple, everyday language.
 ### API Routes
 - Jobs CRUD: GET/POST /api/jobs, GET/PUT/DELETE /api/jobs/:id
 - Catalog CRUD: GET/POST /api/catalog, PUT/DELETE /api/catalog/:id
+- Job Actions: POST /api/jobs/:id/duplicate, POST /api/jobs/:id/save-template
+- Templates: GET /api/templates, POST /api/templates/:id/use
 
 ### Build System
 - Development: `tsx server/index.ts` with Vite middleware for HMR

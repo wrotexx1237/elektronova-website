@@ -8,6 +8,7 @@ export interface IStorage {
   createJob(job: InsertJob): Promise<Job>;
   updateJob(id: number, job: Partial<InsertJob>): Promise<Job>;
   deleteJob(id: number): Promise<void>;
+  getTemplates(): Promise<Job[]>;
 
   getCatalogItems(): Promise<CatalogItem[]>;
   getCatalogItem(id: number): Promise<CatalogItem | undefined>;
@@ -44,6 +45,10 @@ export class DatabaseStorage implements IStorage {
 
   async deleteJob(id: number): Promise<void> {
     await db.delete(jobs).where(eq(jobs.id, id));
+  }
+
+  async getTemplates(): Promise<Job[]> {
+    return await db.select().from(jobs).where(eq(jobs.isTemplate, 1)).orderBy(desc(jobs.createdAt));
   }
 
   async getCatalogItems(): Promise<CatalogItem[]> {

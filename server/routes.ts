@@ -113,8 +113,61 @@ export async function registerRoutes(
       prices: (existing.prices as any) || {},
       purchasePrices: (existing.purchasePrices as any) || {},
       checklistData: {},
+      isTemplate: 0,
     });
     res.status(201).json(duplicated);
+  });
+
+  // --- SAVE TEMPLATE ---
+  app.post('/api/jobs/:id/save-template', async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid ID" });
+    const existing = await storage.getJob(id);
+    if (!existing) return res.status(404).json({ message: "Job not found" });
+    const updated = await storage.updateJob(id, { isTemplate: 1 });
+    res.json(updated);
+  });
+
+  // --- GET TEMPLATES ---
+  app.get('/api/templates', async (_req, res) => {
+    const templates = await storage.getTemplates();
+    res.json(templates);
+  });
+
+  // --- USE TEMPLATE ---
+  app.post('/api/templates/:id/use', async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid ID" });
+    const template = await storage.getJob(id);
+    if (!template) return res.status(404).json({ message: "Template not found" });
+
+    const category = template.category || "electric";
+    const invoiceNumber = await generateInvoiceNumber(category);
+
+    const newJob = await storage.createJob({
+      invoiceNumber,
+      clientName: "",
+      clientPhone: undefined,
+      clientAddress: "",
+      workDate: new Date().toISOString().split('T')[0],
+      workType: template.workType,
+      category: category as any,
+      status: "oferte",
+      notes: template.notes || undefined,
+      isTemplate: 0,
+      discountType: (template.discountType as any) || "percent",
+      discountValue: template.discountValue || 0,
+      table1Data: (template.table1Data as any) || {},
+      table2Data: (template.table2Data as any) || {},
+      cameraData: (template.cameraData as any) || {},
+      intercomData: (template.intercomData as any) || {},
+      alarmData: (template.alarmData as any) || {},
+      serviceData: (template.serviceData as any) || {},
+      prices: (template.prices as any) || {},
+      purchasePrices: (template.purchasePrices as any) || {},
+      checklistData: {},
+    });
+    res.status(201).json(newJob);
   });
 
   // --- CATALOG ---
@@ -333,6 +386,7 @@ export async function registerRoutes(
       prices: {},
       purchasePrices: {},
       checklistData: {},
+      isTemplate: 0,
     });
   }
 
