@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Zap, LayoutDashboard, PlusCircle, Menu, X, Package, Users, Warehouse, BarChart3, Bell, LogOut, User, Sun, Moon, Settings, CalendarDays } from "lucide-react";
+import { Zap, LayoutDashboard, PlusCircle, Menu, X, Package, Users, Warehouse, BarChart3, Bell, LogOut, User, Sun, Moon, Settings, CalendarDays, Truck, Receipt } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
@@ -47,6 +47,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { label: "Klientët", href: "/clients", icon: Users },
     { label: "Stoku", href: "/inventory", icon: Warehouse },
     { label: "Kalendari", href: "/calendar", icon: CalendarDays },
+    { label: "Shpenzimet", href: "/expenses", icon: Receipt },
+    { label: "Furnitorët", href: "/suppliers", icon: Truck },
     { label: "Katalogu", href: "/admin", icon: Package },
     ...(isAdmin ? [{ label: "Analiza", href: "/analytics", icon: BarChart3 }] : []),
   ];
@@ -212,6 +214,7 @@ function NotificationBell() {
     low_stock: "Stok i ulët",
     price_change: "Ndryshim çmimi",
     job_completed: "Punë e përfunduar",
+    warranty_expiring: "Garanci në skadim",
   };
 
   const typeColors: Record<string, string> = {
@@ -220,6 +223,7 @@ function NotificationBell() {
     low_stock: "text-red-500",
     price_change: "text-purple-500",
     job_completed: "text-green-500",
+    warranty_expiring: "text-orange-500",
   };
 
   return (

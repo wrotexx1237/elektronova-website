@@ -56,8 +56,40 @@ export type DiscountType = typeof DISCOUNT_TYPES[number];
 export const USER_ROLES = ["admin", "technician"] as const;
 export type UserRole = typeof USER_ROLES[number];
 
-export const NOTIFICATION_TYPES = ["stale_offer", "upcoming_work", "low_stock", "price_change", "job_completed"] as const;
+export const NOTIFICATION_TYPES = ["stale_offer", "upcoming_work", "low_stock", "price_change", "job_completed", "warranty_expiring", "payment_reminder"] as const;
 export type NotificationType = typeof NOTIFICATION_TYPES[number];
+
+export const PAYMENT_STATUSES = ["pa_paguar", "pjeserisht", "paguar"] as const;
+export type PaymentStatus = typeof PAYMENT_STATUSES[number];
+
+export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
+  pa_paguar: "Pa Paguar",
+  pjeserisht: "Pjesërisht",
+  paguar: "E Paguar",
+};
+
+export const PAYMENT_METHODS = ["cash", "bank", "other"] as const;
+export type PaymentMethod = typeof PAYMENT_METHODS[number];
+
+export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
+  cash: "Para në dorë",
+  bank: "Transfer bankar",
+  other: "Tjetër",
+};
+
+export const EXPENSE_CATEGORIES = ["karburant", "transport", "vegla", "material", "ushqim", "telefon", "qira", "tjeter"] as const;
+export type ExpenseCategory = typeof EXPENSE_CATEGORIES[number];
+
+export const EXPENSE_CATEGORY_LABELS: Record<ExpenseCategory, string> = {
+  karburant: "Karburant",
+  transport: "Transport",
+  vegla: "Vegla pune",
+  material: "Material",
+  ushqim: "Ushqim",
+  telefon: "Telefon/Internet",
+  qira: "Qira",
+  tjeter: "Tjetër",
+};
 
 export const STOCK_ENTRY_TYPES = ["in", "out", "adjustment"] as const;
 export type StockEntryType = typeof STOCK_ENTRY_TYPES[number];
@@ -275,6 +307,66 @@ export const insertNotificationSchema = createInsertSchema(notifications).omit({
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 
+// --- Suppliers Table ---
+export const suppliers = pgTable("suppliers", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  phone: text("phone"),
+  email: text("email"),
+  address: text("address"),
+  categories: jsonb("categories").$type<string[]>().default([]),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertSupplierSchema = createInsertSchema(suppliers).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type Supplier = typeof suppliers.$inferSelect;
+export type InsertSupplier = z.infer<typeof insertSupplierSchema>;
+
+// --- Expenses Table ---
+export const expenses = pgTable("expenses", {
+  id: serial("id").primaryKey(),
+  description: text("description").notNull(),
+  amount: real("amount").notNull(),
+  category: text("category").notNull().default("tjeter"),
+  date: text("date").notNull(),
+  jobId: integer("job_id"),
+  supplierId: integer("supplier_id"),
+  notes: text("notes"),
+  createdBy: text("created_by"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertExpenseSchema = createInsertSchema(expenses).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type Expense = typeof expenses.$inferSelect;
+export type InsertExpense = z.infer<typeof insertExpenseSchema>;
+
+// --- Feedback Table ---
+export const feedback = pgTable("feedback", {
+  id: serial("id").primaryKey(),
+  jobId: integer("job_id").notNull(),
+  clientId: integer("client_id"),
+  rating: integer("rating").notNull().default(5),
+  comment: text("comment"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertFeedbackSchema = createInsertSchema(feedback).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type Feedback = typeof feedback.$inferSelect;
+export type InsertFeedback = z.infer<typeof insertFeedbackSchema>;
+
 // --- Jobs Table ---
 export const jobs = pgTable("jobs", {
   id: serial("id").primaryKey(),
@@ -295,6 +387,14 @@ export const jobs = pgTable("jobs", {
 
   discountType: text("discount_type").default("percent"),
   discountValue: real("discount_value").default(0),
+
+  vatRate: real("vat_rate").default(0),
+  paymentStatus: text("payment_status").default("pa_paguar"),
+  paidAmount: real("paid_amount").default(0),
+  paymentDate: text("payment_date"),
+  paymentMethod: text("payment_method"),
+  warrantyMonths: integer("warranty_months").default(12),
+  completedDate: text("completed_date"),
 
   table1Data: jsonb("table1_data").$type<Record<string, Record<string, number>>>().notNull().default({}),
   table2Data: jsonb("table2_data").$type<Record<string, number>>().notNull().default({}),
@@ -328,6 +428,13 @@ export const insertJobSchema = z.object({
   clientId: z.number().nullable().optional(),
   discountType: z.enum(DISCOUNT_TYPES).optional().default("percent"),
   discountValue: z.coerce.number().min(0).optional().default(0),
+  vatRate: z.coerce.number().min(0).max(100).optional().default(0),
+  paymentStatus: z.enum(PAYMENT_STATUSES).optional().default("pa_paguar"),
+  paidAmount: z.coerce.number().min(0).optional().default(0),
+  paymentDate: z.string().nullable().optional(),
+  paymentMethod: z.enum(PAYMENT_METHODS).nullable().optional(),
+  warrantyMonths: z.coerce.number().min(0).optional().default(12),
+  completedDate: z.string().nullable().optional(),
   table1Data: z.record(z.string(), z.record(z.string(), z.coerce.number().default(0))).optional().default({}),
   table2Data: z.record(z.string(), z.coerce.number().default(0)).optional().default({}),
   cameraData: z.record(z.string(), z.coerce.number().default(0)).optional().default({}),

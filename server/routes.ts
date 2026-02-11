@@ -418,6 +418,9 @@ export async function registerRoutes(
       }
 
       if (newStatus === "e_perfunduar" && oldStatus !== "e_perfunduar") {
+        if (!input.completedDate) {
+          input.completedDate = new Date().toISOString().split('T')[0];
+        }
         const finalData = { ...existing, ...input };
         await storage.createJobSnapshot({
           jobId: id,
@@ -1092,6 +1095,218 @@ export async function registerRoutes(
       res.status(500).json({ message: 'Failed to refresh prices' });
     }
   });
+
+  // ==================== SUPPLIERS ====================
+
+  app.get('/api/suppliers', requireAuth, async (_req, res) => {
+    const list = await storage.getSuppliers();
+    res.json(list);
+  });
+
+  app.post('/api/suppliers', requireAuth, async (req, res) => {
+    try {
+      const { name, phone, email, address, categories, notes } = req.body;
+      if (!name) return res.status(400).json({ message: "Emri i furnitorit eshte i detyrueshem" });
+      const supplier = await storage.createSupplier({
+        name, phone: phone || null, email: email || null,
+        address: address || null, categories: categories || [],
+        notes: notes || null,
+      });
+      res.status(201).json(supplier);
+    } catch (err) {
+      console.error('Create supplier error:', err);
+      res.status(500).json({ message: "Gabim ne krijimin e furnitorit" });
+    }
+  });
+
+  app.put('/api/suppliers/:id', requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "ID e pavlefshme" });
+    const existing = await storage.getSupplier(id);
+    if (!existing) return res.status(404).json({ message: "Furnitori nuk u gjet" });
+    const updated = await storage.updateSupplier(id, req.body);
+    res.json(updated);
+  });
+
+  app.delete('/api/suppliers/:id', requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "ID e pavlefshme" });
+    await storage.deleteSupplier(id);
+    res.status(204).send();
+  });
+
+  // ==================== EXPENSES ====================
+
+  app.get('/api/expenses', requireAuth, async (req, res) => {
+    const startDate = req.query.startDate as string | undefined;
+    const endDate = req.query.endDate as string | undefined;
+    const category = req.query.category as string | undefined;
+    const list = await storage.getExpenses({ startDate, endDate, category: category !== 'all' ? category : undefined });
+    res.json(list);
+  });
+
+  app.post('/api/expenses', requireAuth, async (req, res) => {
+    try {
+      const { description, amount, category, date, jobId, supplierId, notes } = req.body;
+      if (!description || !amount || !date) {
+        return res.status(400).json({ message: "Plotesoni fushat e detyrueshme" });
+      }
+      const expense = await storage.createExpense({
+        description, amount: parseFloat(amount), category: category || 'tjeter',
+        date, jobId: jobId || null, supplierId: supplierId || null,
+        notes: notes || null, createdBy: req.session?.fullName || null,
+      });
+      res.status(201).json(expense);
+    } catch (err) {
+      console.error('Create expense error:', err);
+      res.status(500).json({ message: "Gabim ne krijimin e shpenzimit" });
+    }
+  });
+
+  app.put('/api/expenses/:id', requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "ID e pavlefshme" });
+    const existing = await storage.getExpense(id);
+    if (!existing) return res.status(404).json({ message: "Shpenzimi nuk u gjet" });
+    const updated = await storage.updateExpense(id, req.body);
+    res.json(updated);
+  });
+
+  app.delete('/api/expenses/:id', requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "ID e pavlefshme" });
+    await storage.deleteExpense(id);
+    res.status(204).send();
+  });
+
+  // ==================== FEEDBACK ====================
+
+  app.get('/api/feedback', requireAuth, async (req, res) => {
+    const jobId = req.query.jobId ? parseInt(req.query.jobId as string) : undefined;
+    const list = await storage.getFeedback(jobId);
+    res.json(list);
+  });
+
+  app.post('/api/feedback', requireAuth, async (req, res) => {
+    try {
+      const { jobId, clientId, rating, comment } = req.body;
+      if (!jobId || !rating) return res.status(400).json({ message: "Plotesoni fushat e detyrueshme" });
+      const fb = await storage.createFeedback({
+        jobId, clientId: clientId || null,
+        rating: Math.min(5, Math.max(1, parseInt(rating))),
+        comment: comment || null,
+      });
+      res.status(201).json(fb);
+    } catch (err) {
+      console.error('Create feedback error:', err);
+      res.status(500).json({ message: "Gabim ne krijimin e vleresimit" });
+    }
+  });
+
+  app.delete('/api/feedback/:id', requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "ID e pavlefshme" });
+    await storage.deleteFeedback(id);
+    res.status(204).send();
+  });
+
+  // ==================== WARRANTY TRACKING ====================
+
+  app.get('/api/warranties', requireAuth, async (_req, res) => {
+    try {
+      const allJobs = await storage.getJobs();
+      const completedJobs = allJobs.filter(j => j.status === 'e_perfunduar' && j.completedDate);
+      const warranties = completedJobs.map(j => {
+        const completedDate = new Date(j.completedDate!);
+        const months = j.warrantyMonths || 12;
+        const expiresDate = new Date(completedDate);
+        expiresDate.setMonth(expiresDate.getMonth() + months);
+        const now = new Date();
+        const daysLeft = Math.ceil((expiresDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        return {
+          jobId: j.id,
+          invoiceNumber: j.invoiceNumber,
+          clientName: j.clientName,
+          clientPhone: j.clientPhone,
+          workType: j.workType,
+          category: j.category,
+          completedDate: j.completedDate,
+          warrantyMonths: months,
+          expiresDate: expiresDate.toISOString().split('T')[0],
+          daysLeft,
+          isExpired: daysLeft <= 0,
+          isExpiringSoon: daysLeft > 0 && daysLeft <= 30,
+        };
+      }).sort((a, b) => a.daysLeft - b.daysLeft);
+      res.json(warranties);
+    } catch (err) {
+      console.error('Warranty tracking error:', err);
+      res.status(500).json({ message: "Gabim" });
+    }
+  });
+
+  // ==================== REMINDERS (check on startup) ====================
+  try {
+    const allJobs = await storage.getJobs();
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+    const todayStr = today.toISOString().split('T')[0];
+
+    for (const job of allJobs) {
+      if (job.isTemplate || job.status === 'e_perfunduar') continue;
+      const schedDate = job.scheduledDate || job.workDate;
+      if (schedDate === tomorrowStr || schedDate === todayStr) {
+        const existing = await storage.getNotifications();
+        const alreadyNotified = existing.some(n =>
+          n.type === 'upcoming_work' && n.jobId === job.id &&
+          n.createdAt && new Date(n.createdAt).toISOString().split('T')[0] === todayStr
+        );
+        if (!alreadyNotified) {
+          const label = schedDate === todayStr ? 'Sot' : 'Neser';
+          await storage.createNotification({
+            type: 'upcoming_work',
+            title: `Pune ${label}`,
+            message: `${job.clientName} - ${job.workType} (${job.invoiceNumber || '#' + job.id})`,
+            jobId: job.id,
+            catalogItemId: null,
+            isRead: 0,
+            userId: job.userId || null,
+          });
+        }
+      }
+    }
+
+    const completedJobs = allJobs.filter(j => j.status === 'e_perfunduar' && j.completedDate);
+    for (const job of completedJobs) {
+      const completedDate = new Date(job.completedDate!);
+      const months = job.warrantyMonths || 12;
+      const expiresDate = new Date(completedDate);
+      expiresDate.setMonth(expiresDate.getMonth() + months);
+      const daysLeft = Math.ceil((expiresDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      if (daysLeft > 0 && daysLeft <= 30) {
+        const existing = await storage.getNotifications();
+        const alreadyNotified = existing.some(n =>
+          n.type === 'warranty_expiring' && n.jobId === job.id &&
+          n.createdAt && new Date(n.createdAt).toISOString().split('T')[0] === todayStr
+        );
+        if (!alreadyNotified) {
+          await storage.createNotification({
+            type: 'warranty_expiring',
+            title: 'Garancia skadon se shpejti',
+            message: `${job.clientName} - ${job.invoiceNumber || '#' + job.id}: ${daysLeft} dite te mbetura`,
+            jobId: job.id,
+            catalogItemId: null,
+            isRead: 0,
+            userId: null,
+          });
+        }
+      }
+    }
+  } catch (reminderErr) {
+    console.error('Reminder check error:', reminderErr);
+  }
 
   // --- SEED DEFAULT CATALOG ---
   const catalogList = await storage.getCatalogItems();

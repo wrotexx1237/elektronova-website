@@ -36,6 +36,14 @@ Key features:
 - **Pricing support**: Per-item dual pricing with grand total calculation (scoped to category)
 - **Warnings system**: Final control warnings for incomplete checklist items
 - **Category Filter**: Dashboard filter by category with badge display on job cards
+- **TVSH/VAT System**: Configurable VAT rate per job (default 0%), automatic VAT calculation in PDFs
+- **Payment Tracking**: 3-tier payment status (Pa Paguar/Pjeserisht/Paguar), tracks paid amount, date, method (Cash/Bank/Other)
+- **Business Expenses**: Full CRUD with 8 categories (Karburant, Transport, Vegla, Material, Ushqim, Telefon, Qira, Tjeter), filtering by date/category
+- **Supplier Management**: Full CRUD for material suppliers with contact info, categories, search
+- **Client Feedback**: 1-5 star rating with optional comments per completed job
+- **Warranty Tracking**: Configurable warranty period per job (default 12 months), auto-calculated expiration, warranty API endpoint
+- **Automatic Reminders**: Server checks on startup for upcoming scheduled work (today/tomorrow) and warranties expiring within 30 days
+- **Contract PDF**: Professional 1-page contract with 8 NENI legal sections in Albanian
 
 ## User Preferences
 
@@ -69,9 +77,12 @@ Preferred communication style: Simple, everyday language.
 - **PostgreSQL** via `DATABASE_URL` environment variable
 - **Drizzle ORM** for schema definition and queries (`drizzle-orm/node-postgres`)
 - **Drizzle Kit** for migrations (`drizzle-kit push` to sync schema)
-- Two tables:
-  - `jobs` - stores client info, work metadata, and material data as JSONB columns
+- Main tables:
+  - `jobs` - stores client info, work metadata, material data as JSONB, payment/VAT/warranty fields
   - `catalog_items` - dynamic catalog of items per category with units and prices
+  - `suppliers` - material supplier contacts and categories
+  - `expenses` - business expense tracking with 8 categories
+  - `feedback` - client ratings and comments per job
 - Storage layer abstracted via `IStorage` interface in `server/storage.ts` (currently `DatabaseStorage` implementation)
 
 ### Data Model

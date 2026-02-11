@@ -28,7 +28,10 @@ import { Link } from "wouter";
 import { useCatalog } from "@/hooks/use-catalog";
 import { useAdmin } from "@/hooks/use-admin";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useState, useEffect } from "react";
+import type { Feedback } from "@shared/schema";
 import { MapDialog } from "@/components/map-dialog";
 import { ShareDialog } from "@/components/share-dialog";
 import jsPDF from "jspdf";
@@ -188,6 +191,8 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
       table1Data: {}, table2Data: {}, cameraData: {},
       intercomData: {}, alarmData: {}, serviceData: {},
       prices: {}, purchasePrices: {}, checklistData: {},
+      vatRate: 0, paymentStatus: "pa_paguar", paidAmount: 0,
+      paymentDate: null, paymentMethod: null, warrantyMonths: 12, completedDate: null,
     };
 
   const form = useForm<JobFormValues>({
@@ -415,6 +420,7 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
     doc.line(pageW - 80, finalY - 2, pageW - 14, finalY - 2);
 
     let totalLineY = finalY;
+    const vatRate = data.vatRate || 0;
     if (discountAmount > 0) {
       doc.setFontSize(10); doc.setTextColor(80); doc.setFont("helvetica", "normal");
       doc.text(`Nentotali: ${subtotalSale.toFixed(2)} EUR`, pageW - 14, totalLineY + 5, { align: "right" });
@@ -426,8 +432,20 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
       doc.text(`${discLabel} -${discountAmount.toFixed(2)} EUR`, pageW - 14, totalLineY + 5, { align: "right" });
       totalLineY += 7;
     }
-    doc.setFontSize(12); doc.setTextColor(0); doc.setFont("helvetica", "bold");
-    doc.text(`TOTALI: ${totalSale.toFixed(2)} EUR`, pageW - 14, totalLineY + 5, { align: "right" });
+    if (vatRate > 0) {
+      const vatAmount = totalSale * (vatRate / 100);
+      const totalWithVat = totalSale + vatAmount;
+      doc.setFontSize(10); doc.setTextColor(80); doc.setFont("helvetica", "normal");
+      doc.text(`Totali pa TVSH: ${totalSale.toFixed(2)} EUR`, pageW - 14, totalLineY + 5, { align: "right" });
+      totalLineY += 7;
+      doc.text(`TVSH (${vatRate}%): ${vatAmount.toFixed(2)} EUR`, pageW - 14, totalLineY + 5, { align: "right" });
+      totalLineY += 7;
+      doc.setFontSize(12); doc.setTextColor(0); doc.setFont("helvetica", "bold");
+      doc.text(`TOTALI me TVSH: ${totalWithVat.toFixed(2)} EUR`, pageW - 14, totalLineY + 5, { align: "right" });
+    } else {
+      doc.setFontSize(12); doc.setTextColor(0); doc.setFont("helvetica", "bold");
+      doc.text(`TOTALI: ${totalSale.toFixed(2)} EUR`, pageW - 14, totalLineY + 5, { align: "right" });
+    }
     doc.setDrawColor(41, 128, 185); doc.setLineWidth(0.3);
     doc.line(pageW - 80, totalLineY + 8, pageW - 14, totalLineY + 8);
 
@@ -1013,6 +1031,7 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
                 {tabVis.showInterfon && <TabsTrigger value="interfon" className="gap-2" data-testid="tab-interfon"><PhoneCall className="w-4 h-4" /> Interfon</TabsTrigger>}
                 {tabVis.showAlarm && <TabsTrigger value="alarm" className="gap-2" data-testid="tab-alarm"><ShieldAlert className="w-4 h-4" /> Alarm</TabsTrigger>}
                 {tabVis.showSherbime && <TabsTrigger value="sherbime" className="gap-2" data-testid="tab-sherbime"><Wrench className="w-4 h-4" /> Sherbime</TabsTrigger>}
+                <TabsTrigger value="financat" className="gap-2" data-testid="tab-financat"><Banknote className="w-4 h-4" /> Financat</TabsTrigger>
                 <TabsTrigger value="checklist" className="gap-2" data-testid="tab-checklist"><CheckCircle2 className="w-4 h-4" /> Checklist</TabsTrigger>
                 <TabsTrigger value="cmimet" className="gap-2" data-testid="tab-cmimet"><Banknote className="w-4 h-4" /> Cmimet</TabsTrigger>
               </TabsList>
@@ -1139,11 +1158,111 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
             {tabVis.showInterfon && <TabsContent value="interfon">{renderSimpleSection(intercomItems, "intercomData")}</TabsContent>}
             {tabVis.showAlarm && <TabsContent value="alarm">{renderSimpleSection(alarmItems, "alarmData")}</TabsContent>}
             {tabVis.showSherbime && <TabsContent value="sherbime">{renderSimpleSection(serviceItems, "serviceData")}</TabsContent>}
+            <TabsContent value="financat">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-base"><Banknote className="w-4 h-4" /> Pagesa & TVSH & Garancia</CardTitle>
+                </CardHeader>
+                <CardContent className="grid gap-6">
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold text-muted-foreground">TVSH (Tatimi mbi Vleren e Shtuar)</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField control={form.control} name="vatRate" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Shkalla e TVSH-se (%)</FormLabel>
+                          <FormControl>
+                            <div className="flex items-center border rounded-md bg-background">
+                              <Percent className="w-4 h-4 text-muted-foreground ml-2" />
+                              <Input type="number" step="0.5" min="0" max="100" className="border-0" placeholder="0" value={field.value === 0 ? "" : field.value} onChange={e => field.onChange(e.target.valueAsNumber || 0)} data-testid="input-vat-rate" />
+                            </div>
+                          </FormControl>
+                          <p className="text-xs text-muted-foreground">0% = pa TVSH, 18% = standarde</p>
+                        </FormItem>
+                      )} />
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-4 space-y-3">
+                    <h4 className="text-sm font-semibold text-muted-foreground">Statusi i Pageses</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField control={form.control} name="paymentStatus" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Statusi</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value || "pa_paguar"}>
+                            <FormControl><SelectTrigger data-testid="select-payment-status"><SelectValue /></SelectTrigger></FormControl>
+                            <SelectContent>
+                              <SelectItem value="pa_paguar">Pa Paguar</SelectItem>
+                              <SelectItem value="pjeserisht">Pjeserisht e Paguar</SelectItem>
+                              <SelectItem value="paguar">E Paguar</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormItem>
+                      )} />
+                      <FormField control={form.control} name="paidAmount" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Shuma e Paguar (EUR)</FormLabel>
+                          <FormControl>
+                            <Input type="number" step="0.01" min="0" placeholder="0.00" value={field.value === 0 ? "" : field.value} onChange={e => field.onChange(e.target.valueAsNumber || 0)} data-testid="input-paid-amount" />
+                          </FormControl>
+                        </FormItem>
+                      )} />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField control={form.control} name="paymentDate" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Data e Pageses</FormLabel>
+                          <FormControl><Input type="date" {...field} value={field.value || ""} data-testid="input-payment-date" /></FormControl>
+                        </FormItem>
+                      )} />
+                      <FormField control={form.control} name="paymentMethod" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Menyra e Pageses</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value || ""}>
+                            <FormControl><SelectTrigger data-testid="select-payment-method"><SelectValue placeholder="Zgjidhni" /></SelectTrigger></FormControl>
+                            <SelectContent>
+                              <SelectItem value="cash">Cash</SelectItem>
+                              <SelectItem value="bank">Bankë</SelectItem>
+                              <SelectItem value="other">Tjetër</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormItem>
+                      )} />
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-4 space-y-3">
+                    <h4 className="text-sm font-semibold text-muted-foreground">Garancia</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField control={form.control} name="warrantyMonths" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Periudha e Garancise (muaj)</FormLabel>
+                          <FormControl>
+                            <Input type="number" min="0" max="120" placeholder="12" value={field.value === 12 ? "12" : field.value} onChange={e => field.onChange(e.target.valueAsNumber || 12)} data-testid="input-warranty-months" />
+                          </FormControl>
+                          <p className="text-xs text-muted-foreground">Standarde: 12 muaj</p>
+                        </FormItem>
+                      )} />
+                      <FormField control={form.control} name="completedDate" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Data e Perfundimit</FormLabel>
+                          <FormControl><Input type="date" {...field} value={field.value || ""} data-testid="input-completed-date" /></FormControl>
+                          <p className="text-xs text-muted-foreground">Vendoset automatikisht kur statusi behet "E Perfunduar"</p>
+                        </FormItem>
+                      )} />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
             <TabsContent value="checklist">{renderChecklist()}</TabsContent>
             <TabsContent value="cmimet">{renderPricing()}</TabsContent>
           </Tabs>
         </form>
       </Form>
+
+      {initialData && initialData.status === "e_perfunduar" && (
+        <FeedbackSection jobId={initialData.id} />
+      )}
 
       <MapDialog
         open={mapOpen}

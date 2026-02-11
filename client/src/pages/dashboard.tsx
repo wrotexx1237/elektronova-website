@@ -416,6 +416,11 @@ export default function Dashboard() {
                       {job.invoiceNumber}
                     </Badge>
                   )}
+                  {job.paymentStatus && job.paymentStatus !== "pa_paguar" && (
+                    <Badge variant="outline" className={`text-[10px] no-default-hover-elevate no-default-active-elevate ${job.paymentStatus === "paguar" ? "border-green-500/30 text-green-600 dark:text-green-400" : "border-amber-500/30 text-amber-600 dark:text-amber-400"}`} data-testid={`badge-payment-${job.id}`}>
+                      {job.paymentStatus === "paguar" ? "Paguar" : "Pjeserisht"}
+                    </Badge>
+                  )}
                 </div>
 
                 <div className="space-y-3">

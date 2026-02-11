@@ -1,5 +1,6 @@
 import {
   jobs, catalogItems, users, clients, priceHistory, stockEntries, jobSnapshots, notifications,
+  suppliers, expenses, feedback,
   type Job, type InsertJob,
   type CatalogItem, type InsertCatalogItem,
   type User, type InsertUser,
@@ -8,6 +9,9 @@ import {
   type StockEntry, type InsertStockEntry,
   type JobSnapshot, type InsertJobSnapshot,
   type Notification, type InsertNotification,
+  type Supplier, type InsertSupplier,
+  type Expense, type InsertExpense,
+  type Feedback, type InsertFeedback,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, like, or, asc, and, gte, lte, sql } from "drizzle-orm";
@@ -31,7 +35,7 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   getUsers(): Promise<User[]>;
   createUser(user: InsertUser): Promise<User>;
-  updateUser(id: number, updates: Partial<InsertUser>): Promise<User>;
+  updateUser(id: number, updates: Partial<any>): Promise<User>;
 
   getClients(): Promise<Client[]>;
   getClient(id: number): Promise<Client | undefined>;
@@ -56,6 +60,22 @@ export interface IStorage {
   createNotification(notification: InsertNotification): Promise<Notification>;
   markNotificationRead(id: number): Promise<void>;
   markAllNotificationsRead(userId?: number): Promise<void>;
+
+  getSuppliers(): Promise<Supplier[]>;
+  getSupplier(id: number): Promise<Supplier | undefined>;
+  createSupplier(supplier: InsertSupplier): Promise<Supplier>;
+  updateSupplier(id: number, updates: Partial<InsertSupplier>): Promise<Supplier>;
+  deleteSupplier(id: number): Promise<void>;
+
+  getExpenses(filters?: { startDate?: string; endDate?: string; category?: string }): Promise<Expense[]>;
+  getExpense(id: number): Promise<Expense | undefined>;
+  createExpense(expense: InsertExpense): Promise<Expense>;
+  updateExpense(id: number, updates: Partial<InsertExpense>): Promise<Expense>;
+  deleteExpense(id: number): Promise<void>;
+
+  getFeedback(jobId?: number): Promise<Feedback[]>;
+  createFeedback(fb: InsertFeedback): Promise<Feedback>;
+  deleteFeedback(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -141,7 +161,7 @@ export class DatabaseStorage implements IStorage {
     return created;
   }
 
-  async updateUser(id: number, updates: Partial<InsertUser>): Promise<User> {
+  async updateUser(id: number, updates: Partial<any>): Promise<User> {
     const [updated] = await db.update(users).set(updates).where(eq(users.id, id)).returning();
     return updated;
   }
@@ -269,6 +289,79 @@ export class DatabaseStorage implements IStorage {
     } else {
       await db.update(notifications).set({ isRead: 1 });
     }
+  }
+
+  // --- SUPPLIERS ---
+  async getSuppliers(): Promise<Supplier[]> {
+    return await db.select().from(suppliers).orderBy(asc(suppliers.name));
+  }
+
+  async getSupplier(id: number): Promise<Supplier | undefined> {
+    const [s] = await db.select().from(suppliers).where(eq(suppliers.id, id));
+    return s;
+  }
+
+  async createSupplier(supplier: InsertSupplier): Promise<Supplier> {
+    const [created] = await db.insert(suppliers).values(supplier).returning();
+    return created;
+  }
+
+  async updateSupplier(id: number, updates: Partial<InsertSupplier>): Promise<Supplier> {
+    const [updated] = await db.update(suppliers).set(updates).where(eq(suppliers.id, id)).returning();
+    return updated;
+  }
+
+  async deleteSupplier(id: number): Promise<void> {
+    await db.delete(suppliers).where(eq(suppliers.id, id));
+  }
+
+  // --- EXPENSES ---
+  async getExpenses(filters?: { startDate?: string; endDate?: string; category?: string }): Promise<Expense[]> {
+    const conditions: any[] = [];
+    if (filters?.startDate) conditions.push(gte(expenses.date, filters.startDate));
+    if (filters?.endDate) conditions.push(lte(expenses.date, filters.endDate));
+    if (filters?.category) conditions.push(eq(expenses.category, filters.category));
+
+    if (conditions.length > 0) {
+      return await db.select().from(expenses).where(and(...conditions)).orderBy(desc(expenses.date));
+    }
+    return await db.select().from(expenses).orderBy(desc(expenses.date));
+  }
+
+  async getExpense(id: number): Promise<Expense | undefined> {
+    const [e] = await db.select().from(expenses).where(eq(expenses.id, id));
+    return e;
+  }
+
+  async createExpense(expense: InsertExpense): Promise<Expense> {
+    const [created] = await db.insert(expenses).values(expense).returning();
+    return created;
+  }
+
+  async updateExpense(id: number, updates: Partial<InsertExpense>): Promise<Expense> {
+    const [updated] = await db.update(expenses).set(updates).where(eq(expenses.id, id)).returning();
+    return updated;
+  }
+
+  async deleteExpense(id: number): Promise<void> {
+    await db.delete(expenses).where(eq(expenses.id, id));
+  }
+
+  // --- FEEDBACK ---
+  async getFeedback(jobId?: number): Promise<Feedback[]> {
+    if (jobId) {
+      return await db.select().from(feedback).where(eq(feedback.jobId, jobId)).orderBy(desc(feedback.createdAt));
+    }
+    return await db.select().from(feedback).orderBy(desc(feedback.createdAt));
+  }
+
+  async createFeedback(fb: InsertFeedback): Promise<Feedback> {
+    const [created] = await db.insert(feedback).values(fb).returning();
+    return created;
+  }
+
+  async deleteFeedback(id: number): Promise<void> {
+    await db.delete(feedback).where(eq(feedback.id, id));
   }
 }
 
