@@ -5,6 +5,8 @@ import { api } from "@shared/routes";
 import { z } from "zod";
 import { CATEGORIES, JOB_CATEGORIES, JOB_CATEGORY_PREFIXES, type JobCategory } from "@shared/schema";
 import bcrypt from "bcryptjs";
+import * as otplib from "otplib";
+import QRCode from "qrcode";
 
 async function generateInvoiceNumber(category: string): Promise<string> {
   const prefix = JOB_CATEGORY_PREFIXES[category as JobCategory] || "ELK";
@@ -68,7 +70,7 @@ export async function registerRoutes(
 
   app.post('/api/auth/login', async (req, res) => {
     try {
-      const { username, password } = req.body;
+      const { username, password, twoFactorToken } = req.body;
       if (!username || !password) {
         return res.status(400).json({ message: "Emri dhe fjalëkalimi janë të detyrueshëm" });
       }
@@ -80,11 +82,20 @@ export async function registerRoutes(
       if (!valid) {
         return res.status(401).json({ message: "Emri ose fjalëkalimi nuk është i saktë" });
       }
+      if (user.twoFactorEnabled && user.twoFactorSecret) {
+        if (!twoFactorToken) {
+          return res.status(200).json({ requiresTwoFactor: true, userId: user.id });
+        }
+        const isValid2FA = otplib.verifySync({ token: twoFactorToken, secret: user.twoFactorSecret }).valid;
+        if (!isValid2FA) {
+          return res.status(400).json({ message: "Kodi 2FA nuk është i saktë" });
+        }
+      }
       req.session.userId = user.id;
       req.session.role = user.role;
       req.session.username = user.username;
       req.session.fullName = user.fullName;
-      const { passwordHash, ...safeUser } = user;
+      const { passwordHash, twoFactorSecret, ...safeUser } = user;
       res.json(safeUser);
     } catch (err) {
       console.error('Login error:', err);
@@ -106,8 +117,140 @@ export async function registerRoutes(
     if (!user) {
       return res.status(401).json({ message: "Përdoruesi nuk u gjet" });
     }
-    const { passwordHash, ...safeUser } = user;
+    const { passwordHash, twoFactorSecret, ...safeUser } = user;
     res.json(safeUser);
+  });
+
+  // --- PROFILE UPDATE (self-service) ---
+  app.patch('/api/auth/profile', requireAuth, async (req, res) => {
+    try {
+      const userId = req.session!.userId!;
+      const { fullName, email, phone } = req.body;
+      const updates: any = {};
+      if (fullName && typeof fullName === "string" && fullName.trim()) updates.fullName = fullName.trim();
+      if (email !== undefined) updates.email = email || null;
+      if (phone !== undefined) updates.phone = phone || null;
+      if (Object.keys(updates).length === 0) {
+        return res.status(400).json({ message: "Asnjë ndryshim" });
+      }
+      const updated = await storage.updateUser(userId, updates);
+      if (updates.fullName) {
+        req.session.fullName = updates.fullName;
+      }
+      const { passwordHash, twoFactorSecret, ...safeUser } = updated;
+      res.json(safeUser);
+    } catch (err) {
+      console.error('Profile update error:', err);
+      res.status(500).json({ message: "Gabim në përditësim" });
+    }
+  });
+
+  // --- CHANGE PASSWORD ---
+  app.post('/api/auth/change-password', requireAuth, async (req, res) => {
+    try {
+      const userId = req.session!.userId!;
+      const { currentPassword, newPassword } = req.body;
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ message: "Plotësoni të dyja fushat" });
+      }
+      if (newPassword.length < 6) {
+        return res.status(400).json({ message: "Fjalëkalimi duhet të ketë së paku 6 karaktere" });
+      }
+      const user = await storage.getUser(userId);
+      if (!user) return res.status(404).json({ message: "Përdoruesi nuk u gjet" });
+      const valid = await bcrypt.compare(currentPassword, user.passwordHash);
+      if (!valid) {
+        return res.status(400).json({ message: "Fjalëkalimi aktual nuk është i saktë" });
+      }
+      const newHash = await bcrypt.hash(newPassword, 10);
+      await storage.updateUser(userId, { passwordHash: newHash });
+      res.json({ message: "Fjalëkalimi u ndryshua me sukses" });
+    } catch (err) {
+      console.error('Change password error:', err);
+      res.status(500).json({ message: "Gabim në ndryshimin e fjalëkalimit" });
+    }
+  });
+
+  // --- 2FA SETUP (generate secret + QR) ---
+  app.post('/api/auth/2fa/setup', requireAuth, async (req, res) => {
+    try {
+      const userId = req.session!.userId!;
+      const user = await storage.getUser(userId);
+      if (!user) return res.status(404).json({ message: "Përdoruesi nuk u gjet" });
+      const secret = otplib.generateSecret();
+      await storage.updateUser(userId, { twoFactorSecret: secret } as any);
+      const otpauthUrl = otplib.generateURI({ secret, issuer: "Elektronova", label: user.username, type: "totp" });
+      const qrCodeDataUrl = await QRCode.toDataURL(otpauthUrl);
+      res.json({ secret, qrCode: qrCodeDataUrl, otpauthUrl });
+    } catch (err) {
+      console.error('2FA setup error:', err);
+      res.status(500).json({ message: "Gabim në aktivizimin e 2FA" });
+    }
+  });
+
+  // --- 2FA VERIFY & ENABLE ---
+  app.post('/api/auth/2fa/verify', requireAuth, async (req, res) => {
+    try {
+      const userId = req.session!.userId!;
+      const { token } = req.body;
+      if (!token) return res.status(400).json({ message: "Vendosni kodin" });
+      const user = await storage.getUser(userId);
+      if (!user || !user.twoFactorSecret) {
+        return res.status(400).json({ message: "2FA nuk është konfiguruar" });
+      }
+      const isValid = otplib.verifySync({ token, secret: user.twoFactorSecret }).valid;
+      if (!isValid) {
+        return res.status(400).json({ message: "Kodi nuk është i saktë" });
+      }
+      await storage.updateUser(userId, { twoFactorEnabled: 1 } as any);
+      res.json({ message: "2FA u aktivizua me sukses" });
+    } catch (err) {
+      console.error('2FA verify error:', err);
+      res.status(500).json({ message: "Gabim në verifikim" });
+    }
+  });
+
+  // --- 2FA DISABLE ---
+  app.post('/api/auth/2fa/disable', requireAuth, async (req, res) => {
+    try {
+      const userId = req.session!.userId!;
+      const { password } = req.body;
+      if (!password) return res.status(400).json({ message: "Vendosni fjalëkalimin" });
+      const user = await storage.getUser(userId);
+      if (!user) return res.status(404).json({ message: "Përdoruesi nuk u gjet" });
+      const valid = await bcrypt.compare(password, user.passwordHash);
+      if (!valid) return res.status(400).json({ message: "Fjalëkalimi nuk është i saktë" });
+      await storage.updateUser(userId, { twoFactorSecret: null, twoFactorEnabled: 0 } as any);
+      res.json({ message: "2FA u çaktivizua me sukses" });
+    } catch (err) {
+      console.error('2FA disable error:', err);
+      res.status(500).json({ message: "Gabim në çaktivizim" });
+    }
+  });
+
+  // --- 2FA LOGIN VERIFY (called after login if 2FA enabled) ---
+  app.post('/api/auth/2fa/login-verify', async (req, res) => {
+    try {
+      const { userId, token } = req.body;
+      if (!userId || !token) return res.status(400).json({ message: "Vendosni kodin" });
+      const user = await storage.getUser(userId);
+      if (!user || !user.twoFactorSecret || !user.twoFactorEnabled) {
+        return res.status(400).json({ message: "2FA nuk është aktive" });
+      }
+      const isValid = otplib.verifySync({ token, secret: user.twoFactorSecret }).valid;
+      if (!isValid) {
+        return res.status(400).json({ message: "Kodi 2FA nuk është i saktë" });
+      }
+      req.session.userId = user.id;
+      req.session.role = user.role;
+      req.session.username = user.username;
+      req.session.fullName = user.fullName;
+      const { passwordHash, twoFactorSecret, ...safeUser } = user;
+      res.json(safeUser);
+    } catch (err) {
+      console.error('2FA login verify error:', err);
+      res.status(500).json({ message: "Gabim në verifikimin 2FA" });
+    }
   });
 
   app.post('/api/auth/register', requireAuth, requireAdmin, async (req, res) => {
@@ -146,7 +289,7 @@ export async function registerRoutes(
   // --- USERS MANAGEMENT (admin only) ---
   app.get('/api/users', requireAuth, requireAdmin, async (_req, res) => {
     const allUsers = await storage.getUsers();
-    const safe = allUsers.map(({ passwordHash, ...u }) => u);
+    const safe = allUsers.map(({ passwordHash, twoFactorSecret, ...u }) => u);
     res.json(safe);
   });
 
@@ -170,7 +313,7 @@ export async function registerRoutes(
       updates.passwordHash = await bcrypt.hash(req.body.password, 10);
     }
     const updated = await storage.updateUser(id, updates);
-    const { passwordHash, ...safeUser } = updated;
+    const { passwordHash, twoFactorSecret, ...safeUser } = updated;
     res.json(safeUser);
   });
 

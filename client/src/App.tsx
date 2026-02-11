@@ -14,6 +14,7 @@ import Login from "@/pages/login";
 import ClientsPage from "@/pages/clients";
 import InventoryPage from "@/pages/inventory";
 import AnalyticsPage from "@/pages/analytics";
+import ProfilePage from "@/pages/profile";
 import NotFound from "@/pages/not-found";
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType<any> }) {
@@ -45,6 +46,7 @@ function Router() {
       <Route path="/clients">{() => <ProtectedRoute component={ClientsPage} />}</Route>
       <Route path="/inventory">{() => <ProtectedRoute component={InventoryPage} />}</Route>
       <Route path="/analytics">{() => <ProtectedRoute component={AnalyticsPage} />}</Route>
+      <Route path="/profile">{() => <ProtectedRoute component={ProfilePage} />}</Route>
       <Route component={NotFound} />
     </Switch>
   );

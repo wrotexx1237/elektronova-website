@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Zap, LayoutDashboard, PlusCircle, Menu, X, Package, Users, Warehouse, BarChart3, Bell, LogOut, User, Sun, Moon } from "lucide-react";
+import { Zap, LayoutDashboard, PlusCircle, Menu, X, Package, Users, Warehouse, BarChart3, Bell, LogOut, User, Sun, Moon, Settings } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
@@ -95,10 +95,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
               </Badge>
             )}
 
-            <div className="hidden sm:flex items-center gap-1 text-sm text-muted-foreground">
+            <Link href="/profile" className="hidden sm:flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              data-testid="link-profile">
               <User className="h-3.5 w-3.5" />
               <span>{user?.fullName || user?.username}</span>
-            </div>
+            </Link>
 
             <Button size="icon" variant="ghost" onClick={() => logoutMutation.mutate()}
               data-testid="button-logout" title="Dil">
@@ -131,11 +132,22 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 {item.label}
               </Link>
             ))}
-            <div className="border-t pt-3 flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">{user?.fullName}</span>
-              <Button variant="ghost" size="sm" onClick={() => logoutMutation.mutate()}>
-                <LogOut className="h-4 w-4 mr-1" /> Dil
-              </Button>
+            <div className="border-t pt-3 flex flex-col gap-2">
+              <Link
+                href="/profile"
+                className="text-base font-medium transition-colors flex items-center gap-3 p-2 rounded-md hover:bg-muted text-muted-foreground"
+                onClick={() => setMobileMenuOpen(false)}
+                data-testid="link-profile-mobile"
+              >
+                <Settings className="h-5 w-5" />
+                Profili Im
+              </Link>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">{user?.fullName}</span>
+                <Button variant="ghost" size="sm" onClick={() => logoutMutation.mutate()}>
+                  <LogOut className="h-4 w-4 mr-1" /> Dil
+                </Button>
+              </div>
             </div>
           </div>
         )}

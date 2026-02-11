@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { useLocation } from "wouter";
-import { Zap } from "lucide-react";
+import { Zap, ShieldCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,9 @@ export default function Login() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [twoFactorStep, setTwoFactorStep] = useState(false);
+  const [twoFactorCode, setTwoFactorCode] = useState("");
+  const [pendingCredentials, setPendingCredentials] = useState<{ username: string; password: string } | null>(null);
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const {
     register,
@@ -40,7 +43,20 @@ export default function Login() {
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
-      await apiRequest("POST", "/api/auth/login", data);
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        throw new Error(result.message || "Gabim gjatë hyrjes");
+      }
+      if (result.requiresTwoFactor) {
+        setPendingCredentials(data);
+        setTwoFactorStep(true);
+        return;
+      }
       await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
     } catch (error) {
       const errorMessage =
@@ -54,6 +70,105 @@ export default function Login() {
       setIsLoading(false);
     }
   };
+
+  const onSubmit2FA = async () => {
+    if (!pendingCredentials || !twoFactorCode.trim()) return;
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...pendingCredentials,
+          twoFactorToken: twoFactorCode.trim(),
+        }),
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        throw new Error(result.message || "Kodi 2FA nuk është i saktë");
+      }
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Gabim gjatë verifikimit";
+      toast({
+        title: "Gabim",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (twoFactorStep) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="space-y-4">
+            <div className="flex justify-center">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-8 h-8 text-primary" />
+                <span className="text-2xl font-bold text-primary">
+                  Verifikim 2FA
+                </span>
+              </div>
+            </div>
+            <CardTitle className="text-center text-base font-normal text-muted-foreground">
+              Vendosni kodin nga Google Authenticator
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="twoFactorCode" data-testid="label-2fa-code">
+                  Kodi 2FA
+                </Label>
+                <Input
+                  id="twoFactorCode"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={6}
+                  placeholder="000000"
+                  className="text-center text-2xl tracking-widest"
+                  data-testid="input-2fa-code"
+                  value={twoFactorCode}
+                  onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, ""))}
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") onSubmit2FA();
+                  }}
+                />
+              </div>
+
+              <Button
+                onClick={onSubmit2FA}
+                disabled={isLoading || twoFactorCode.length < 6}
+                className="w-full"
+                data-testid="button-verify-2fa"
+              >
+                {isLoading ? "Duke verifikuar..." : "Verifiko"}
+              </Button>
+
+              <Button
+                variant="ghost"
+                className="w-full"
+                onClick={() => {
+                  setTwoFactorStep(false);
+                  setTwoFactorCode("");
+                  setPendingCredentials(null);
+                }}
+                data-testid="button-back-login"
+              >
+                Kthehu
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
