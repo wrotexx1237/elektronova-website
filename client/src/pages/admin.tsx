@@ -289,14 +289,29 @@ function ProfitDashboard() {
       Fitimi: parseFloat(t.profit.toFixed(2)),
     }));
 
-  const categoryTotals: Record<string, number> = {};
+  const categoryBreakdown: Record<string, { label: string; sale: number; purchase: number; profit: number; count: number }> = {};
   allTotals.forEach(t => {
-    const label = JOB_CATEGORY_LABELS[t.category as JobCategory] || t.category;
-    categoryTotals[label] = (categoryTotals[label] || 0) + t.totalSale;
+    const key = t.category;
+    const label = JOB_CATEGORY_LABELS[key as JobCategory] || key;
+    if (!categoryBreakdown[key]) categoryBreakdown[key] = { label, sale: 0, purchase: 0, profit: 0, count: 0 };
+    categoryBreakdown[key].sale += t.totalSale;
+    categoryBreakdown[key].purchase += t.totalPurchase;
+    categoryBreakdown[key].profit += t.profit;
+    categoryBreakdown[key].count++;
   });
-  const pieData = Object.entries(categoryTotals)
-    .filter(([, v]) => v > 0)
-    .map(([name, value]) => ({ name, value: parseFloat(value.toFixed(2)) }));
+
+  const categoryBarData = Object.values(categoryBreakdown)
+    .filter(c => c.sale > 0 || c.purchase > 0)
+    .map(c => ({
+      name: c.label,
+      Shitja: parseFloat(c.sale.toFixed(2)),
+      Blerja: parseFloat(c.purchase.toFixed(2)),
+      Fitimi: parseFloat(c.profit.toFixed(2)),
+    }));
+
+  const pieData = Object.values(categoryBreakdown)
+    .filter(c => c.sale > 0)
+    .map(c => ({ name: c.label, value: parseFloat(c.sale.toFixed(2)) }));
 
   return (
     <div className="space-y-6">
@@ -354,18 +369,71 @@ function ProfitDashboard() {
         </Card>
       </div>
 
-      {barChartData.length > 0 && (
+      {Object.keys(categoryBreakdown).length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-primary" />
+              Fitimet sipas Kategorisë
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {Object.entries(categoryBreakdown).map(([key, cat], index) => {
+                const margin = cat.sale > 0 ? (cat.profit / cat.sale) * 100 : 0;
+                return (
+                  <Card key={key} className="border-l-0" data-testid={`card-category-profit-${key}`}>
+                    <CardContent className="pt-4 pb-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="font-bold text-sm">{cat.label}</span>
+                        <span className="text-xs text-muted-foreground">{cat.count} punë</span>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground">Shitja</span>
+                          <span className="text-sm font-medium text-primary">{cat.sale.toFixed(2)} €</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground">Blerja</span>
+                          <span className="text-sm font-medium text-amber-600">{cat.purchase.toFixed(2)} €</span>
+                        </div>
+                        <div className="border-t pt-2 flex items-center justify-between">
+                          <span className="text-xs font-bold">Fitimi</span>
+                          <span className={`text-sm font-black ${cat.profit >= 0 ? 'text-green-600' : 'text-destructive'}`}>
+                            {cat.profit.toFixed(2)} €
+                          </span>
+                        </div>
+                        <div className="w-full bg-muted rounded-full h-1.5">
+                          <div
+                            className={`h-1.5 rounded-full ${cat.profit >= 0 ? 'bg-green-500' : 'bg-destructive'}`}
+                            style={{ width: `${Math.min(Math.max(margin, 0), 100)}%` }}
+                          />
+                        </div>
+                        <div className="text-center">
+                          <span className="text-xs text-muted-foreground">Marzhi: {margin.toFixed(1)}%</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {categoryBarData.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <Card className="lg:col-span-2">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Shitja vs Blerja per Klient</CardTitle>
+              <CardTitle className="text-sm">Shitja vs Blerja sipas Kategorisë</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={barChartData} margin={{ top: 5, right: 10, left: 0, bottom: 60 }}>
+                  <BarChart data={categoryBarData} margin={{ top: 5, right: 10, left: 0, bottom: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                    <XAxis dataKey="name" tick={{ fontSize: 11 }} angle={-35} textAnchor="end" interval={0} />
+                    <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                     <YAxis tick={{ fontSize: 11 }} />
                     <Tooltip
                       formatter={(value: number) => `${value.toFixed(2)} €`}
@@ -411,6 +479,33 @@ function ProfitDashboard() {
             </Card>
           )}
         </div>
+      )}
+
+      {barChartData.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Shitja vs Blerja per Klient</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={barChartData} margin={{ top: 5, right: 10, left: 0, bottom: 60 }}>
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                  <XAxis dataKey="name" tick={{ fontSize: 11 }} angle={-35} textAnchor="end" interval={0} />
+                  <YAxis tick={{ fontSize: 11 }} />
+                  <Tooltip
+                    formatter={(value: number) => `${value.toFixed(2)} €`}
+                    contentStyle={{ borderRadius: '8px', fontSize: '12px' }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: '12px' }} />
+                  <Bar dataKey="Shitja" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Blerja" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Fitimi" fill="#10b981" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       <Card>
