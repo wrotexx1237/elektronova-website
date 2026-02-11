@@ -388,12 +388,25 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
     }
 
     const finalY = (doc as any).lastAutoTable?.finalY ? (doc as any).lastAutoTable.finalY + 10 : 80;
+
+    doc.setDrawColor(41, 128, 185); doc.setLineWidth(0.5);
+    doc.line(pageW - 80, finalY - 2, pageW - 14, finalY - 2);
     doc.setFontSize(12); doc.setTextColor(0); doc.setFont("helvetica", "bold");
-    doc.text(`TOTALI: ${totalSale.toFixed(2)} EUR`, pageW - 14, finalY, { align: "right" });
+    doc.text(`TOTALI: ${totalSale.toFixed(2)} EUR`, pageW - 14, finalY + 5, { align: "right" });
+    doc.setDrawColor(41, 128, 185); doc.setLineWidth(0.3);
+    doc.line(pageW - 80, finalY + 8, pageW - 14, finalY + 8);
 
     if (data.notes) {
-      doc.setFontSize(8); doc.setFont("helvetica", "normal"); doc.setTextColor(80);
-      doc.text(`Shenime: ${data.notes}`, 14, finalY + 10);
+      const notesY = finalY + 20;
+      doc.setFillColor(245, 248, 252);
+      doc.roundedRect(14, notesY - 4, pageW - 28, 28, 2, 2, 'F');
+      doc.setDrawColor(41, 128, 185); doc.setLineWidth(0.2);
+      doc.roundedRect(14, notesY - 4, pageW - 28, 28, 2, 2, 'S');
+      doc.setFontSize(8); doc.setFont("helvetica", "bold"); doc.setTextColor(41, 128, 185);
+      doc.text("Kushtet e Ofertes:", 18, notesY + 2);
+      doc.setFontSize(7); doc.setFont("helvetica", "normal"); doc.setTextColor(60);
+      const splitNotes = doc.splitTextToSize(data.notes, pageW - 36);
+      doc.text(splitNotes, 18, notesY + 8);
     }
 
     addSignatures(doc);
