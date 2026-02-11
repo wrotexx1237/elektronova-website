@@ -102,6 +102,63 @@ interface ItemQtyInfo {
   purchasePrice: number;
 }
 
+function PriceRow({ item, form, showCost, isAdmin }: { item: CatalogItem; form: any; showCost: boolean; isAdmin: boolean }) {
+  const prices = form.watch("prices") || {};
+  const purchasePrices = form.watch("purchasePrices") || {};
+  const saleVal = prices[item.name] ?? "";
+  const purchaseVal = purchasePrices[item.name] ?? "";
+
+  const updateSalePrice = (val: number | string) => {
+    const cur = form.getValues("prices") || {};
+    const numVal = typeof val === "string" ? (val === "" ? 0 : parseFloat(val)) : val;
+    form.setValue("prices", { ...cur, [item.name]: isNaN(numVal) ? 0 : numVal }, { shouldDirty: true });
+  };
+
+  const updatePurchasePrice = (val: number | string) => {
+    const cur = form.getValues("purchasePrices") || {};
+    const numVal = typeof val === "string" ? (val === "" ? 0 : parseFloat(val)) : val;
+    form.setValue("purchasePrices", { ...cur, [item.name]: isNaN(numVal) ? 0 : numVal }, { shouldDirty: true });
+  };
+
+  return (
+    <div className="grid grid-cols-12 gap-2 items-center p-2 rounded hover:bg-muted/20">
+      <span className="col-span-4 text-xs font-bold truncate">{item.name}</span>
+      <div className="col-span-3">
+        <div className="flex items-center bg-background rounded border px-1">
+          <Banknote className="w-3 h-3 text-primary mr-1 shrink-0" />
+          <Input
+            type="number"
+            step="0.01"
+            className="h-7 border-0 bg-transparent text-right text-xs p-0"
+            placeholder="0.00"
+            value={saleVal === 0 ? "" : saleVal}
+            onChange={e => updateSalePrice(e.target.value)}
+            data-testid={`price-sale-${item.name}`}
+          />
+        </div>
+      </div>
+      {showCost && isAdmin && (
+        <div className="col-span-3">
+          <div className="flex items-center bg-amber-50 dark:bg-amber-950/20 rounded border border-amber-200 dark:border-amber-800 px-1">
+            <ShoppingCart className="w-3 h-3 text-amber-600 mr-1 shrink-0" />
+            <Input
+              type="number"
+              step="0.01"
+              className="h-7 border-0 bg-transparent text-right text-xs p-0"
+              placeholder="0.00"
+              value={purchaseVal === 0 ? "" : purchaseVal}
+              onChange={e => updatePurchasePrice(e.target.value)}
+              data-testid={`price-purchase-${item.name}`}
+            />
+          </div>
+        </div>
+      )}
+      {!(showCost && isAdmin) && <div className="col-span-3"></div>}
+      <div className="col-span-2"></div>
+    </div>
+  );
+}
+
 export function JobForm({ initialData, onSubmit, isPending, title, defaultCategory }: JobFormProps) {
   const { data: catalog } = useCatalog();
   const { toast } = useToast();
@@ -565,29 +622,7 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
               </div>
               <div className="space-y-1">
                 {section.items.map((c: CatalogItem) => (
-                  <div key={c.id} className="grid grid-cols-12 gap-2 items-center p-2 rounded hover:bg-muted/20">
-                    <span className="col-span-4 text-xs font-bold truncate">{c.name}</span>
-                    <div className="col-span-3">
-                      <FormField control={form.control} name={`prices.${c.name}`} render={({ field }) => (
-                        <div className="flex items-center bg-background rounded border px-1">
-                          <Banknote className="w-3 h-3 text-primary mr-1 shrink-0" />
-                          <Input type="number" step="0.01" className="h-7 border-0 bg-transparent text-right text-xs p-0" placeholder="0.00" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} value={field.value || ""} data-testid={`price-sale-${c.name}`} />
-                        </div>
-                      )} />
-                    </div>
-                    {showCost && isAdmin && (
-                      <div className="col-span-3">
-                        <FormField control={form.control} name={`purchasePrices.${c.name}`} render={({ field }) => (
-                          <div className="flex items-center bg-amber-50 dark:bg-amber-950/20 rounded border border-amber-200 dark:border-amber-800 px-1">
-                            <ShoppingCart className="w-3 h-3 text-amber-600 mr-1 shrink-0" />
-                            <Input type="number" step="0.01" className="h-7 border-0 bg-transparent text-right text-xs p-0" placeholder="0.00" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} value={(field.value as any) || ""} data-testid={`price-purchase-${c.name}`} />
-                          </div>
-                        )} />
-                      </div>
-                    )}
-                    {!(showCost && isAdmin) && <div className="col-span-3"></div>}
-                    <div className="col-span-2"></div>
-                  </div>
+                  <PriceRow key={c.id} item={c} form={form} showCost={showCost} isAdmin={isAdmin} />
                 ))}
               </div>
             </CardContent>
