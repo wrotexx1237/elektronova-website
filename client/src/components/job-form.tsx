@@ -518,156 +518,119 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
 
   const generateContractPDF = () => {
     const data = form.getValues();
-    const items = getAllItemsWithQty();
     const { totalSale, discountAmount, subtotalSale } = calculateTotals();
     const tc: [number, number, number] = [41, 128, 185];
     const doc = new jsPDF();
     const pageW = doc.internal.pageSize.width;
+    const pageH = doc.internal.pageSize.height;
     const margin = 14;
-    let y = 0;
+    const colMid = pageW / 2;
+    const lh = 4;
 
     addPDFHeader(doc);
 
-    doc.setFontSize(16); doc.setTextColor(0); doc.setFont("helvetica", "bold");
-    doc.text("KONTRATE PUNE", pageW / 2, 38, { align: "center" });
-    doc.setFontSize(9); doc.setTextColor(100); doc.setFont("helvetica", "normal");
-    doc.text(`Nr. ${initialData?.invoiceNumber || "___"} | Data: ${data.workDate}`, pageW / 2, 44, { align: "center" });
+    doc.setFontSize(14); doc.setTextColor(0); doc.setFont("helvetica", "bold");
+    doc.text("KONTRATE PUNE", colMid, 36, { align: "center" });
+    doc.setFontSize(8); doc.setTextColor(120); doc.setFont("helvetica", "normal");
+    doc.text(`Nr. ${initialData?.invoiceNumber || "___"}  |  Data: ${data.workDate}`, colMid, 41, { align: "center" });
 
-    y = 54;
+    let y = 47;
 
-    doc.setFontSize(10); doc.setTextColor(tc[0], tc[1], tc[2]); doc.setFont("helvetica", "bold");
-    doc.text("NENI 1 - PALET KONTRAKTUESE", margin, y);
-    y += 7;
-    doc.setFontSize(9); doc.setTextColor(0); doc.setFont("helvetica", "normal");
-    doc.text("Kryeresi i Punimeve (Kontraktori):", margin, y);
+    doc.setDrawColor(41, 128, 185); doc.setLineWidth(0.3);
+    doc.line(margin, y, pageW - margin, y);
     y += 5;
-    doc.setFont("helvetica", "bold");
-    doc.text("ELEKTRONOVA - Sherbime Elektrike & Siguri", margin + 4, y);
-    y += 5;
-    doc.setFont("helvetica", "normal");
-    doc.text("Tel: +383 49 771 673 / +383 49 205 271", margin + 4, y);
-    y += 8;
-    doc.text("Porositesi (Klienti):", margin, y);
-    y += 5;
-    doc.setFont("helvetica", "bold");
-    doc.text(`${data.clientName}`, margin + 4, y);
-    y += 5;
-    doc.setFont("helvetica", "normal");
-    doc.text(`Adresa: ${data.clientAddress}`, margin + 4, y);
-    if (data.clientPhone) {
-      y += 5;
-      doc.text(`Tel: ${data.clientPhone}`, margin + 4, y);
-    }
 
-    y += 10;
-    doc.setFontSize(10); doc.setTextColor(tc[0], tc[1], tc[2]); doc.setFont("helvetica", "bold");
-    doc.text("NENI 2 - OBJEKTI I KONTRATES", margin, y);
-    y += 7;
-    doc.setFontSize(9); doc.setTextColor(0); doc.setFont("helvetica", "normal");
-    const scopeText = `Kontraktori merr persiper kryerjen e punimeve te llojit "${data.workType}" - Kategoria: ${JOB_CATEGORY_LABELS[category] || category}, ne adresen e klientit te specifikuar me siper, duke perfshire materialet dhe sherbimet e listuara me poshte.`;
+    doc.setFontSize(7.5); doc.setTextColor(0);
+
+    doc.setFont("helvetica", "bold"); doc.setTextColor(tc[0], tc[1], tc[2]);
+    doc.text("KONTRAKTORI", margin, y);
+    doc.text("KLIENTI", colMid + 5, y);
+    y += lh + 1;
+    doc.setFont("helvetica", "bold"); doc.setTextColor(0);
+    doc.text("ELEKTRONOVA", margin, y);
+    doc.text(`${data.clientName}`, colMid + 5, y);
+    y += lh;
+    doc.setFont("helvetica", "normal"); doc.setTextColor(60);
+    doc.text("Sherbime Elektrike & Siguri", margin, y);
+    doc.text(`${data.clientAddress}`, colMid + 5, y);
+    y += lh;
+    doc.text("Tel: +383 49 771 673 / +383 49 205 271", margin, y);
+    if (data.clientPhone) doc.text(`Tel: ${data.clientPhone}`, colMid + 5, y);
+
+    y += 6;
+    doc.setDrawColor(220); doc.setLineWidth(0.2);
+    doc.line(margin, y, pageW - margin, y);
+    y += 5;
+
+    const sectionTitle = (title: string) => {
+      doc.setFontSize(8); doc.setTextColor(tc[0], tc[1], tc[2]); doc.setFont("helvetica", "bold");
+      doc.text(title, margin, y);
+      y += lh + 1;
+      doc.setFontSize(7.5); doc.setTextColor(50); doc.setFont("helvetica", "normal");
+    };
+
+    sectionTitle("1. OBJEKTI I KONTRATES");
+    const catLabel = JOB_CATEGORY_LABELS[category] || category;
+    const scopeText = `Kontraktori merr persiper kryerjen e punimeve "${data.workType}" - ${catLabel}, ne adresen e klientit, duke perfshire materialet dhe sherbimet e nevojshme.`;
     const scopeLines = doc.splitTextToSize(scopeText, pageW - 2 * margin);
     doc.text(scopeLines, margin, y);
-    y += scopeLines.length * 5 + 5;
+    y += scopeLines.length * lh + 3;
 
-    if (items.length > 0) {
-      doc.setFontSize(10); doc.setTextColor(tc[0], tc[1], tc[2]); doc.setFont("helvetica", "bold");
-      doc.text("NENI 3 - MATERIALET DHE SHERBIMET", margin, y);
-      y += 5;
-
-      let nr = 1;
-      const body = items.map(i => [
-        (nr++).toString(),
-        i.name,
-        i.unit,
-        i.qty.toString(),
-        i.salePrice > 0 ? i.salePrice.toFixed(2) : "-",
-        (i.qty * i.salePrice) > 0 ? (i.qty * i.salePrice).toFixed(2) : "-",
-      ]);
-
-      autoTable(doc, {
-        startY: y,
-        head: [["Nr.", "Pershkrimi", "Njesia", "Sasia", "Cmimi", "Totali"]],
-        body,
-        theme: 'grid',
-        headStyles: { fillColor: tc, fontSize: 8, fontStyle: 'bold' },
-        styles: { fontSize: 7, cellPadding: 2 },
-        columnStyles: {
-          0: { cellWidth: 10, halign: 'center' },
-          1: { cellWidth: 65 },
-          2: { cellWidth: 18, halign: 'center' },
-          3: { cellWidth: 15, halign: 'center' },
-          4: { cellWidth: 22, halign: 'right' },
-          5: { cellWidth: 22, halign: 'right', fontStyle: 'bold' },
-        },
-      });
-
-      y = (doc as any).lastAutoTable?.finalY ? (doc as any).lastAutoTable.finalY + 5 : y + 20;
-    }
-
-    if (y > 230) { doc.addPage(); y = 20; }
-
-    doc.setFontSize(10); doc.setTextColor(tc[0], tc[1], tc[2]); doc.setFont("helvetica", "bold");
-    doc.text("NENI 4 - CMIMI DHE PAGESA", margin, y);
-    y += 7;
-    doc.setFontSize(9); doc.setTextColor(0); doc.setFont("helvetica", "normal");
+    sectionTitle("2. CMIMI DHE PAGESA");
     if (discountAmount > 0) {
-      doc.text(`Nentotali: ${subtotalSale.toFixed(2)} EUR`, margin, y); y += 5;
-      doc.text(`Zbritja: -${discountAmount.toFixed(2)} EUR`, margin, y); y += 5;
+      doc.text(`Nentotali: ${subtotalSale.toFixed(2)} EUR  |  Zbritja: -${discountAmount.toFixed(2)} EUR`, margin, y);
+      y += lh;
     }
-    doc.setFont("helvetica", "bold");
-    doc.text(`Vlera totale e kontrates: ${totalSale.toFixed(2)} EUR`, margin, y);
-    y += 6;
-    doc.setFont("helvetica", "normal");
-    doc.text("Pagesa behet ne kete menyre:", margin, y); y += 5;
-    doc.text("- 50% parapagim para fillimit te punimeve", margin + 4, y); y += 5;
-    doc.text("- 50% pas perfundimit te punimeve dhe pranimit nga klienti", margin + 4, y);
+    doc.setFont("helvetica", "bold"); doc.setTextColor(0);
+    doc.text(`Vlera totale: ${totalSale.toFixed(2)} EUR`, margin, y);
+    y += lh;
+    doc.setFont("helvetica", "normal"); doc.setTextColor(50);
+    doc.text("Pagesa: 50% parapagim para fillimit te punimeve, 50% pas perfundimit dhe pranimit nga klienti.", margin, y);
+    y += lh + 3;
 
-    y += 10;
-    doc.setFontSize(10); doc.setTextColor(tc[0], tc[1], tc[2]); doc.setFont("helvetica", "bold");
-    doc.text("NENI 5 - AFATI I KRYERJES", margin, y);
-    y += 7;
-    doc.setFontSize(9); doc.setTextColor(0); doc.setFont("helvetica", "normal");
-    doc.text(`Punimet fillojne me daten: ${data.scheduledDate || data.workDate}`, margin, y); y += 5;
-    doc.text("Afati i perfundimit: sipas marreveshjes se paleve (zakonisht 1-5 dite pune).", margin, y);
+    sectionTitle("3. AFATI I KRYERJES");
+    doc.text(`Fillimi: ${data.scheduledDate || data.workDate}  |  Perfundimi: sipas marreveshjes (zakonisht 1-5 dite pune).`, margin, y);
+    y += lh + 3;
 
-    y += 10;
-    if (y > 230) { doc.addPage(); y = 20; }
-    doc.setFontSize(10); doc.setTextColor(tc[0], tc[1], tc[2]); doc.setFont("helvetica", "bold");
-    doc.text("NENI 6 - GARANCIA", margin, y);
-    y += 7;
-    doc.setFontSize(9); doc.setTextColor(0); doc.setFont("helvetica", "normal");
-    const warrantyText = "Kontraktori garanton cilesi te punimeve per nje periudhe prej 12 muajsh nga data e perfundimit. Garancia mbulon defektet ne material dhe ne pune, por nuk mbulon demtimet e shkaktuara nga perdorimi i gabuar ose nderhyrje te paleve te treta.";
-    const warrantyLines = doc.splitTextToSize(warrantyText, pageW - 2 * margin);
-    doc.text(warrantyLines, margin, y);
-    y += warrantyLines.length * 5 + 5;
+    sectionTitle("4. GARANCIA");
+    const wText = "Kontraktori garanton cilesine e punimeve per 12 muaj nga data e perfundimit. Garancia mbulon defektet ne material dhe pune, por nuk mbulon demtimet nga perdorimi i gabuar ose nderhyrje te paleve te treta.";
+    const wLines = doc.splitTextToSize(wText, pageW - 2 * margin);
+    doc.text(wLines, margin, y);
+    y += wLines.length * lh + 3;
 
-    if (y > 230) { doc.addPage(); y = 20; }
-    doc.setFontSize(10); doc.setTextColor(tc[0], tc[1], tc[2]); doc.setFont("helvetica", "bold");
-    doc.text("NENI 7 - KUSHTET E PERGJITHSHME", margin, y);
-    y += 7;
-    doc.setFontSize(9); doc.setTextColor(0); doc.setFont("helvetica", "normal");
+    sectionTitle("5. KUSHTET E PERGJITHSHME");
     const terms = [
-      "1. Nese klienti kerkon punime shtese jashte kontrates, ato do te faturohen vemas.",
-      "2. Kontraktori nuk mban pergjegjesi per deme te shkaktuara nga infrastruktura ekzistuese.",
-      "3. Materialet e teperta i kthehen kontraktorit pas perfundimit te punimeve.",
-      "4. Kontrata hyn ne fuqi me nenshkrimin e te dyja paleve.",
+      "a) Punimet shtese jashte kontrates faturohen vemas pas konfirmimit te klientit.",
+      "b) Kontraktori nuk mban pergjegjesi per deme nga infrastruktura ekzistuese.",
+      "c) Materialet e teperta i kthehen kontraktorit pas perfundimit te punimeve.",
+      "d) Kontrata hyn ne fuqi me nenshkrimin e te dyja paleve.",
     ];
     terms.forEach(t => {
-      const tLines = doc.splitTextToSize(t, pageW - 2 * margin);
-      doc.text(tLines, margin, y);
-      y += tLines.length * 5 + 2;
+      doc.text(t, margin, y);
+      y += lh;
     });
 
-    y += 5;
-    if (y > 240) { doc.addPage(); y = 20; }
+    y += 3;
+    doc.setDrawColor(220); doc.setLineWidth(0.2);
+    doc.line(margin, y, pageW - margin, y);
 
-    addSignatures(doc);
+    const signY = Math.max(y + 15, pageH - 45);
+    doc.setFontSize(7.5); doc.setTextColor(80); doc.setFont("helvetica", "normal");
+    doc.text("Data: ____/____/________", margin, signY - 5);
+    doc.text("Data: ____/____/________", colMid + 15, signY - 5);
 
-    const totalPages = doc.getNumberOfPages();
-    for (let i = 1; i <= totalPages; i++) {
-      doc.setPage(i);
-      addPDFFooter(doc, i, totalPages);
-    }
+    doc.setDrawColor(150); doc.setLineWidth(0.3);
+    doc.line(margin, signY + 5, margin + 70, signY + 5);
+    doc.line(colMid + 15, signY + 5, colMid + 85, signY + 5);
+    doc.setFontSize(7.5); doc.setTextColor(80);
+    doc.text("Nenshkrimi i Klientit", margin + 15, signY + 10);
+    doc.text("Elektronova (Kontraktori)", colMid + 25, signY + 10);
+
+    doc.setDrawColor(200); doc.setLineWidth(0.3);
+    doc.line(margin, pageH - 15, pageW - margin, pageH - 15);
+    doc.setFontSize(6.5); doc.setTextColor(140); doc.setFont("helvetica", "normal");
+    doc.text("ELEKTRONOVA | Sherbime Elektrike & Siguri | Tel: +383 49 771 673", margin, pageH - 10);
+    doc.text(`Kontrate Pune - ${initialData?.invoiceNumber || ""}`, pageW - margin, pageH - 10, { align: "right" });
 
     doc.save(`Elektronova_Kontrate_${data.clientName.replace(/\s/g, '_')}_${data.workDate}.pdf`);
     toast({ title: "Kontrata u gjenerua me sukses!" });
