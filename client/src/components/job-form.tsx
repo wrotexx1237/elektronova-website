@@ -419,13 +419,11 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
         i.name,
         i.unit,
         i.qty.toString(),
-        i.purchasePrice > 0 ? i.purchasePrice.toFixed(2) : "-",
-        (i.qty * i.purchasePrice) > 0 ? (i.qty * i.purchasePrice).toFixed(2) : "-",
       ]);
 
       autoTable(doc, {
         startY: 52,
-        head: [["Nr.", "Artikulli", "Njesia", "Sasia", "Cmimi Blerjes", "Totali Kosto"]],
+        head: [["Nr.", "Artikulli", "Njesia", "Sasia"]],
         body,
         theme: 'striped',
         headStyles: { fillColor: tc, fontSize: 9, fontStyle: 'bold' },
@@ -433,18 +431,14 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
         alternateRowStyles: { fillColor: [240, 240, 240] },
         columnStyles: {
           0: { cellWidth: 12, halign: 'center' },
-          1: { cellWidth: 60 },
-          2: { cellWidth: 20, halign: 'center' },
-          3: { cellWidth: 18, halign: 'center' },
-          4: { cellWidth: 28, halign: 'right' },
-          5: { cellWidth: 28, halign: 'right', fontStyle: 'bold' },
+          1: { cellWidth: 90 },
+          2: { cellWidth: 30, halign: 'center' },
+          3: { cellWidth: 25, halign: 'center' },
         },
       });
     }
 
     const finalY = (doc as any).lastAutoTable?.finalY ? (doc as any).lastAutoTable.finalY + 10 : 70;
-    doc.setFontSize(12); doc.setTextColor(0); doc.setFont("helvetica", "bold");
-    doc.text(`TOTALI KOSTOS: ${totalPurchase.toFixed(2)} EUR`, pageW - 14, finalY, { align: "right" });
 
     doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.setTextColor(0);
     doc.text("Shenime per furnizim:", 14, finalY + 15);
