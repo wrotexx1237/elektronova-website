@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
-import { Zap, LayoutDashboard, PlusCircle, Menu, X, Package, Users, Warehouse, BarChart3, Bell, LogOut, User } from "lucide-react";
-import { useState } from "react";
+import { Zap, LayoutDashboard, PlusCircle, Menu, X, Package, Users, Warehouse, BarChart3, Bell, LogOut, User, Sun, Moon } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
@@ -9,6 +9,32 @@ import { Button } from "@/components/ui/button";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { Notification } from "@shared/schema";
+
+function ThemeToggle() {
+  const [dark, setDark] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("theme") === "dark" ||
+        (!localStorage.getItem("theme") && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (dark) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  }, [dark]);
+
+  return (
+    <Button size="icon" variant="ghost" onClick={() => setDark(!dark)} data-testid="button-theme-toggle" title={dark ? "Modalitet i ndritshëm" : "Modalitet i errët"}>
+      {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+    </Button>
+  );
+}
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
@@ -60,6 +86,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <NotificationBell />
 
             {isAdmin && (
@@ -198,8 +225,8 @@ function NotificationBell() {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end">
-        <div className="flex items-center justify-between p-3 border-b">
+      <PopoverContent className="w-80 p-0 z-[100]" align="end" sideOffset={8}>
+        <div className="flex items-center justify-between gap-2 p-3 border-b bg-popover rounded-t-md">
           <h3 className="font-semibold text-sm">Njoftimet</h3>
           {unreadCount > 0 && (
             <Button variant="ghost" size="sm" onClick={() => markAllReadMutation.mutate()}
@@ -208,7 +235,7 @@ function NotificationBell() {
             </Button>
           )}
         </div>
-        <div className="max-h-80 overflow-y-auto">
+        <div className="max-h-80 overflow-y-auto bg-popover rounded-b-md">
           {notifications.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-8">Asnjë njoftim</p>
           ) : (
@@ -216,18 +243,20 @@ function NotificationBell() {
               <div
                 key={notif.id}
                 className={cn(
-                  "p-3 border-b last:border-0 cursor-pointer hover:bg-muted/50 transition-colors",
-                  notif.isRead === 0 && "bg-primary/5"
+                  "p-3 border-b last:border-0 cursor-pointer transition-colors",
+                  notif.isRead === 0 ? "bg-primary/5 dark:bg-primary/10" : "hover:bg-muted/50"
                 )}
                 onClick={() => notif.isRead === 0 && markReadMutation.mutate(notif.id)}
                 data-testid={`notification-${notif.id}`}
               >
                 <div className="flex items-start gap-2">
-                  <span className={cn("text-xs font-medium mt-0.5", typeColors[notif.type] || "")}>
-                    {typeLabels[notif.type] || notif.type}
-                  </span>
+                  <Badge variant="secondary" className="text-xs no-default-active-elevate">
+                    <span className={cn(typeColors[notif.type] || "")}>
+                      {typeLabels[notif.type] || notif.type}
+                    </span>
+                  </Badge>
                 </div>
-                <p className="text-sm mt-1">{notif.message}</p>
+                <p className="text-sm mt-1.5 text-foreground">{notif.message}</p>
                 <p className="text-xs text-muted-foreground mt-1">
                   {notif.createdAt ? new Date(notif.createdAt).toLocaleString('sq') : ''}
                 </p>
