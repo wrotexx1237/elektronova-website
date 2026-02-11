@@ -172,7 +172,7 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
     workDate: new Date().toISOString().split('T')[0],
     workType: getWorkTypesForCategory(resolvedCategory)[0],
     category: resolvedCategory,
-    notes: "",
+    notes: "Kjo ofertë është përgatitur mbi bazën e kërkesës së klientit dhe gjendjes aktuale të objektit në momentin e inspektimit. Oferta nuk përbën kontratë përfundimtare dhe mund të pësojë ndryshime në rast të punimeve shtesë, materialeve të paplanifikuara apo kërkesave të reja nga klienti. Punimet realizohen vetëm pas konfirmimit zyrtar të ofertës.",
     table1Data: {}, table2Data: {}, cameraData: {},
     intercomData: {}, alarmData: {}, serviceData: {},
     prices: {}, purchasePrices: {}, checklistData: {},
@@ -827,7 +827,7 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
                     )} />
                   </div>
                   <FormField control={form.control} name="notes" render={({ field }) => (
-                    <FormItem><FormLabel>Shenime</FormLabel><FormControl><Textarea {...field} value={field.value || ""} data-testid="input-notes" /></FormControl></FormItem>
+                    <FormItem><FormLabel>Shenime</FormLabel><FormControl><Textarea {...field} value={field.value || ""} readOnly className="bg-muted/30 text-muted-foreground cursor-not-allowed text-xs" data-testid="input-notes" /></FormControl></FormItem>
                   )} />
                 </CardContent>
               </Card>
