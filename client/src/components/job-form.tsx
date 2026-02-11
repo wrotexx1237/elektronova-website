@@ -1049,16 +1049,16 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
                   )} />
                   <FormField control={form.control} name="locationUrl" render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex items-center gap-1"><MapPin className="w-3 h-3" /> Lokacioni (Google Maps Link)</FormLabel>
+                      <FormLabel className="flex items-center gap-1"><MapPin className="w-3 h-3" /> Plus Code</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
                           value={field.value || ""}
-                          placeholder="Vendosni linkun nga Google Maps..."
+                          placeholder="psh. 8GJ2JCW2+G9"
                           data-testid="input-location-url"
                         />
                       </FormControl>
-                      <p className="text-xs text-muted-foreground">Kopjoni linkun nga Google Maps dhe vendoseni ketu</p>
+                      <p className="text-xs text-muted-foreground">Kopjoni Plus Code nga Google Maps dhe vendoseni ketu</p>
                     </FormItem>
                   )} />
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

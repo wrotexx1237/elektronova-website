@@ -13,8 +13,79 @@ interface MapDialogProps {
   locationUrl?: string;
 }
 
-function extractCoordsFromGoogleMapsUrl(url: string): { lat: number; lng: number } | null {
-  if (!url) return null;
+const ALPHABET = "23456789CFGHJMPQRVWX";
+
+function decodePlusCode(code: string): { lat: number; lng: number } | null {
+  const cleaned = code.trim().replace(/\s+/g, "").toUpperCase();
+
+  const plusIndex = cleaned.indexOf("+");
+  if (plusIndex === -1 || plusIndex < 2 || plusIndex > 8) return null;
+
+  const digits = cleaned.replace("+", "");
+  for (const ch of digits) {
+    if (ALPHABET.indexOf(ch) === -1 && ch !== "0") return null;
+  }
+
+  let padded = digits;
+  while (padded.length < 10) padded += ALPHABET[0];
+
+  const pairResolutions = [20.0, 1.0, 0.05, 0.0025, 0.000125];
+  let lat = 0;
+  let lng = 0;
+
+  for (let i = 0; i < 5; i++) {
+    const latIdx = ALPHABET.indexOf(padded[i * 2]);
+    const lngIdx = ALPHABET.indexOf(padded[i * 2 + 1]);
+    if (latIdx === -1 || lngIdx === -1) return null;
+    lat += latIdx * pairResolutions[i];
+    lng += lngIdx * pairResolutions[i];
+  }
+
+  if (digits.length > 10) {
+    let latRes = pairResolutions[4];
+    let lngRes = pairResolutions[4];
+    for (let i = 10; i < digits.length; i++) {
+      const idx = ALPHABET.indexOf(digits[i]);
+      if (idx === -1) break;
+      latRes /= 5;
+      lngRes /= 4;
+      lat += Math.floor(idx / 4) * latRes;
+      lng += (idx % 4) * lngRes;
+    }
+  }
+
+  const halfLatRes = pairResolutions[4] / 2;
+  const halfLngRes = pairResolutions[4] / 2;
+  lat = lat + halfLatRes - 90;
+  lng = lng + halfLngRes - 180;
+
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+
+  return { lat, lng };
+}
+
+function decodePlusCodeViaApi(code: string): Promise<{ lat: number; lng: number } | null> {
+  const cleaned = code.trim().replace(/\s+/g, "");
+  return fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cleaned)}&limit=1`, {
+    headers: { 'Accept-Language': 'sq' }
+  })
+    .then(r => r.json())
+    .then(data => {
+      if (data && data.length > 0) {
+        return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+      }
+      return null;
+    })
+    .catch(() => null);
+}
+
+function isPlusCode(input: string): boolean {
+  const cleaned = input.trim().toUpperCase();
+  return /^[23456789CFGHJMPQRVWX]{4,8}\+[23456789CFGHJMPQRVWX]{2,}$/i.test(cleaned);
+}
+
+function extractCoordsFromInput(input: string): { lat: number; lng: number } | null {
+  if (!input) return null;
 
   const patterns = [
     /@(-?\d+\.\d+),(-?\d+\.\d+)/,
@@ -25,7 +96,7 @@ function extractCoordsFromGoogleMapsUrl(url: string): { lat: number; lng: number
   ];
 
   for (const pattern of patterns) {
-    const match = url.match(pattern);
+    const match = input.match(pattern);
     if (match) {
       const lat = parseFloat(match[1]);
       const lng = parseFloat(match[2]);
@@ -51,15 +122,35 @@ export function MapDialog({ open, onOpenChange, address, clientName, locationUrl
     setError(null);
     setCoords(null);
 
-    const urlCoords = locationUrl ? extractCoordsFromGoogleMapsUrl(locationUrl) : null;
-    if (urlCoords) {
-      setCoords(urlCoords);
-      setLoading(false);
-      return;
+    if (locationUrl) {
+      if (isPlusCode(locationUrl)) {
+        const decoded = decodePlusCode(locationUrl);
+        if (decoded) {
+          setCoords(decoded);
+          setLoading(false);
+          return;
+        }
+        decodePlusCodeViaApi(locationUrl).then(result => {
+          if (result) {
+            setCoords(result);
+          } else {
+            setError("Plus Code nuk u dekodua. Kontrolloni kodin.");
+          }
+          setLoading(false);
+        });
+        return;
+      }
+
+      const urlCoords = extractCoordsFromInput(locationUrl);
+      if (urlCoords) {
+        setCoords(urlCoords);
+        setLoading(false);
+        return;
+      }
     }
 
     if (!address) {
-      setError("Nuk ka adresë ose lokacion të vendosur.");
+      setError("Nuk ka adresë ose Plus Code të vendosur.");
       setLoading(false);
       return;
     }
@@ -73,7 +164,7 @@ export function MapDialog({ open, onOpenChange, address, clientName, locationUrl
         if (data && data.length > 0) {
           setCoords({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) });
         } else {
-          setError("Adresa nuk u gjet në hartë. Provoni të vendosni linkun e Google Maps.");
+          setError("Adresa nuk u gjet. Vendosni Plus Code nga Google Maps.");
         }
       })
       .catch(() => {
@@ -124,9 +215,7 @@ export function MapDialog({ open, onOpenChange, address, clientName, locationUrl
   }, [coords, open]);
 
   const openGoogleMaps = () => {
-    if (locationUrl) {
-      window.open(locationUrl, '_blank');
-    } else if (coords) {
+    if (coords) {
       window.open(`https://www.google.com/maps/dir/?api=1&destination=${coords.lat},${coords.lng}`, '_blank');
     } else {
       window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`, '_blank');
