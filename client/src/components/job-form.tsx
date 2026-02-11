@@ -236,12 +236,19 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
   };
 
   const getQtyForRoomItem = (item: string) => {
-    const rowData = form.watch(`table1Data.${item}`) || {};
+    const allTable1 = form.watch("table1Data") || {};
+    const rowData = allTable1[item] || {};
     return Object.values(rowData).reduce((a: number, b: number) => a + (b || 0), 0);
   };
 
   const getSimpleQty = (field: string, item: string) => {
-    return (form.watch as any)(`${field}.${item}`) || 0;
+    const allData = form.watch(field as any) || {};
+    return allData[item] || 0;
+  };
+
+  const getPriceForItem = (item: string) => {
+    const allPrices = form.watch("prices") || {};
+    return allPrices[item] || 0;
   };
 
   const getAllItemsWithQty = (): ItemQtyInfo[] => {
@@ -457,67 +464,94 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
     toast({ title: "PDF per Blerje u gjenerua!" });
   };
 
-  const renderRoomTable = () => (
-    <Card className="overflow-x-auto">
-      <table className="w-full text-xs">
-        <thead>
-          <tr className="bg-muted border-b">
-            <th className="p-2 text-left sticky left-0 bg-muted z-10 w-32 border-r">Pajisja</th>
-            {ROOMS.map(r => <th key={r} className="p-2 text-center min-w-[50px]">{r}</th>)}
-            <th className="p-2 text-center font-bold bg-primary/5">Sasia</th>
-            <th className="p-2 text-center font-bold bg-primary/10">Vlera</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y">
-          {pajisjeItems.map((c: CatalogItem) => {
-            const qty = getQtyForRoomItem(c.name);
-            const price = form.watch(`prices.${c.name}`) || 0;
-            return (
-              <tr key={c.id} className="hover:bg-muted/30">
-                <td className="p-2 font-medium sticky left-0 bg-background z-10 border-r text-xs">{c.name}</td>
-                {ROOMS.map(r => (
-                  <td key={r} className="p-0.5">
-                    <FormField control={form.control} name={`table1Data.${c.name}.${r}`} render={({ field }) => (
-                      <input type="number" className="w-full h-8 text-center bg-transparent outline-none border-b border-transparent focus:border-primary text-xs" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} value={field.value || ""} data-testid={`input-${c.name}-${r}`} />
-                    )} />
-                  </td>
-                ))}
-                <td className="p-2 text-center font-bold">{qty || "-"}</td>
-                <td className="p-2 text-center text-primary font-bold">{(qty * price) > 0 ? (qty * price).toFixed(2) : "-"}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </Card>
-  );
+  const updateRoomQty = (itemName: string, room: string, val: number) => {
+    const cur = form.getValues("table1Data") || {};
+    const rowData = { ...(cur[itemName] || {}) };
+    rowData[room] = isNaN(val) ? 0 : val;
+    form.setValue("table1Data", { ...cur, [itemName]: rowData }, { shouldDirty: true });
+  };
 
-  const renderSimpleSection = (items: CatalogItem[], fieldName: string) => (
-    <Card>
-      <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-        {items.map(c => {
-          const qty = getSimpleQty(fieldName, c.name);
-          const price = form.watch(`prices.${c.name}`) || 0;
-          return (
-            <div key={c.id} className="p-2 border rounded-lg flex items-center justify-between gap-2 hover:border-primary/50 transition-colors">
-              <div className="flex flex-col min-w-0">
-                <span className="text-xs font-bold truncate">{c.name}</span>
-                <span className="text-[10px] text-muted-foreground">{c.unit}</span>
-                {(qty * price) > 0 && <span className="text-[10px] text-primary font-black">{(qty * price).toFixed(2)} €</span>}
-              </div>
-              <FormField control={form.control} name={`${fieldName}.${c.name}` as any} render={({ field }) => (
+  const updateSimpleQty = (fieldName: string, itemName: string, val: number) => {
+    const cur = form.getValues(fieldName as any) || {};
+    form.setValue(fieldName as any, { ...cur, [itemName]: isNaN(val) ? 0 : val }, { shouldDirty: true });
+  };
+
+  const renderRoomTable = () => {
+    const table1Data = form.watch("table1Data") || {};
+    return (
+      <Card className="overflow-x-auto">
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="bg-muted border-b">
+              <th className="p-2 text-left sticky left-0 bg-muted z-10 w-32 border-r">Pajisja</th>
+              {ROOMS.map(r => <th key={r} className="p-2 text-center min-w-[50px]">{r}</th>)}
+              <th className="p-2 text-center font-bold bg-primary/5">Sasia</th>
+              <th className="p-2 text-center font-bold bg-primary/10">Vlera</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y">
+            {pajisjeItems.map((c: CatalogItem) => {
+              const qty = getQtyForRoomItem(c.name);
+              const price = getPriceForItem(c.name);
+              const rowData = table1Data[c.name] || {};
+              return (
+                <tr key={c.id} className="hover:bg-muted/30">
+                  <td className="p-2 font-medium sticky left-0 bg-background z-10 border-r text-xs">{c.name}</td>
+                  {ROOMS.map(r => (
+                    <td key={r} className="p-0.5">
+                      <input
+                        type="number"
+                        className="w-full h-8 text-center bg-transparent outline-none border-b border-transparent focus:border-primary text-xs"
+                        value={rowData[r] || ""}
+                        onChange={e => updateRoomQty(c.name, r, e.target.valueAsNumber)}
+                        data-testid={`input-${c.name}-${r}`}
+                      />
+                    </td>
+                  ))}
+                  <td className="p-2 text-center font-bold">{qty || "-"}</td>
+                  <td className="p-2 text-center text-primary font-bold">{(qty * price) > 0 ? (qty * price).toFixed(2) : "-"}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </Card>
+    );
+  };
+
+  const renderSimpleSection = (items: CatalogItem[], fieldName: string) => {
+    const sectionData = form.watch(fieldName as any) || {};
+    return (
+      <Card>
+        <CardContent className="pt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {items.map(c => {
+            const qty = sectionData[c.name] || 0;
+            const price = getPriceForItem(c.name);
+            return (
+              <div key={c.id} className="p-2 border rounded-lg flex items-center justify-between gap-2 hover:border-primary/50 transition-colors">
+                <div className="flex flex-col min-w-0">
+                  <span className="text-xs font-bold truncate">{c.name}</span>
+                  <span className="text-[10px] text-muted-foreground">{c.unit}</span>
+                  {(qty * price) > 0 && <span className="text-[10px] text-primary font-black">{(qty * price).toFixed(2)} €</span>}
+                </div>
                 <div className="flex items-center bg-muted/50 rounded overflow-hidden w-20 shrink-0 border">
-                  <Input type="number" className="h-7 border-0 bg-transparent text-right px-1 text-xs" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} value={(field.value as any) || ""} data-testid={`input-${c.name}`} />
+                  <Input
+                    type="number"
+                    className="h-7 border-0 bg-transparent text-right px-1 text-xs"
+                    value={qty || ""}
+                    onChange={e => updateSimpleQty(fieldName, c.name, e.target.valueAsNumber)}
+                    data-testid={`input-${c.name}`}
+                  />
                   <span className="text-[9px] px-1 bg-muted uppercase font-bold border-l whitespace-nowrap">{c.unit}</span>
                 </div>
-              )} />
-            </div>
-          );
-        })}
-        {items.length === 0 && <p className="text-muted-foreground text-sm col-span-full text-center py-4">Nuk ka artikuj ne kete kategori. Shto ne Katalogun e Admin.</p>}
-      </CardContent>
-    </Card>
-  );
+              </div>
+            );
+          })}
+          {items.length === 0 && <p className="text-muted-foreground text-sm col-span-full text-center py-4">Nuk ka artikuj ne kete kategori. Shto ne Katalogun e Admin.</p>}
+        </CardContent>
+      </Card>
+    );
+  };
 
   const renderChecklist = () => {
     const sections = getChecklistsForCategory(category);
@@ -532,14 +566,19 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              {sec.items.map(item => (
-                <FormField key={item} control={form.control} name={`checklistData.${item}`} render={({ field }) => (
-                  <label className="flex items-center gap-3 p-2 rounded hover:bg-muted/30 cursor-pointer" data-testid={`checklist-${item}`}>
-                    <Checkbox checked={!!field.value} onCheckedChange={field.onChange} />
-                    <span className={`text-sm ${field.value ? "line-through text-muted-foreground" : ""}`}>{item}</span>
+              {sec.items.map(item => {
+                const checklistData = form.watch("checklistData") || {};
+                const checked = !!checklistData[item];
+                return (
+                  <label key={item} className="flex items-center gap-3 p-2 rounded hover:bg-muted/30 cursor-pointer" data-testid={`checklist-${item}`}>
+                    <Checkbox checked={checked} onCheckedChange={(val) => {
+                      const cur = form.getValues("checklistData") || {};
+                      form.setValue("checklistData", { ...cur, [item]: !!val }, { shouldDirty: true });
+                    }} />
+                    <span className={`text-sm ${checked ? "line-through text-muted-foreground" : ""}`}>{item}</span>
                   </label>
-                )} />
-              ))}
+                );
+              })}
             </CardContent>
           </Card>
         ))}
