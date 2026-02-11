@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Zap, LayoutDashboard, PlusCircle, Menu, X, Package, Users, Warehouse, BarChart3, Bell, LogOut, User, Sun, Moon, Settings } from "lucide-react";
+import { Zap, LayoutDashboard, PlusCircle, Menu, X, Package, Users, Warehouse, BarChart3, Bell, LogOut, User, Sun, Moon, Settings, CalendarDays } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
@@ -46,6 +46,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { label: "Procesverbal i Ri", href: "/new", icon: PlusCircle },
     { label: "Klientët", href: "/clients", icon: Users },
     { label: "Stoku", href: "/inventory", icon: Warehouse },
+    { label: "Kalendari", href: "/calendar", icon: CalendarDays },
     { label: "Katalogu", href: "/admin", icon: Package },
     ...(isAdmin ? [{ label: "Analiza", href: "/analytics", icon: BarChart3 }] : []),
   ];

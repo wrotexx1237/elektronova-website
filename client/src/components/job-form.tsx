@@ -21,13 +21,16 @@ import {
 import {
   Save, FileDown, ArrowLeft, Loader2, Banknote, Camera, PhoneCall,
   Package, Info, Settings, ShieldAlert, Wrench, CheckCircle2, AlertTriangle, Zap, Phone,
-  ChevronDown, ShoppingCart, FileText, Eye, EyeOff, Percent, Hash, Tag
+  ChevronDown, ShoppingCart, FileText, Eye, EyeOff, Percent, Hash, Tag,
+  MapPin, Send, FileSignature, CalendarDays
 } from "lucide-react";
 import { Link } from "wouter";
 import { useCatalog } from "@/hooks/use-catalog";
 import { useAdmin } from "@/hooks/use-admin";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
+import { MapDialog } from "@/components/map-dialog";
+import { ShareDialog } from "@/components/share-dialog";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -164,6 +167,8 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
   const { toast } = useToast();
   const { isAdmin } = useAdmin();
   const [showCost, setShowCost] = useState(false);
+  const [mapOpen, setMapOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
 
   const resolvedCategory: JobCategory = (initialData?.category || defaultCategory || "electric") as JobCategory;
 
@@ -511,6 +516,163 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
     toast({ title: "PDF per Blerje u gjenerua!" });
   };
 
+  const generateContractPDF = () => {
+    const data = form.getValues();
+    const items = getAllItemsWithQty();
+    const { totalSale, discountAmount, subtotalSale } = calculateTotals();
+    const tc: [number, number, number] = [41, 128, 185];
+    const doc = new jsPDF();
+    const pageW = doc.internal.pageSize.width;
+    const margin = 14;
+    let y = 0;
+
+    addPDFHeader(doc);
+
+    doc.setFontSize(16); doc.setTextColor(0); doc.setFont("helvetica", "bold");
+    doc.text("KONTRATE PUNE", pageW / 2, 38, { align: "center" });
+    doc.setFontSize(9); doc.setTextColor(100); doc.setFont("helvetica", "normal");
+    doc.text(`Nr. ${initialData?.invoiceNumber || "___"} | Data: ${data.workDate}`, pageW / 2, 44, { align: "center" });
+
+    y = 54;
+
+    doc.setFontSize(10); doc.setTextColor(tc[0], tc[1], tc[2]); doc.setFont("helvetica", "bold");
+    doc.text("NENI 1 - PALET KONTRAKTUESE", margin, y);
+    y += 7;
+    doc.setFontSize(9); doc.setTextColor(0); doc.setFont("helvetica", "normal");
+    doc.text("Kryeresi i Punimeve (Kontraktori):", margin, y);
+    y += 5;
+    doc.setFont("helvetica", "bold");
+    doc.text("ELEKTRONOVA - Sherbime Elektrike & Siguri", margin + 4, y);
+    y += 5;
+    doc.setFont("helvetica", "normal");
+    doc.text("Tel: +383 49 771 673 / +383 49 205 271", margin + 4, y);
+    y += 8;
+    doc.text("Porositesi (Klienti):", margin, y);
+    y += 5;
+    doc.setFont("helvetica", "bold");
+    doc.text(`${data.clientName}`, margin + 4, y);
+    y += 5;
+    doc.setFont("helvetica", "normal");
+    doc.text(`Adresa: ${data.clientAddress}`, margin + 4, y);
+    if (data.clientPhone) {
+      y += 5;
+      doc.text(`Tel: ${data.clientPhone}`, margin + 4, y);
+    }
+
+    y += 10;
+    doc.setFontSize(10); doc.setTextColor(tc[0], tc[1], tc[2]); doc.setFont("helvetica", "bold");
+    doc.text("NENI 2 - OBJEKTI I KONTRATES", margin, y);
+    y += 7;
+    doc.setFontSize(9); doc.setTextColor(0); doc.setFont("helvetica", "normal");
+    const scopeText = `Kontraktori merr persiper kryerjen e punimeve te llojit "${data.workType}" - Kategoria: ${JOB_CATEGORY_LABELS[category] || category}, ne adresen e klientit te specifikuar me siper, duke perfshire materialet dhe sherbimet e listuara me poshte.`;
+    const scopeLines = doc.splitTextToSize(scopeText, pageW - 2 * margin);
+    doc.text(scopeLines, margin, y);
+    y += scopeLines.length * 5 + 5;
+
+    if (items.length > 0) {
+      doc.setFontSize(10); doc.setTextColor(tc[0], tc[1], tc[2]); doc.setFont("helvetica", "bold");
+      doc.text("NENI 3 - MATERIALET DHE SHERBIMET", margin, y);
+      y += 5;
+
+      let nr = 1;
+      const body = items.map(i => [
+        (nr++).toString(),
+        i.name,
+        i.unit,
+        i.qty.toString(),
+        i.salePrice > 0 ? i.salePrice.toFixed(2) : "-",
+        (i.qty * i.salePrice) > 0 ? (i.qty * i.salePrice).toFixed(2) : "-",
+      ]);
+
+      autoTable(doc, {
+        startY: y,
+        head: [["Nr.", "Pershkrimi", "Njesia", "Sasia", "Cmimi", "Totali"]],
+        body,
+        theme: 'grid',
+        headStyles: { fillColor: tc, fontSize: 8, fontStyle: 'bold' },
+        styles: { fontSize: 7, cellPadding: 2 },
+        columnStyles: {
+          0: { cellWidth: 10, halign: 'center' },
+          1: { cellWidth: 65 },
+          2: { cellWidth: 18, halign: 'center' },
+          3: { cellWidth: 15, halign: 'center' },
+          4: { cellWidth: 22, halign: 'right' },
+          5: { cellWidth: 22, halign: 'right', fontStyle: 'bold' },
+        },
+      });
+
+      y = (doc as any).lastAutoTable?.finalY ? (doc as any).lastAutoTable.finalY + 5 : y + 20;
+    }
+
+    if (y > 230) { doc.addPage(); y = 20; }
+
+    doc.setFontSize(10); doc.setTextColor(tc[0], tc[1], tc[2]); doc.setFont("helvetica", "bold");
+    doc.text("NENI 4 - CMIMI DHE PAGESA", margin, y);
+    y += 7;
+    doc.setFontSize(9); doc.setTextColor(0); doc.setFont("helvetica", "normal");
+    if (discountAmount > 0) {
+      doc.text(`Nentotali: ${subtotalSale.toFixed(2)} EUR`, margin, y); y += 5;
+      doc.text(`Zbritja: -${discountAmount.toFixed(2)} EUR`, margin, y); y += 5;
+    }
+    doc.setFont("helvetica", "bold");
+    doc.text(`Vlera totale e kontrates: ${totalSale.toFixed(2)} EUR`, margin, y);
+    y += 6;
+    doc.setFont("helvetica", "normal");
+    doc.text("Pagesa behet ne kete menyre:", margin, y); y += 5;
+    doc.text("- 50% parapagim para fillimit te punimeve", margin + 4, y); y += 5;
+    doc.text("- 50% pas perfundimit te punimeve dhe pranimit nga klienti", margin + 4, y);
+
+    y += 10;
+    doc.setFontSize(10); doc.setTextColor(tc[0], tc[1], tc[2]); doc.setFont("helvetica", "bold");
+    doc.text("NENI 5 - AFATI I KRYERJES", margin, y);
+    y += 7;
+    doc.setFontSize(9); doc.setTextColor(0); doc.setFont("helvetica", "normal");
+    doc.text(`Punimet fillojne me daten: ${data.scheduledDate || data.workDate}`, margin, y); y += 5;
+    doc.text("Afati i perfundimit: sipas marreveshjes se paleve (zakonisht 1-5 dite pune).", margin, y);
+
+    y += 10;
+    if (y > 230) { doc.addPage(); y = 20; }
+    doc.setFontSize(10); doc.setTextColor(tc[0], tc[1], tc[2]); doc.setFont("helvetica", "bold");
+    doc.text("NENI 6 - GARANCIA", margin, y);
+    y += 7;
+    doc.setFontSize(9); doc.setTextColor(0); doc.setFont("helvetica", "normal");
+    const warrantyText = "Kontraktori garanton cilesi te punimeve per nje periudhe prej 12 muajsh nga data e perfundimit. Garancia mbulon defektet ne material dhe ne pune, por nuk mbulon demtimet e shkaktuara nga perdorimi i gabuar ose nderhyrje te paleve te treta.";
+    const warrantyLines = doc.splitTextToSize(warrantyText, pageW - 2 * margin);
+    doc.text(warrantyLines, margin, y);
+    y += warrantyLines.length * 5 + 5;
+
+    if (y > 230) { doc.addPage(); y = 20; }
+    doc.setFontSize(10); doc.setTextColor(tc[0], tc[1], tc[2]); doc.setFont("helvetica", "bold");
+    doc.text("NENI 7 - KUSHTET E PERGJITHSHME", margin, y);
+    y += 7;
+    doc.setFontSize(9); doc.setTextColor(0); doc.setFont("helvetica", "normal");
+    const terms = [
+      "1. Nese klienti kerkon punime shtese jashte kontrates, ato do te faturohen vemas.",
+      "2. Kontraktori nuk mban pergjegjesi per deme te shkaktuara nga infrastruktura ekzistuese.",
+      "3. Materialet e teperta i kthehen kontraktorit pas perfundimit te punimeve.",
+      "4. Kontrata hyn ne fuqi me nenshkrimin e te dyja paleve.",
+    ];
+    terms.forEach(t => {
+      const tLines = doc.splitTextToSize(t, pageW - 2 * margin);
+      doc.text(tLines, margin, y);
+      y += tLines.length * 5 + 2;
+    });
+
+    y += 5;
+    if (y > 240) { doc.addPage(); y = 20; }
+
+    addSignatures(doc);
+
+    const totalPages = doc.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      addPDFFooter(doc, i, totalPages);
+    }
+
+    doc.save(`Elektronova_Kontrate_${data.clientName.replace(/\s/g, '_')}_${data.workDate}.pdf`);
+    toast({ title: "Kontrata u gjenerua me sukses!" });
+  };
+
   const updateRoomQty = (itemName: string, room: string, val: number) => {
     const cur = form.getValues("table1Data") || {};
     const rowData = { ...(cur[itemName] || {}) };
@@ -789,8 +951,22 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
               <DropdownMenuItem onClick={generatePurchasePDF} data-testid="button-pdf-purchase">
                 <ShoppingCart className="mr-2 w-4 h-4" /> PDF per Blerje (Lista ime)
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={generateContractPDF} data-testid="button-pdf-contract">
+                <FileSignature className="mr-2 w-4 h-4" /> Kontrate Pune
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+
+          {initialData && (
+            <>
+              <Button type="button" variant="outline" size="icon" onClick={() => setMapOpen(true)} title="Shiko ne harte" data-testid="button-map">
+                <MapPin className="h-4 w-4" />
+              </Button>
+              <Button type="button" variant="outline" size="icon" onClick={() => setShareOpen(true)} title="Ndaj me klientin" data-testid="button-share">
+                <Send className="h-4 w-4" />
+              </Button>
+            </>
+          )}
 
           <Button type="button" onClick={() => {
             const cleanNumericRecord = (rec: Record<string, any> | undefined) => {
@@ -871,9 +1047,15 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
                   <FormField control={form.control} name="clientAddress" render={({ field }) => (
                     <FormItem><FormLabel>Adresa</FormLabel><FormControl><Input {...field} data-testid="input-client-address" /></FormControl><FormMessage /></FormItem>
                   )} />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <FormField control={form.control} name="workDate" render={({ field }) => (
-                      <FormItem><FormLabel>Data</FormLabel><FormControl><Input type="date" {...field} data-testid="input-work-date" /></FormControl></FormItem>
+                      <FormItem><FormLabel>Data e Punës</FormLabel><FormControl><Input type="date" {...field} data-testid="input-work-date" /></FormControl></FormItem>
+                    )} />
+                    <FormField control={form.control} name="scheduledDate" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-1"><CalendarDays className="w-3 h-3" /> Data e Planifikuar</FormLabel>
+                        <FormControl><Input type="date" {...field} value={field.value || ""} data-testid="input-scheduled-date" /></FormControl>
+                      </FormItem>
                     )} />
                     <FormField control={form.control} name="workType" render={({ field }) => (
                       <FormItem>
@@ -963,6 +1145,21 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
           </Tabs>
         </form>
       </Form>
+
+      <MapDialog
+        open={mapOpen}
+        onOpenChange={setMapOpen}
+        address={form.getValues("clientAddress") || ""}
+        clientName={form.getValues("clientName") || ""}
+      />
+
+      {initialData && (
+        <ShareDialog
+          open={shareOpen}
+          onOpenChange={setShareOpen}
+          job={initialData}
+        />
+      )}
     </div>
   );
 }

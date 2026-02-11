@@ -18,7 +18,9 @@ import {
   Copy,
   Hash,
   BookTemplate,
-  Clock
+  Clock,
+  MapPin,
+  Send
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -55,6 +57,8 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { JOB_CATEGORY_LABELS, JOB_STATUS_LABELS, type Job, type JobCategory, type JobStatus } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
+import { MapDialog } from "@/components/map-dialog";
+import { ShareDialog } from "@/components/share-dialog";
 
 const CATEGORY_CARDS: { key: JobCategory; label: string; icon: typeof Zap; color: string }[] = [
   { key: "electric", label: "Rrymë (Elektrike)", icon: Zap, color: "text-amber-500" },
@@ -141,6 +145,8 @@ export default function Dashboard() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
+  const [mapJob, setMapJob] = useState<Job | null>(null);
+  const [shareJob, setShareJob] = useState<Job | null>(null);
 
   const userCategories = user?.assignedCategories;
   const hasCategories = userCategories && userCategories.length > 0;
@@ -433,10 +439,15 @@ export default function Dashboard() {
                       </span>
                     )}
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-muted-foreground">
-                      {job.invoiceNumber || `#${job.id}`}
-                    </span>
+                  <div className="flex justify-between items-center gap-2">
+                    <div className="flex items-center gap-1">
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setMapJob(job)} title="Harta" data-testid={`button-map-${job.id}`}>
+                        <MapPin className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setShareJob(job)} title="Ndaj" data-testid={`button-share-${job.id}`}>
+                        <Send className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                     <Link href={`/edit/${job.id}`}>
                       <Button variant="ghost" size="sm" data-testid={`button-view-${job.id}`}>
                         Shiko Detajet
@@ -448,6 +459,23 @@ export default function Dashboard() {
             );
           })}
         </div>
+      )}
+
+      {mapJob && (
+        <MapDialog
+          open={!!mapJob}
+          onOpenChange={(open) => !open && setMapJob(null)}
+          address={mapJob.clientAddress}
+          clientName={mapJob.clientName}
+        />
+      )}
+
+      {shareJob && (
+        <ShareDialog
+          open={!!shareJob}
+          onOpenChange={(open) => !open && setShareJob(null)}
+          job={shareJob}
+        />
       )}
     </Layout>
   );
