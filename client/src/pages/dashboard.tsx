@@ -1,4 +1,4 @@
-import { useJobs, useDeleteJob } from "@/hooks/use-jobs";
+import { useJobs, useDeleteJob, useDuplicateJob } from "@/hooks/use-jobs";
 import { Layout } from "@/components/layout";
 import { Link } from "wouter";
 import { 
@@ -14,7 +14,9 @@ import {
   Zap,
   Camera,
   ShieldAlert,
-  Phone
+  Phone,
+  Copy,
+  Hash
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -32,6 +34,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
@@ -45,7 +48,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
-import { JOB_CATEGORY_LABELS, type JobCategory } from "@shared/schema";
+import { JOB_CATEGORY_LABELS, JOB_STATUS_LABELS, type JobCategory, type JobStatus } from "@shared/schema";
 
 const CATEGORY_CARDS: { key: JobCategory; label: string; icon: typeof Zap; color: string }[] = [
   { key: "electric", label: "Rrymë (Elektrike)", icon: Zap, color: "text-amber-500" },
@@ -64,17 +67,28 @@ function getCategoryBadgeProps(category: string | null | undefined) {
   }
 }
 
+function getStatusBadgeProps(status: string | null | undefined) {
+  switch (status) {
+    case "ne_progres": return { label: JOB_STATUS_LABELS.ne_progres, className: "bg-blue-500/10 text-blue-600 border-blue-500/20" };
+    case "e_perfunduar": return { label: JOB_STATUS_LABELS.e_perfunduar, className: "bg-green-500/10 text-green-600 border-green-500/20" };
+    default: return { label: JOB_STATUS_LABELS.oferte, className: "bg-orange-500/10 text-orange-600 border-orange-500/20" };
+  }
+}
+
 export default function Dashboard() {
   const { data: jobs, isLoading, error } = useJobs();
   const deleteJob = useDeleteJob();
+  const duplicateJob = useDuplicateJob();
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
   const filteredJobs = jobs?.filter(job => {
     const matchesSearch = job.clientName.toLowerCase().includes(search.toLowerCase()) || 
       job.clientAddress.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = categoryFilter === "all" || (job.category || "electric") === categoryFilter;
-    return matchesSearch && matchesCategory;
+    const matchesStatus = statusFilter === "all" || (job.status || "oferte") === statusFilter;
+    return matchesSearch && matchesCategory && matchesStatus;
   });
 
   return (
@@ -133,6 +147,17 @@ export default function Dashboard() {
             <SelectItem value="intercom">Interfon</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-full sm:w-[180px]" data-testid="select-status-filter">
+            <SelectValue placeholder="Të gjitha statuset" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Të gjitha statuset</SelectItem>
+            <SelectItem value="oferte">Ofertë</SelectItem>
+            <SelectItem value="ne_progres">Në Progres</SelectItem>
+            <SelectItem value="e_perfunduar">E Përfunduar</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {isLoading ? (
@@ -159,6 +184,7 @@ export default function Dashboard() {
           {filteredJobs?.map((job) => {
             const catBadge = getCategoryBadgeProps(job.category);
             const CatIcon = catBadge.icon;
+            const statusBadge = getStatusBadgeProps(job.status);
             return (
               <div 
                 key={job.id} 
@@ -192,6 +218,13 @@ export default function Dashboard() {
                           <Edit className="mr-2 h-4 w-4" /> Ndrysho
                         </DropdownMenuItem>
                       </Link>
+                      <DropdownMenuItem 
+                        onClick={() => duplicateJob.mutate(job.id)}
+                        data-testid={`button-duplicate-${job.id}`}
+                      >
+                        <Copy className="mr-2 h-4 w-4" /> Duplikato
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
                           <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive" data-testid={`button-delete-${job.id}`}>
@@ -220,11 +253,20 @@ export default function Dashboard() {
                   </DropdownMenu>
                 </div>
 
-                <div className="mb-3">
-                  <Badge variant="outline" className={`text-[10px] font-bold ${catBadge.className}`} data-testid={`badge-category-${job.id}`}>
+                <div className="flex items-center gap-2 mb-3 flex-wrap">
+                  <Badge variant="outline" className={`text-[10px] font-bold no-default-hover-elevate no-default-active-elevate ${catBadge.className}`} data-testid={`badge-category-${job.id}`}>
                     <CatIcon className="h-3 w-3 mr-1" />
                     {catBadge.label}
                   </Badge>
+                  <Badge variant="outline" className={`text-[10px] font-bold no-default-hover-elevate no-default-active-elevate ${statusBadge.className}`} data-testid={`badge-status-${job.id}`}>
+                    {statusBadge.label}
+                  </Badge>
+                  {job.invoiceNumber && (
+                    <Badge variant="outline" className="text-[10px] font-mono no-default-hover-elevate no-default-active-elevate" data-testid={`badge-invoice-${job.id}`}>
+                      <Hash className="h-3 w-3 mr-0.5" />
+                      {job.invoiceNumber}
+                    </Badge>
+                  )}
                 </div>
 
                 <div className="space-y-3">
@@ -239,7 +281,7 @@ export default function Dashboard() {
 
                 <div className="mt-6 pt-4 border-t flex justify-between items-center">
                   <span className="text-xs text-muted-foreground">
-                    ID: #{job.id}
+                    {job.invoiceNumber || `#${job.id}`}
                   </span>
                   <Link href={`/edit/${job.id}`}>
                     <Button variant="ghost" size="sm" data-testid={`button-view-${job.id}`}>

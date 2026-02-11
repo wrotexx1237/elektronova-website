@@ -91,3 +91,20 @@ export function useDeleteJob() {
     onError: (e) => toast({ title: "Gabim", description: e.message, variant: "destructive" }),
   });
 }
+
+export function useDuplicateJob() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(`/api/jobs/${id}/duplicate`, { method: 'POST' });
+      if (!res.ok) throw new Error('Failed to duplicate job');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.jobs.list.path] });
+      toast({ title: "Sukses", description: "Procesverbali u kopjua!" });
+    },
+    onError: (e) => toast({ title: "Gabim", description: e.message, variant: "destructive" }),
+  });
+}

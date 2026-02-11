@@ -3,7 +3,22 @@ import type { Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
-import { CATEGORIES } from "@shared/schema";
+import { CATEGORIES, JOB_CATEGORY_PREFIXES, type JobCategory } from "@shared/schema";
+
+async function generateInvoiceNumber(category: string): Promise<string> {
+  const prefix = JOB_CATEGORY_PREFIXES[category as JobCategory] || "ELK";
+  const allJobs = await storage.getJobs();
+  let maxNum = 0;
+  for (const job of allJobs) {
+    const inv = job.invoiceNumber || "";
+    if (inv.startsWith(prefix + "-")) {
+      const num = parseInt(inv.substring(prefix.length + 1));
+      if (!isNaN(num) && num > maxNum) maxNum = num;
+    }
+  }
+  const next = maxNum + 1;
+  return `${prefix}-${String(next).padStart(3, "0")}`;
+}
 
 export async function registerRoutes(
   httpServer: Server,
@@ -28,6 +43,9 @@ export async function registerRoutes(
   app.post(api.jobs.create.path, async (req, res) => {
     try {
       const input = api.jobs.create.input.parse(req.body);
+      if (!input.invoiceNumber) {
+        input.invoiceNumber = await generateInvoiceNumber(input.category || "electric");
+      }
       const job = await storage.createJob(input);
       res.status(201).json(job);
     } catch (err) {
@@ -62,6 +80,41 @@ export async function registerRoutes(
     if (!existing) return res.status(404).json({ message: "Job not found" });
     await storage.deleteJob(id);
     res.status(204).send();
+  });
+
+  // --- DUPLICATE JOB ---
+  app.post('/api/jobs/:id/duplicate', async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid ID" });
+    const existing = await storage.getJob(id);
+    if (!existing) return res.status(404).json({ message: "Job not found" });
+
+    const category = existing.category || "electric";
+    const invoiceNumber = await generateInvoiceNumber(category);
+
+    const duplicated = await storage.createJob({
+      invoiceNumber,
+      clientName: existing.clientName + " (Kopje)",
+      clientPhone: existing.clientPhone || undefined,
+      clientAddress: existing.clientAddress,
+      workDate: new Date().toISOString().split('T')[0],
+      workType: existing.workType,
+      category: category as any,
+      status: "oferte",
+      notes: existing.notes || undefined,
+      discountType: (existing.discountType as any) || "percent",
+      discountValue: existing.discountValue || 0,
+      table1Data: (existing.table1Data as any) || {},
+      table2Data: (existing.table2Data as any) || {},
+      cameraData: (existing.cameraData as any) || {},
+      intercomData: (existing.intercomData as any) || {},
+      alarmData: (existing.alarmData as any) || {},
+      serviceData: (existing.serviceData as any) || {},
+      prices: (existing.prices as any) || {},
+      purchasePrices: (existing.purchasePrices as any) || {},
+      checklistData: {},
+    });
+    res.status(201).json(duplicated);
   });
 
   // --- CATALOG ---
@@ -258,14 +311,19 @@ export async function registerRoutes(
   // Seed sample job if empty
   const jobsList = await storage.getJobs();
   if (jobsList.length === 0) {
+    const invNum = await generateInvoiceNumber("electric");
     await storage.createJob({
+      invoiceNumber: invNum,
       clientName: "Arben Hoxha",
       clientPhone: "044 123 456",
       clientAddress: "Rruga B, Prishtinë",
       workDate: new Date().toISOString().split('T')[0],
       workType: "Instalim i ri",
       category: "electric",
+      status: "oferte",
       notes: "Kati 2.",
+      discountType: "percent",
+      discountValue: 0,
       table1Data: { "Shteg EM2": { "Salloni": 2, "Kuzhina": 1 } },
       table2Data: { "Kabell 3×1.5": 100 },
       cameraData: {},
@@ -276,6 +334,15 @@ export async function registerRoutes(
       purchasePrices: {},
       checklistData: {},
     });
+  }
+
+  // Backfill invoice numbers for existing jobs that don't have one
+  const allJobsForBackfill = await storage.getJobs();
+  for (const job of allJobsForBackfill) {
+    if (!job.invoiceNumber) {
+      const invNum = await generateInvoiceNumber(job.category || "electric");
+      await storage.updateJob(job.id, { invoiceNumber: invNum });
+    }
   }
 
   return httpServer;

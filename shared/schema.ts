@@ -34,6 +34,25 @@ export const JOB_CATEGORY_LABELS: Record<JobCategory, string> = {
   intercom: "Interfon",
 };
 
+export const JOB_STATUSES = ["oferte", "ne_progres", "e_perfunduar"] as const;
+export type JobStatus = typeof JOB_STATUSES[number];
+
+export const JOB_STATUS_LABELS: Record<JobStatus, string> = {
+  oferte: "Ofertë",
+  ne_progres: "Në Progres",
+  e_perfunduar: "E Përfunduar",
+};
+
+export const JOB_CATEGORY_PREFIXES: Record<JobCategory, string> = {
+  electric: "ELK",
+  camera: "KAM",
+  alarm: "ALM",
+  intercom: "INT",
+};
+
+export const DISCOUNT_TYPES = ["percent", "fixed"] as const;
+export type DiscountType = typeof DISCOUNT_TYPES[number];
+
 // --- Checklist Templates ---
 export const CHECKLIST_ELEKTRIKE = [
   "Ndërrim i llusterit",
@@ -117,13 +136,18 @@ export type InsertCatalogItem = z.infer<typeof insertCatalogItemSchema>;
 // --- Jobs Table ---
 export const jobs = pgTable("jobs", {
   id: serial("id").primaryKey(),
+  invoiceNumber: text("invoice_number"),
   clientName: text("client_name").notNull(),
   clientPhone: text("client_phone"),
   clientAddress: text("client_address").notNull(),
   workDate: text("work_date").notNull(),
   workType: text("work_type").notNull(),
   category: text("category").default("electric"),
+  status: text("status").default("oferte"),
   notes: text("notes"),
+
+  discountType: text("discount_type").default("percent"),
+  discountValue: real("discount_value").default(0),
 
   table1Data: jsonb("table1_data").$type<Record<string, Record<string, number>>>().notNull().default({}),
   table2Data: jsonb("table2_data").$type<Record<string, number>>().notNull().default({}),
@@ -141,13 +165,17 @@ export const jobs = pgTable("jobs", {
 });
 
 export const insertJobSchema = z.object({
+  invoiceNumber: z.string().nullable().optional(),
   clientName: z.string().min(1, "Emri i klientit eshte i detyrueshem"),
   clientPhone: z.string().nullable().optional(),
   clientAddress: z.string().min(1, "Adresa eshte e detyrueshme"),
   workDate: z.string().min(1),
   workType: z.string().min(1),
   category: z.enum(JOB_CATEGORIES).optional().default("electric"),
+  status: z.enum(JOB_STATUSES).optional().default("oferte"),
   notes: z.string().nullable().optional(),
+  discountType: z.enum(DISCOUNT_TYPES).optional().default("percent"),
+  discountValue: z.coerce.number().min(0).optional().default(0),
   table1Data: z.record(z.string(), z.record(z.string(), z.coerce.number().default(0))).optional().default({}),
   table2Data: z.record(z.string(), z.coerce.number().default(0)).optional().default({}),
   cameraData: z.record(z.string(), z.coerce.number().default(0)).optional().default({}),

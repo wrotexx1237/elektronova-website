@@ -178,8 +178,19 @@ function getJobProducts(job: Job): ProductProfit[] {
 
 function calculateJobTotals(job: Job): JobTotals {
   const products = getJobProducts(job);
-  const totalSale = products.reduce((s, p) => s + p.totalSale, 0);
+  const subtotalSale = products.reduce((s, p) => s + p.totalSale, 0);
   const totalPurchase = products.reduce((s, p) => s + p.totalPurchase, 0);
+
+  const discType = (job as any).discountType || "percent";
+  const discVal = (job as any).discountValue || 0;
+  let discountAmount = 0;
+  if (discType === "percent") {
+    discountAmount = subtotalSale * (discVal / 100);
+  } else {
+    discountAmount = discVal;
+  }
+  discountAmount = Math.min(discountAmount, subtotalSale);
+  const totalSale = subtotalSale - discountAmount;
 
   return {
     clientName: job.clientName,

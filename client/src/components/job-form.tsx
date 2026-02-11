@@ -2,9 +2,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
-  insertJobSchema, ROOMS, WORK_TYPES, JOB_CATEGORY_LABELS,
+  insertJobSchema, ROOMS, WORK_TYPES, JOB_CATEGORY_LABELS, JOB_STATUS_LABELS,
   CHECKLIST_ELEKTRIKE, CHECKLIST_KAMERA, CHECKLIST_ALARM, CHECKLIST_INTERFON, CHECKLIST_FINAL,
-  type InsertJob, type CatalogItem, type JobCategory
+  type InsertJob, type CatalogItem, type JobCategory, type JobStatus
 } from "@shared/schema";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -21,7 +21,7 @@ import {
 import {
   Save, FileDown, ArrowLeft, Loader2, Banknote, Camera, PhoneCall,
   Package, Info, Settings, ShieldAlert, Wrench, CheckCircle2, AlertTriangle, Zap, Phone,
-  ChevronDown, ShoppingCart, FileText, Eye, EyeOff
+  ChevronDown, ShoppingCart, FileText, Eye, EyeOff, Percent, Hash, Tag
 } from "lucide-react";
 import { Link } from "wouter";
 import { useCatalog } from "@/hooks/use-catalog";
@@ -170,13 +170,16 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
   const DEFAULT_NOTES = "Kjo ofertë është përgatitur mbi bazën e kërkesës së klientit dhe gjendjes aktuale të objektit në momentin e inspektimit. Oferta nuk përbën kontratë përfundimtare dhe mund të pësojë ndryshime në rast të punimeve shtesë, materialeve të paplanifikuara apo kërkesave të reja nga klienti. Punimet realizohen vetëm pas konfirmimit zyrtar të ofertës.";
 
   const defaultValues: JobFormValues = initialData
-    ? { ...initialData, notes: DEFAULT_NOTES }
+    ? { ...initialData, notes: initialData.notes || DEFAULT_NOTES }
     : {
       clientName: "", clientPhone: "", clientAddress: "",
       workDate: new Date().toISOString().split('T')[0],
       workType: getWorkTypesForCategory(resolvedCategory)[0],
       category: resolvedCategory,
+      status: "oferte" as JobStatus,
       notes: DEFAULT_NOTES,
+      discountType: "percent" as const,
+      discountValue: 0,
       table1Data: {}, table2Data: {}, cameraData: {},
       intercomData: {}, alarmData: {}, serviceData: {},
       prices: {}, purchasePrices: {}, checklistData: {},
@@ -286,9 +289,19 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
 
   const calculateTotals = () => {
     const items = getAllItemsWithQty();
-    const totalSale = items.reduce((sum, i) => sum + i.qty * i.salePrice, 0);
+    const subtotalSale = items.reduce((sum, i) => sum + i.qty * i.salePrice, 0);
     const totalPurchase = items.reduce((sum, i) => sum + i.qty * i.purchasePrice, 0);
-    return { totalSale, totalPurchase, profit: totalSale - totalPurchase };
+    const discType = form.getValues("discountType") || "percent";
+    const discVal = form.getValues("discountValue") || 0;
+    let discountAmount = 0;
+    if (discType === "percent") {
+      discountAmount = subtotalSale * (discVal / 100);
+    } else {
+      discountAmount = discVal;
+    }
+    discountAmount = Math.min(discountAmount, subtotalSale);
+    const totalSale = subtotalSale - discountAmount;
+    return { subtotalSale, totalSale, totalPurchase, profit: totalSale - totalPurchase, discountAmount };
   };
 
   const getChecklistWarnings = () => {
@@ -339,7 +352,7 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
   const generateClientPDF = () => {
     const data = form.getValues();
     const items = getAllItemsWithQty();
-    const { totalSale } = calculateTotals();
+    const { subtotalSale, totalSale, discountAmount } = calculateTotals();
     const tc: [number, number, number] = [41, 128, 185];
     const doc = new jsPDF();
     const pageW = doc.internal.pageSize.width;
@@ -355,7 +368,11 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
     doc.text(`Tel: ${data.clientPhone || '-'}`, 14, 58);
     doc.text(`Data: ${data.workDate}`, pageW - 60, 48);
     doc.text(`Lloji: ${data.workType}`, pageW - 60, 53);
-    doc.text(`Kategoria: ${JOB_CATEGORY_LABELS[category] || category}`, pageW - 60, 58);
+    if (initialData?.invoiceNumber) {
+      doc.text(`Nr. Fatures: ${initialData.invoiceNumber}`, pageW - 60, 58);
+    } else {
+      doc.text(`Kategoria: ${JOB_CATEGORY_LABELS[category] || category}`, pageW - 60, 58);
+    }
 
     if (items.length > 0) {
       let nr = 1;
@@ -391,13 +408,26 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
 
     doc.setDrawColor(41, 128, 185); doc.setLineWidth(0.5);
     doc.line(pageW - 80, finalY - 2, pageW - 14, finalY - 2);
+
+    let totalLineY = finalY;
+    if (discountAmount > 0) {
+      doc.setFontSize(10); doc.setTextColor(80); doc.setFont("helvetica", "normal");
+      doc.text(`Nentotali: ${subtotalSale.toFixed(2)} EUR`, pageW - 14, totalLineY + 5, { align: "right" });
+      totalLineY += 7;
+      const discLabel = (data.discountType || "percent") === "percent" 
+        ? `Zbritja (${data.discountValue || 0}%):` 
+        : "Zbritja:";
+      doc.setTextColor(220, 50, 50);
+      doc.text(`${discLabel} -${discountAmount.toFixed(2)} EUR`, pageW - 14, totalLineY + 5, { align: "right" });
+      totalLineY += 7;
+    }
     doc.setFontSize(12); doc.setTextColor(0); doc.setFont("helvetica", "bold");
-    doc.text(`TOTALI: ${totalSale.toFixed(2)} EUR`, pageW - 14, finalY + 5, { align: "right" });
+    doc.text(`TOTALI: ${totalSale.toFixed(2)} EUR`, pageW - 14, totalLineY + 5, { align: "right" });
     doc.setDrawColor(41, 128, 185); doc.setLineWidth(0.3);
-    doc.line(pageW - 80, finalY + 8, pageW - 14, finalY + 8);
+    doc.line(pageW - 80, totalLineY + 8, pageW - 14, totalLineY + 8);
 
     if (data.notes) {
-      const notesY = finalY + 20;
+      const notesY = totalLineY + 16;
       doc.setFillColor(245, 248, 252);
       doc.roundedRect(14, notesY - 4, pageW - 28, 28, 2, 2, 'F');
       doc.setDrawColor(41, 128, 185); doc.setLineWidth(0.2);
@@ -686,6 +716,18 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
         <Card>
           <CardContent className="pt-4">
             <div className="flex flex-col gap-2">
+              {totals.discountAmount > 0 && (
+                <>
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="text-sm text-muted-foreground">Nentotali:</span>
+                    <span className="text-sm font-bold text-muted-foreground" data-testid="text-subtotal">{totals.subtotalSale.toFixed(2)} EUR</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="text-sm text-red-500 flex items-center gap-1"><Tag className="w-3 h-3" /> Zbritja:</span>
+                    <span className="text-sm font-bold text-red-500" data-testid="text-discount">-{totals.discountAmount.toFixed(2)} EUR</span>
+                  </div>
+                </>
+              )}
               <div className="flex justify-between items-center py-2 border-b">
                 <span className="text-sm font-bold">Totali Shitjes:</span>
                 <span className="text-lg font-black text-primary" data-testid="text-total-sale">{totals.totalSale.toFixed(2)} EUR</span>
@@ -710,6 +752,8 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
   };
 
   const availableWorkTypes = getWorkTypesForCategory(category);
+  const watchedDiscountType = form.watch("discountType");
+  const watchedDiscountValue = form.watch("discountValue");
   const totals = calculateTotals();
 
   return (
@@ -840,6 +884,64 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
                             {availableWorkTypes.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                           </SelectContent>
                         </Select>
+                      </FormItem>
+                    )} />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField control={form.control} name="status" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Statusi</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value || "oferte"}>
+                          <FormControl><SelectTrigger data-testid="select-status"><SelectValue /></SelectTrigger></FormControl>
+                          <SelectContent>
+                            <SelectItem value="oferte">{JOB_STATUS_LABELS.oferte}</SelectItem>
+                            <SelectItem value="ne_progres">{JOB_STATUS_LABELS.ne_progres}</SelectItem>
+                            <SelectItem value="e_perfunduar">{JOB_STATUS_LABELS.e_perfunduar}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormItem>
+                    )} />
+                    {initialData?.invoiceNumber && (
+                      <FormItem>
+                        <FormLabel>Nr. Fatures</FormLabel>
+                        <div className="flex items-center gap-2 h-9 px-3 border rounded-md bg-muted/30">
+                          <Hash className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-sm font-mono" data-testid="text-invoice-number">{initialData.invoiceNumber}</span>
+                        </div>
+                      </FormItem>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <FormField control={form.control} name="discountType" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Lloji i Zbritjes</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value || "percent"}>
+                          <FormControl><SelectTrigger data-testid="select-discount-type"><SelectValue /></SelectTrigger></FormControl>
+                          <SelectContent>
+                            <SelectItem value="percent">Perqindje (%)</SelectItem>
+                            <SelectItem value="fixed">Shume Fikse (EUR)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="discountValue" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Vlera e Zbritjes</FormLabel>
+                        <FormControl>
+                          <div className="flex items-center border rounded-md bg-background">
+                            <Tag className="w-4 h-4 text-muted-foreground ml-2" />
+                            <Input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              className="border-0"
+                              placeholder="0"
+                              value={field.value === 0 ? "" : field.value}
+                              onChange={e => field.onChange(e.target.valueAsNumber || 0)}
+                              data-testid="input-discount-value"
+                            />
+                          </div>
+                        </FormControl>
                       </FormItem>
                     )} />
                   </div>
