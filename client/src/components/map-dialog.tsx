@@ -10,9 +10,34 @@ interface MapDialogProps {
   onOpenChange: (open: boolean) => void;
   address: string;
   clientName: string;
+  locationUrl?: string;
 }
 
-export function MapDialog({ open, onOpenChange, address, clientName }: MapDialogProps) {
+function extractCoordsFromGoogleMapsUrl(url: string): { lat: number; lng: number } | null {
+  if (!url) return null;
+
+  const patterns = [
+    /@(-?\d+\.\d+),(-?\d+\.\d+)/,
+    /!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/,
+    /q=(-?\d+\.\d+),(-?\d+\.\d+)/,
+    /ll=(-?\d+\.\d+),(-?\d+\.\d+)/,
+    /place\/.*\/(-?\d+\.\d+),(-?\d+\.\d+)/,
+  ];
+
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) {
+      const lat = parseFloat(match[1]);
+      const lng = parseFloat(match[2]);
+      if (lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+        return { lat, lng };
+      }
+    }
+  }
+  return null;
+}
+
+export function MapDialog({ open, onOpenChange, address, clientName, locationUrl }: MapDialogProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
   const [loading, setLoading] = useState(false);
@@ -20,14 +45,26 @@ export function MapDialog({ open, onOpenChange, address, clientName }: MapDialog
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
 
   useEffect(() => {
-    if (!open || !address) return;
+    if (!open) return;
 
     setLoading(true);
     setError(null);
     setCoords(null);
 
-    const searchAddress = `${address}, Kosovo`;
+    const urlCoords = locationUrl ? extractCoordsFromGoogleMapsUrl(locationUrl) : null;
+    if (urlCoords) {
+      setCoords(urlCoords);
+      setLoading(false);
+      return;
+    }
 
+    if (!address) {
+      setError("Nuk ka adresë ose lokacion të vendosur.");
+      setLoading(false);
+      return;
+    }
+
+    const searchAddress = `${address}, Kosovo`;
     fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchAddress)}&limit=1`, {
       headers: { 'Accept-Language': 'sq' }
     })
@@ -36,14 +73,14 @@ export function MapDialog({ open, onOpenChange, address, clientName }: MapDialog
         if (data && data.length > 0) {
           setCoords({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) });
         } else {
-          setError("Adresa nuk u gjet në hartë. Provoni ta shkruani adresën më saktë.");
+          setError("Adresa nuk u gjet në hartë. Provoni të vendosni linkun e Google Maps.");
         }
       })
       .catch(() => {
         setError("Gabim gjatë kërkimit të adresës.");
       })
       .finally(() => setLoading(false));
-  }, [open, address]);
+  }, [open, address, locationUrl]);
 
   useEffect(() => {
     if (!coords || !mapRef.current || !open) return;
@@ -56,7 +93,7 @@ export function MapDialog({ open, onOpenChange, address, clientName }: MapDialog
     const timer = setTimeout(() => {
       if (!mapRef.current) return;
 
-      const map = L.map(mapRef.current).setView([coords.lat, coords.lng], 15);
+      const map = L.map(mapRef.current).setView([coords.lat, coords.lng], 16);
       mapInstance.current = map;
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -87,7 +124,9 @@ export function MapDialog({ open, onOpenChange, address, clientName }: MapDialog
   }, [coords, open]);
 
   const openGoogleMaps = () => {
-    if (coords) {
+    if (locationUrl) {
+      window.open(locationUrl, '_blank');
+    } else if (coords) {
       window.open(`https://www.google.com/maps/dir/?api=1&destination=${coords.lat},${coords.lng}`, '_blank');
     } else {
       window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`, '_blank');

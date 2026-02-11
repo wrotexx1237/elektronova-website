@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Send, MessageCircle, Mail, Copy, Check } from "lucide-react";
-import { JOB_CATEGORY_LABELS, type Job, type JobCategory } from "@shared/schema";
+import { JOB_CATEGORY_LABELS, JOB_STATUS_LABELS, type Job, type JobCategory, type JobStatus } from "@shared/schema";
 
 interface ShareDialogProps {
   open: boolean;
@@ -13,23 +13,107 @@ interface ShareDialogProps {
   job: Job;
 }
 
-function buildJobMessage(job: Job): string {
-  const category = JOB_CATEGORY_LABELS[(job.category as JobCategory) || "electric"] || job.category;
-  const lines = [
-    `ELEKTRONOVA - ${job.invoiceNumber || "Ofertë"}`,
-    ``,
-    `Klienti: ${job.clientName}`,
-    `Adresa: ${job.clientAddress}`,
-    `Data: ${job.workDate}`,
-    `Kategoria: ${category}`,
-    `Lloji: ${job.workType}`,
+function formatDate(dateStr: string): string {
+  if (!dateStr) return "";
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("sq-AL", { day: "2-digit", month: "2-digit", year: "numeric" });
+}
+
+function calculateTotal(job: Job): number {
+  const prices = job.prices || {};
+  let total = 0;
+
+  const allData: Record<string, number>[] = [
+    job.table2Data || {},
+    job.cameraData || {},
+    job.intercomData || {},
+    job.alarmData || {},
+    job.serviceData || {},
   ];
 
-  if (job.notes) {
-    lines.push(``, `Shënime: ${job.notes.substring(0, 200)}${job.notes.length > 200 ? '...' : ''}`);
+  for (const data of allData) {
+    for (const [item, qty] of Object.entries(data)) {
+      if (prices[item]) {
+        total += (qty || 0) * prices[item];
+      }
+    }
   }
 
-  lines.push(``, `---`, `Elektronova | Sherbime Elektrike & Siguri`, `Tel: +383 49 771 673`);
+  if (job.table1Data) {
+    for (const [item, rooms] of Object.entries(job.table1Data)) {
+      const rowTotal = Object.values(rooms).reduce((s, v) => s + (v || 0), 0);
+      if (prices[item]) {
+        total += rowTotal * prices[item];
+      }
+    }
+  }
+
+  if (job.discountValue && job.discountValue > 0) {
+    if (job.discountType === "percent") {
+      total = total * (1 - job.discountValue / 100);
+    } else {
+      total = total - job.discountValue;
+    }
+  }
+
+  return Math.max(0, total);
+}
+
+function buildJobMessage(job: Job): string {
+  const category = JOB_CATEGORY_LABELS[(job.category as JobCategory) || "electric"] || job.category;
+  const statusLabel = JOB_STATUS_LABELS[(job.status as JobStatus) || "oferte"] || job.status;
+  const total = calculateTotal(job);
+
+  const lines = [
+    `━━━━━━━━━━━━━━━━━━━━━`,
+    `  ELEKTRONOVA`,
+    `  Shërbime Elektrike & Siguri`,
+    `━━━━━━━━━━━━━━━━━━━━━`,
+    ``,
+    `Nr. ${job.invoiceNumber || "---"}`,
+    `Statusi: ${statusLabel}`,
+    ``,
+    `KLIENTI`,
+    `Emri: ${job.clientName}`,
+  ];
+
+  if (job.clientAddress) {
+    lines.push(`Adresa: ${job.clientAddress}`);
+  }
+
+  lines.push(
+    ``,
+    `DETAJET E PUNËS`,
+    `Kategoria: ${category}`,
+    `Lloji: ${job.workType}`,
+    `Data: ${formatDate(job.workDate)}`,
+  );
+
+  if (job.scheduledDate) {
+    lines.push(`Planifikuar: ${formatDate(job.scheduledDate)}`);
+  }
+
+  if (total > 0) {
+    lines.push(
+      ``,
+      `TOTALI: ${total.toFixed(2)} EUR`,
+    );
+
+    if (job.discountValue && job.discountValue > 0) {
+      const discountText = job.discountType === "percent"
+        ? `${job.discountValue}%`
+        : `${job.discountValue.toFixed(2)} EUR`;
+      lines.push(`(Zbritja: ${discountText})`);
+    }
+  }
+
+  lines.push(
+    ``,
+    `━━━━━━━━━━━━━━━━━━━━━`,
+    `Elektronova`,
+    `Tel: +383 49 771 673`,
+    `━━━━━━━━━━━━━━━━━━━━━`,
+  );
 
   return lines.join('\n');
 }
@@ -37,7 +121,7 @@ function buildJobMessage(job: Job): string {
 export function ShareDialog({ open, onOpenChange, job }: ShareDialogProps) {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
-  const [emailTo, setEmailTo] = useState(job.clientPhone ? "" : "");
+  const [emailTo, setEmailTo] = useState("");
 
   const message = buildJobMessage(job);
 
@@ -85,7 +169,7 @@ export function ShareDialog({ open, onOpenChange, job }: ShareDialogProps) {
             <Textarea
               value={message}
               readOnly
-              className="text-xs min-h-[120px] resize-none bg-muted/30"
+              className="text-xs min-h-[200px] resize-none bg-muted/30 font-mono"
               data-testid="textarea-share-message"
             />
           </div>
@@ -112,7 +196,7 @@ export function ShareDialog({ open, onOpenChange, job }: ShareDialogProps) {
             </div>
 
             <Button variant="ghost" onClick={copyToClipboard} data-testid="button-copy-message">
-              {copied ? <Check className="h-4 w-4 mr-2 text-green-600" /> : <Copy className="h-4 w-4 mr-2" />}
+              {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
               {copied ? "U kopjua!" : "Kopjo mesazhin"}
             </Button>
           </div>

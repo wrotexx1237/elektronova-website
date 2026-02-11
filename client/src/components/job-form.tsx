@@ -1047,6 +1047,20 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
                   <FormField control={form.control} name="clientAddress" render={({ field }) => (
                     <FormItem><FormLabel>Adresa</FormLabel><FormControl><Input {...field} data-testid="input-client-address" /></FormControl><FormMessage /></FormItem>
                   )} />
+                  <FormField control={form.control} name="locationUrl" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-1"><MapPin className="w-3 h-3" /> Lokacioni (Google Maps Link)</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          value={field.value || ""}
+                          placeholder="Vendosni linkun nga Google Maps..."
+                          data-testid="input-location-url"
+                        />
+                      </FormControl>
+                      <p className="text-xs text-muted-foreground">Kopjoni linkun nga Google Maps dhe vendoseni ketu</p>
+                    </FormItem>
+                  )} />
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <FormField control={form.control} name="workDate" render={({ field }) => (
                       <FormItem><FormLabel>Data e Punës</FormLabel><FormControl><Input type="date" {...field} data-testid="input-work-date" /></FormControl></FormItem>
@@ -1151,6 +1165,7 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
         onOpenChange={setMapOpen}
         address={form.getValues("clientAddress") || ""}
         clientName={form.getValues("clientName") || ""}
+        locationUrl={form.getValues("locationUrl") || ""}
       />
 
       {initialData && (

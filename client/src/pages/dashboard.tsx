@@ -467,6 +467,7 @@ export default function Dashboard() {
           onOpenChange={(open) => !open && setMapJob(null)}
           address={mapJob.clientAddress}
           clientName={mapJob.clientName}
+          locationUrl={mapJob.locationUrl || ""}
         />
       )}
 
