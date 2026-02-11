@@ -10,6 +10,7 @@ export interface AuthUser {
   phone?: string | null;
   email?: string | null;
   isActive: number;
+  assignedCategories?: string[];
 }
 
 interface AuthContextValue {

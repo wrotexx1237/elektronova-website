@@ -131,6 +131,7 @@ export const users = pgTable("users", {
   phone: text("phone"),
   email: text("email"),
   isActive: integer("is_active").notNull().default(1),
+  assignedCategories: jsonb("assigned_categories").$type<string[]>().default([]),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
