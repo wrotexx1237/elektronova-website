@@ -128,17 +128,9 @@ export default function Login() {
           </form>
 
           <div className="mt-6 pt-6 border-t border-border">
-            <p className="text-center text-sm text-muted-foreground mb-3">
-              Nuk keni llogari?
+            <p className="text-center text-xs text-muted-foreground">
+              Kontaktoni administratorin për llogari të re.
             </p>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => setLocation("/register")}
-              data-testid="button-register"
-            >
-              Regjistrohu Si Teknician
-            </Button>
           </div>
         </CardContent>
       </Card>

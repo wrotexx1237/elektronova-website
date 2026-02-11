@@ -1,6 +1,10 @@
 import { Layout } from "@/components/layout";
 import { useCatalog, useCreateCatalogItem, useUpdateCatalogItem, useDeleteCatalogItem } from "@/hooks/use-catalog";
-import { CATEGORIES, UNITS, type CatalogItem, type Job, JOB_CATEGORY_LABELS, type JobCategory } from "@shared/schema";
+import { CATEGORIES, UNITS, type CatalogItem, type Job, JOB_CATEGORIES, JOB_CATEGORY_LABELS, type JobCategory } from "@shared/schema";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { apiRequest } from "@/lib/queryClient";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useAdmin } from "@/hooks/use-admin";
 import { useJobs } from "@/hooks/use-jobs";
 import { Button } from "@/components/ui/button";
@@ -14,7 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Plus, Trash2, Edit, Loader2, Package, Save, Lock, TrendingUp, Users, DollarSign, ShoppingCart, BarChart3, RefreshCw, Eye, ChevronDown, ChevronUp, CalendarDays, Award } from "lucide-react";
 import { useState, useMemo } from "react";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@shared/routes";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
@@ -734,6 +738,272 @@ function ProfitDashboard() {
   );
 }
 
+interface ManagedUser {
+  id: number;
+  username: string;
+  fullName: string;
+  role: string;
+  phone?: string | null;
+  email?: string | null;
+  isActive: number;
+  assignedCategories?: string[];
+}
+
+function UserManagement() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const { data: users = [], isLoading } = useQuery<ManagedUser[]>({
+    queryKey: ["/api/users"],
+  });
+
+  const [showCreate, setShowCreate] = useState(false);
+  const [editingUser, setEditingUser] = useState<ManagedUser | null>(null);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+
+  const createMutation = useMutation({
+    mutationFn: (data: any) => apiRequest("POST", "/api/auth/register", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      toast({ title: "Tekniku u krijua me sukses" });
+      resetForm();
+    },
+    onError: (err: Error) => toast({ title: "Gabim", description: err.message, variant: "destructive" }),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, ...data }: any) => apiRequest("PUT", `/api/users/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      toast({ title: "Përdoruesi u përditësua" });
+      setEditingUser(null);
+    },
+    onError: (err: Error) => toast({ title: "Gabim", description: err.message, variant: "destructive" }),
+  });
+
+  const resetForm = () => {
+    setShowCreate(false);
+    setUsername("");
+    setPassword("");
+    setFullName("");
+    setPhone("");
+    setEmail("");
+    setSelectedCategories([]);
+  };
+
+  const handleCreate = () => {
+    if (!username.trim() || !password.trim() || !fullName.trim()) {
+      toast({ title: "Plotësoni fushat e detyrueshme", variant: "destructive" });
+      return;
+    }
+    createMutation.mutate({
+      username: username.trim(),
+      password: password.trim(),
+      fullName: fullName.trim(),
+      role: "technician",
+      phone: phone.trim() || null,
+      email: email.trim() || null,
+      assignedCategories: selectedCategories,
+    });
+  };
+
+  const toggleCategory = (cat: string) => {
+    setSelectedCategories(prev =>
+      prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
+    );
+  };
+
+  const startEdit = (u: ManagedUser) => {
+    setEditingUser(u);
+    setFullName(u.fullName);
+    setPhone(u.phone || "");
+    setEmail(u.email || "");
+    setSelectedCategories(u.assignedCategories || []);
+    setPassword("");
+  };
+
+  const handleUpdate = () => {
+    if (!editingUser) return;
+    const data: any = {
+      id: editingUser.id,
+      fullName,
+      phone: phone || null,
+      email: email || null,
+      assignedCategories: selectedCategories,
+    };
+    if (password.trim()) data.password = password.trim();
+    updateMutation.mutate(data);
+  };
+
+  const toggleActive = (u: ManagedUser) => {
+    updateMutation.mutate({ id: u.id, isActive: u.isActive ? 0 : 1 });
+  };
+
+  if (isLoading) {
+    return <div className="flex justify-center py-10"><Loader2 className="animate-spin h-8 w-8 text-primary" /></div>;
+  }
+
+  const CategoryCheckboxes = () => (
+    <div className="space-y-2">
+      <Label className="text-sm font-medium">Kategoritë e caktuara</Label>
+      <div className="grid grid-cols-2 gap-2">
+        {JOB_CATEGORIES.map(cat => (
+          <label key={cat} className="flex items-center gap-2 text-sm cursor-pointer p-2 rounded border hover:bg-muted/30">
+            <Checkbox
+              checked={selectedCategories.includes(cat)}
+              onCheckedChange={() => toggleCategory(cat)}
+              data-testid={`checkbox-category-${cat}`}
+            />
+            {JOB_CATEGORY_LABELS[cat]}
+          </label>
+        ))}
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Lini bosh për qasje në të gjitha kategoritë
+      </p>
+    </div>
+  );
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <h2 className="text-xl font-bold flex items-center gap-2">
+          <Users className="w-5 h-5 text-primary" />
+          Menaxhimi i Përdoruesve
+        </h2>
+        <Button onClick={() => setShowCreate(!showCreate)} data-testid="button-create-user">
+          <Plus className="mr-1" /> Shto Teknician
+        </Button>
+      </div>
+
+      {showCreate && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Krijo Teknician të Ri</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs">Emri i Përdoruesit *</Label>
+                <Input value={username} onChange={e => setUsername(e.target.value)} placeholder="psh. teknik1" data-testid="input-new-username" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Fjalëkalimi *</Label>
+                <Input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Min. 6 karaktere" data-testid="input-new-password" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Emri i Plotë *</Label>
+                <Input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Emri Mbiemri" data-testid="input-new-fullname" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Telefoni</Label>
+                <Input value={phone} onChange={e => setPhone(e.target.value)} placeholder="+383..." data-testid="input-new-phone" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Email</Label>
+                <Input value={email} onChange={e => setEmail(e.target.value)} placeholder="email@example.com" data-testid="input-new-email" />
+              </div>
+            </div>
+            <CategoryCheckboxes />
+            <div className="flex gap-2">
+              <Button onClick={handleCreate} disabled={createMutation.isPending} data-testid="button-save-user">
+                {createMutation.isPending ? <Loader2 className="animate-spin mr-1" /> : <Save className="mr-1" />}
+                Krijo
+              </Button>
+              <Button variant="ghost" onClick={resetForm}>Anulo</Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {editingUser && (
+        <Card className="border-primary/30">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Ndrysho: {editingUser.fullName}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs">Emri i Plotë</Label>
+                <Input value={fullName} onChange={e => setFullName(e.target.value)} data-testid="input-edit-fullname" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Fjalëkalimi i Ri (opsional)</Label>
+                <Input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Lini bosh për të mos ndryshuar" data-testid="input-edit-password" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Telefoni</Label>
+                <Input value={phone} onChange={e => setPhone(e.target.value)} data-testid="input-edit-phone" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Email</Label>
+                <Input value={email} onChange={e => setEmail(e.target.value)} data-testid="input-edit-email" />
+              </div>
+            </div>
+            <CategoryCheckboxes />
+            <div className="flex gap-2">
+              <Button onClick={handleUpdate} disabled={updateMutation.isPending} data-testid="button-update-user">
+                {updateMutation.isPending ? <Loader2 className="animate-spin mr-1" /> : <Save className="mr-1" />}
+                Ruaj
+              </Button>
+              <Button variant="ghost" onClick={() => setEditingUser(null)}>Anulo</Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="space-y-2">
+        {users.map(u => (
+          <Card key={u.id} className={!u.isActive ? "opacity-50" : ""} data-testid={`card-user-${u.id}`}>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-medium">{u.fullName}</span>
+                    <Badge variant={u.role === "admin" ? "default" : "secondary"} className="text-xs">
+                      {u.role === "admin" ? "Admin" : "Teknician"}
+                    </Badge>
+                    {!u.isActive && <Badge variant="outline" className="text-xs text-destructive border-destructive/30">Joaktiv</Badge>}
+                  </div>
+                  <div className="text-sm text-muted-foreground mt-1">
+                    @{u.username} {u.phone && ` | ${u.phone}`}
+                  </div>
+                  {u.assignedCategories && u.assignedCategories.length > 0 && (
+                    <div className="flex gap-1 mt-1.5 flex-wrap">
+                      {u.assignedCategories.map(cat => (
+                        <Badge key={cat} variant="outline" className="text-xs">
+                          {JOB_CATEGORY_LABELS[cat as JobCategory] || cat}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                  {u.role !== "admin" && (!u.assignedCategories || u.assignedCategories.length === 0) && (
+                    <p className="text-xs text-muted-foreground mt-1">Qasje në të gjitha kategoritë</p>
+                  )}
+                </div>
+                {u.role !== "admin" && (
+                  <div className="flex gap-1">
+                    <Button size="sm" variant="ghost" onClick={() => startEdit(u)} data-testid={`button-edit-user-${u.id}`}>
+                      <Edit className="w-3 h-3" />
+                    </Button>
+                    <Button size="sm" variant={u.isActive ? "ghost" : "default"} onClick={() => toggleActive(u)} data-testid={`button-toggle-user-${u.id}`}>
+                      {u.isActive ? "Çaktivizo" : "Aktivizo"}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function AdminPage() {
   const { data: catalog, isLoading } = useCatalog();
   const { isAdmin } = useAdmin();
@@ -767,6 +1037,13 @@ export default function AdminPage() {
                   <Package className="w-4 h-4 inline mr-1" /> Katalogu
                 </button>
                 <button
+                  onClick={() => setActiveTab("users")}
+                  className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === "users" ? "bg-primary text-primary-foreground" : "bg-background hover:bg-muted/50"}`}
+                  data-testid="button-tab-users"
+                >
+                  <Users className="w-4 h-4 inline mr-1" /> Përdoruesit
+                </button>
+                <button
                   onClick={() => setActiveTab("profits")}
                   className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === "profits" ? "bg-primary text-primary-foreground" : "bg-background hover:bg-muted/50"}`}
                   data-testid="button-tab-profits"
@@ -782,7 +1059,9 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {activeTab === "profits" && isAdmin ? (
+        {activeTab === "users" && isAdmin ? (
+          <UserManagement />
+        ) : activeTab === "profits" && isAdmin ? (
           <ProfitDashboard />
         ) : isLoading ? (
           <div className="flex justify-center py-20"><Loader2 className="animate-spin h-10 w-10 text-primary" /></div>

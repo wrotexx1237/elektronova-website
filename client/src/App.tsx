@@ -10,7 +10,7 @@ import CreateJob from "@/pages/create-job";
 import EditJob from "@/pages/edit-job";
 import AdminPage from "@/pages/admin";
 import Login from "@/pages/login";
-import Register from "@/pages/register";
+
 import ClientsPage from "@/pages/clients";
 import InventoryPage from "@/pages/inventory";
 import AnalyticsPage from "@/pages/analytics";
@@ -38,7 +38,6 @@ function Router() {
   return (
     <Switch>
       <Route path="/login" component={Login} />
-      <Route path="/register" component={Register} />
       <Route path="/">{() => <ProtectedRoute component={Dashboard} />}</Route>
       <Route path="/new">{() => <ProtectedRoute component={CreateJob} />}</Route>
       <Route path="/edit/:id">{() => <ProtectedRoute component={EditJob} />}</Route>

@@ -49,11 +49,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { JOB_CATEGORY_LABELS, JOB_STATUS_LABELS, type Job, type JobCategory, type JobStatus } from "@shared/schema";
+import { useAuth } from "@/hooks/use-auth";
 
 const CATEGORY_CARDS: { key: JobCategory; label: string; icon: typeof Zap; color: string }[] = [
   { key: "electric", label: "Rrymë (Elektrike)", icon: Zap, color: "text-amber-500" },
@@ -134,11 +135,20 @@ export default function Dashboard() {
   const saveTemplate = useSaveAsTemplate();
   const { data: templates } = useTemplates();
   const createFromTemplate = useCreateFromTemplate();
+  const { user, isAdmin } = useAuth();
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
+
+  const userCategories = user?.assignedCategories;
+  const hasCategories = userCategories && userCategories.length > 0;
+
+  const visibleCategoryCards = useMemo(() => {
+    if (isAdmin || !hasCategories) return CATEGORY_CARDS;
+    return CATEGORY_CARDS.filter(c => userCategories!.includes(c.key));
+  }, [isAdmin, hasCategories, userCategories]);
 
   const regularJobs = (jobs || []).filter((j: Job) => !j.isTemplate);
 
@@ -170,7 +180,7 @@ export default function Dashboard() {
       <div className="mb-8">
         <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3" data-testid="text-quick-create-title">Krijo Punë të Re (Shpejt)</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {CATEGORY_CARDS.map(cat => (
+          {visibleCategoryCards.map(cat => (
             <Link key={cat.key} href={`/new?category=${cat.key}`}>
               <Card className="hover-elevate cursor-pointer group" data-testid={`card-category-${cat.key}`}>
                 <CardContent className="flex flex-col items-center justify-center py-5 gap-2">
@@ -203,10 +213,9 @@ export default function Dashboard() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Të gjitha kategoritë</SelectItem>
-              <SelectItem value="electric">Rrymë (Elektrike)</SelectItem>
-              <SelectItem value="camera">Kamera</SelectItem>
-              <SelectItem value="alarm">Alarm</SelectItem>
-              <SelectItem value="intercom">Interfon</SelectItem>
+              {visibleCategoryCards.map(c => (
+                <SelectItem key={c.key} value={c.key}>{c.label}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <Select value={statusFilter} onValueChange={setStatusFilter}>

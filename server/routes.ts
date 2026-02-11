@@ -3,7 +3,7 @@ import type { Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
-import { CATEGORIES, JOB_CATEGORY_PREFIXES, type JobCategory } from "@shared/schema";
+import { CATEGORIES, JOB_CATEGORIES, JOB_CATEGORY_PREFIXES, type JobCategory } from "@shared/schema";
 import bcrypt from "bcryptjs";
 
 async function generateInvoiceNumber(category: string): Promise<string> {
@@ -110,9 +110,9 @@ export async function registerRoutes(
     res.json(safeUser);
   });
 
-  app.post('/api/auth/register', async (req, res) => {
+  app.post('/api/auth/register', requireAuth, requireAdmin, async (req, res) => {
     try {
-      const { username, password, fullName, role, phone, email } = req.body;
+      const { username, password, fullName, role, phone, email, assignedCategories } = req.body;
       if (!username || !password || !fullName) {
         return res.status(400).json({ message: "Plotësoni fushat e detyrueshme" });
       }
@@ -120,15 +120,20 @@ export async function registerRoutes(
       if (existing) {
         return res.status(400).json({ message: "Ky emër përdoruesi ekziston" });
       }
+      const validRole = "technician";
+      const validCategories = Array.isArray(assignedCategories)
+        ? assignedCategories.filter((c: string) => JOB_CATEGORIES.includes(c as any))
+        : [];
       const passwordHash = await bcrypt.hash(password, 10);
       const user = await storage.createUser({
         username,
         passwordHash,
         fullName,
-        role: role || "technician",
+        role: validRole,
         phone: phone || null,
         email: email || null,
         isActive: 1,
+        assignedCategories: validCategories,
       });
       const { passwordHash: _, ...safeUser } = user;
       res.status(201).json(safeUser);
@@ -148,12 +153,19 @@ export async function registerRoutes(
   app.put('/api/users/:id', requireAuth, requireAdmin, async (req, res) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) return res.status(400).json({ message: "ID e pavlefshme" });
+    const existingUser = await storage.getUser(id);
+    if (!existingUser) return res.status(404).json({ message: "Përdoruesi nuk u gjet" });
+    if (existingUser.role === "admin") return res.status(403).json({ message: "Nuk mund të ndryshoni admin-in" });
     const updates: any = {};
     if (req.body.fullName) updates.fullName = req.body.fullName;
-    if (req.body.role) updates.role = req.body.role;
     if (req.body.phone !== undefined) updates.phone = req.body.phone;
     if (req.body.email !== undefined) updates.email = req.body.email;
     if (req.body.isActive !== undefined) updates.isActive = req.body.isActive;
+    if (req.body.assignedCategories !== undefined) {
+      updates.assignedCategories = Array.isArray(req.body.assignedCategories)
+        ? req.body.assignedCategories.filter((c: string) => JOB_CATEGORIES.includes(c as any))
+        : [];
+    }
     if (req.body.password) {
       updates.passwordHash = await bcrypt.hash(req.body.password, 10);
     }
@@ -164,9 +176,12 @@ export async function registerRoutes(
 
   // ==================== JOBS ====================
 
-  app.get(api.jobs.list.path, async (req, res) => {
+  app.get(api.jobs.list.path, requireAuth, async (req, res) => {
     const search = req.query.search as string | undefined;
-    const jobsList = await storage.getJobs(search);
+    let jobsList = await storage.getJobs(search);
+    if (req.session?.role !== "admin" && req.session?.userId) {
+      jobsList = jobsList.filter(j => j.userId === req.session!.userId);
+    }
     res.json(jobsList);
   });
 
@@ -178,9 +193,17 @@ export async function registerRoutes(
     res.json(job);
   });
 
-  app.post(api.jobs.create.path, async (req, res) => {
+  app.post(api.jobs.create.path, requireAuth, async (req, res) => {
     try {
       const input = api.jobs.create.input.parse(req.body);
+      if (req.session?.role !== "admin" && req.session?.userId) {
+        const creator = await storage.getUser(req.session.userId);
+        if (creator?.assignedCategories && creator.assignedCategories.length > 0) {
+          if (!creator.assignedCategories.includes(input.category || "electric")) {
+            return res.status(403).json({ message: "Nuk keni qasje në këtë kategori" });
+          }
+        }
+      }
       if (!input.invoiceNumber) {
         input.invoiceNumber = await generateInvoiceNumber(input.category || "electric");
       }
@@ -434,8 +457,25 @@ export async function registerRoutes(
 
   // ==================== CATALOG ====================
 
-  app.get(api.catalog.list.path, async (_req, res) => {
-    const items = await storage.getCatalogItems();
+  app.get(api.catalog.list.path, async (req, res) => {
+    let items = await storage.getCatalogItems();
+    if (req.session?.role !== "admin" && req.session?.userId) {
+      const user = await storage.getUser(req.session.userId);
+      if (user?.assignedCategories && user.assignedCategories.length > 0) {
+        const categoryMap: Record<string, string[]> = {
+          "electric": ["Pajisje elektrike", "Kabllo & Gypa", "Punë/Shërbime"],
+          "camera": ["Kamera", "Punë/Shërbime"],
+          "alarm": ["Alarm", "Punë/Shërbime"],
+          "intercom": ["Interfon", "Punë/Shërbime"],
+        };
+        const allowedCatalogCategories = new Set<string>();
+        for (const cat of user.assignedCategories) {
+          const mapped = categoryMap[cat] || [];
+          mapped.forEach(c => allowedCatalogCategories.add(c));
+        }
+        items = items.filter(item => allowedCatalogCategories.has(item.category));
+      }
+    }
     res.json(items);
   });
 
@@ -1016,6 +1056,7 @@ export async function registerRoutes(
       phone: "+383 49 771 673",
       email: null,
       isActive: 1,
+      assignedCategories: [],
     });
   }
 
