@@ -132,6 +132,8 @@ export const users = pgTable("users", {
   email: text("email"),
   isActive: integer("is_active").notNull().default(1),
   assignedCategories: jsonb("assigned_categories").$type<string[]>().default([]),
+  twoFactorSecret: text("two_factor_secret"),
+  twoFactorEnabled: integer("two_factor_enabled").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
