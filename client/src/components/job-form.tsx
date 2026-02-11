@@ -167,16 +167,20 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
 
   const resolvedCategory: JobCategory = (initialData?.category || defaultCategory || "electric") as JobCategory;
 
-  const defaultValues: JobFormValues = initialData || {
-    clientName: "", clientPhone: "", clientAddress: "",
-    workDate: new Date().toISOString().split('T')[0],
-    workType: getWorkTypesForCategory(resolvedCategory)[0],
-    category: resolvedCategory,
-    notes: "Kjo ofertë është përgatitur mbi bazën e kërkesës së klientit dhe gjendjes aktuale të objektit në momentin e inspektimit. Oferta nuk përbën kontratë përfundimtare dhe mund të pësojë ndryshime në rast të punimeve shtesë, materialeve të paplanifikuara apo kërkesave të reja nga klienti. Punimet realizohen vetëm pas konfirmimit zyrtar të ofertës.",
-    table1Data: {}, table2Data: {}, cameraData: {},
-    intercomData: {}, alarmData: {}, serviceData: {},
-    prices: {}, purchasePrices: {}, checklistData: {},
-  };
+  const DEFAULT_NOTES = "Kjo ofertë është përgatitur mbi bazën e kërkesës së klientit dhe gjendjes aktuale të objektit në momentin e inspektimit. Oferta nuk përbën kontratë përfundimtare dhe mund të pësojë ndryshime në rast të punimeve shtesë, materialeve të paplanifikuara apo kërkesave të reja nga klienti. Punimet realizohen vetëm pas konfirmimit zyrtar të ofertës.";
+
+  const defaultValues: JobFormValues = initialData
+    ? { ...initialData, notes: DEFAULT_NOTES }
+    : {
+      clientName: "", clientPhone: "", clientAddress: "",
+      workDate: new Date().toISOString().split('T')[0],
+      workType: getWorkTypesForCategory(resolvedCategory)[0],
+      category: resolvedCategory,
+      notes: DEFAULT_NOTES,
+      table1Data: {}, table2Data: {}, cameraData: {},
+      intercomData: {}, alarmData: {}, serviceData: {},
+      prices: {}, purchasePrices: {}, checklistData: {},
+    };
 
   const form = useForm<JobFormValues>({
     resolver: zodResolver(formSchema),
