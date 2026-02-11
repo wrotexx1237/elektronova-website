@@ -109,6 +109,61 @@ export async function registerRoutes(
     res.status(204).send();
   });
 
+  // --- REFRESH PRICES (update all jobs with latest catalog prices) ---
+  app.post('/api/jobs/refresh-prices', async (_req, res) => {
+    try {
+      const catalogList = await storage.getCatalogItems();
+      const priceMap: Record<string, number> = {};
+      const purchaseMap: Record<string, number> = {};
+      for (const item of catalogList) {
+        priceMap[item.name] = item.salePrice || 0;
+        purchaseMap[item.name] = item.purchasePrice || 0;
+      }
+
+      const allJobs = await storage.getJobs();
+      let updatedCount = 0;
+
+      for (const job of allJobs) {
+        const allItemNames = new Set<string>();
+
+        const t1 = (job.table1Data || {}) as Record<string, Record<string, number>>;
+        Object.keys(t1).forEach(n => allItemNames.add(n));
+        const simpleFields = ['table2Data', 'cameraData', 'intercomData', 'alarmData', 'serviceData'] as const;
+        for (const f of simpleFields) {
+          const d = (job[f] || {}) as Record<string, number>;
+          Object.keys(d).forEach(n => allItemNames.add(n));
+        }
+
+        const newPrices: Record<string, number> = { ...(job.prices as Record<string, number> || {}) };
+        const newPurchase: Record<string, number> = { ...(job.purchasePrices as Record<string, number> || {}) };
+        let changed = false;
+
+        for (const name of Array.from(allItemNames)) {
+          if (name in priceMap) {
+            if (newPrices[name] !== priceMap[name]) {
+              newPrices[name] = priceMap[name];
+              changed = true;
+            }
+            if (newPurchase[name] !== purchaseMap[name]) {
+              newPurchase[name] = purchaseMap[name];
+              changed = true;
+            }
+          }
+        }
+
+        if (changed) {
+          await storage.updateJob(job.id, { prices: newPrices, purchasePrices: newPurchase });
+          updatedCount++;
+        }
+      }
+
+      res.json({ updated: updatedCount, total: allJobs.length });
+    } catch (err) {
+      console.error('Refresh prices error:', err);
+      res.status(500).json({ message: 'Failed to refresh prices' });
+    }
+  });
+
   // --- SEED DEFAULT CATALOG ---
   const catalogList = await storage.getCatalogItems();
   if (catalogList.length === 0) {
@@ -209,6 +264,7 @@ export async function registerRoutes(
       clientAddress: "Rruga B, Prishtinë",
       workDate: new Date().toISOString().split('T')[0],
       workType: "Instalim i ri",
+      category: "electric",
       notes: "Kati 2.",
       table1Data: { "Shteg EM2": { "Salloni": 2, "Kuzhina": 1 } },
       table2Data: { "Kabell 3×1.5": 100 },
@@ -217,6 +273,7 @@ export async function registerRoutes(
       alarmData: {},
       serviceData: {},
       prices: {},
+      purchasePrices: {},
       checklistData: {},
     });
   }

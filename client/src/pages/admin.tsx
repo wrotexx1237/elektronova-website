@@ -1,6 +1,6 @@
 import { Layout } from "@/components/layout";
 import { useCatalog, useCreateCatalogItem, useUpdateCatalogItem, useDeleteCatalogItem } from "@/hooks/use-catalog";
-import { CATEGORIES, UNITS, type CatalogItem, type Job, JOB_CATEGORY_LABELS } from "@shared/schema";
+import { CATEGORIES, UNITS, type CatalogItem, type Job, JOB_CATEGORY_LABELS, type JobCategory } from "@shared/schema";
 import { useAdmin } from "@/hooks/use-admin";
 import { useJobs } from "@/hooks/use-jobs";
 import { Button } from "@/components/ui/button";
@@ -12,8 +12,12 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger
 } from "@/components/ui/alert-dialog";
-import { Plus, Trash2, Edit, Loader2, Package, Save, Lock, TrendingUp, Users, DollarSign, ShoppingCart, BarChart3 } from "lucide-react";
+import { Plus, Trash2, Edit, Loader2, Package, Save, Lock, TrendingUp, Users, DollarSign, ShoppingCart, BarChart3, RefreshCw, Eye, ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { api } from "@shared/routes";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 function AddItemForm({ category, onDone }: { category: string; onDone: () => void }) {
   const create = useCreateCatalogItem();
@@ -113,6 +117,16 @@ function CatalogRow({ item, isAdmin }: { item: CatalogItem; isAdmin: boolean }) 
   );
 }
 
+interface ProductProfit {
+  name: string;
+  qty: number;
+  salePrice: number;
+  purchasePrice: number;
+  totalSale: number;
+  totalPurchase: number;
+  profit: number;
+}
+
 interface JobTotals {
   clientName: string;
   category: string;
@@ -121,21 +135,21 @@ interface JobTotals {
   totalPurchase: number;
   profit: number;
   jobId: number;
+  products: ProductProfit[];
 }
 
-function calculateJobTotals(job: Job): JobTotals {
+function getJobProducts(job: Job): ProductProfit[] {
   const prices = (job.prices || {}) as Record<string, number>;
   const purchasePrices = (job.purchasePrices || {}) as Record<string, number>;
-
-  let totalSale = 0;
-  let totalPurchase = 0;
+  const products: ProductProfit[] = [];
 
   const table1Data = (job.table1Data || {}) as Record<string, Record<string, number>>;
   Object.entries(table1Data).forEach(([itemName, rooms]) => {
     const qty = Object.values(rooms || {}).reduce((a, b) => a + (b || 0), 0);
     if (qty > 0) {
-      totalSale += qty * (prices[itemName] || 0);
-      totalPurchase += qty * (purchasePrices[itemName] || 0);
+      const sp = prices[itemName] || 0;
+      const pp = purchasePrices[itemName] || 0;
+      products.push({ name: itemName, qty, salePrice: sp, purchasePrice: pp, totalSale: qty * sp, totalPurchase: qty * pp, profit: qty * (sp - pp) });
     }
   });
 
@@ -144,11 +158,20 @@ function calculateJobTotals(job: Job): JobTotals {
     const data = (job[field] || {}) as Record<string, number>;
     Object.entries(data).forEach(([itemName, qty]) => {
       if (qty > 0) {
-        totalSale += qty * (prices[itemName] || 0);
-        totalPurchase += qty * (purchasePrices[itemName] || 0);
+        const sp = prices[itemName] || 0;
+        const pp = purchasePrices[itemName] || 0;
+        products.push({ name: itemName, qty, salePrice: sp, purchasePrice: pp, totalSale: qty * sp, totalPurchase: qty * pp, profit: qty * (sp - pp) });
       }
     });
   });
+
+  return products;
+}
+
+function calculateJobTotals(job: Job): JobTotals {
+  const products = getJobProducts(job);
+  const totalSale = products.reduce((s, p) => s + p.totalSale, 0);
+  const totalPurchase = products.reduce((s, p) => s + p.totalPurchase, 0);
 
   return {
     clientName: job.clientName,
@@ -158,11 +181,73 @@ function calculateJobTotals(job: Job): JobTotals {
     totalPurchase,
     profit: totalSale - totalPurchase,
     jobId: job.id,
+    products,
   };
+}
+
+function useRefreshPrices() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  return useMutation({
+    mutationFn: async () => {
+      const res = await fetch('/api/jobs/refresh-prices', { method: 'POST' });
+      if (!res.ok) throw new Error('Failed to refresh prices');
+      return res.json();
+    },
+    onSuccess: (data: { updated: number; total: number }) => {
+      queryClient.invalidateQueries({ queryKey: [api.jobs.list.path] });
+      toast({
+        title: "Çmimet u përditësuan!",
+        description: `${data.updated} nga ${data.total} punë u përditësuan me çmimet e fundit nga katalogu.`,
+      });
+    },
+    onError: () => toast({ title: "Gabim", description: "Nuk u përditësuan çmimet.", variant: "destructive" }),
+  });
+}
+
+const CHART_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16'];
+
+function ClientProductBreakdown({ totals }: { totals: JobTotals }) {
+  if (totals.products.length === 0) {
+    return <p className="text-muted-foreground text-sm py-2 px-4">Nuk ka produkte me sasi ne kete pune.</p>;
+  }
+
+  return (
+    <div className="bg-muted/20 rounded-lg p-3 mt-1 mb-2 mx-2 border border-muted">
+      <div className="hidden sm:grid grid-cols-12 gap-2 text-xs font-bold text-muted-foreground border-b pb-2 mb-2">
+        <span className="col-span-3">Produkti</span>
+        <span className="col-span-1 text-center">Sasia</span>
+        <span className="col-span-2 text-right">Çm. Shitjes</span>
+        <span className="col-span-2 text-right">Çm. Blerjes</span>
+        <span className="col-span-2 text-right">Shitja Tot.</span>
+        <span className="col-span-2 text-right">Fitimi</span>
+      </div>
+      {totals.products.map((p, i) => (
+        <div key={i} className="grid grid-cols-12 gap-2 text-xs items-center py-1.5 border-b border-muted/50 last:border-0">
+          <span className="col-span-3 font-medium truncate">{p.name}</span>
+          <span className="col-span-1 text-center">{p.qty}</span>
+          <span className="col-span-2 text-right">{p.salePrice.toFixed(2)} €</span>
+          <span className="col-span-2 text-right text-amber-600">{p.purchasePrice.toFixed(2)} €</span>
+          <span className="col-span-2 text-right text-primary">{p.totalSale.toFixed(2)} €</span>
+          <span className={`col-span-2 text-right font-bold ${p.profit >= 0 ? 'text-green-600' : 'text-destructive'}`}>{p.profit.toFixed(2)} €</span>
+        </div>
+      ))}
+      <div className="grid grid-cols-12 gap-2 text-xs items-center pt-2 mt-1 border-t-2 border-primary/20 font-bold">
+        <span className="col-span-3">TOTALI</span>
+        <span className="col-span-1 text-center">{totals.products.reduce((s, p) => s + p.qty, 0)}</span>
+        <span className="col-span-2"></span>
+        <span className="col-span-2"></span>
+        <span className="col-span-2 text-right text-primary">{totals.totalSale.toFixed(2)} €</span>
+        <span className={`col-span-2 text-right ${totals.profit >= 0 ? 'text-green-600' : 'text-destructive'}`}>{totals.profit.toFixed(2)} €</span>
+      </div>
+    </div>
+  );
 }
 
 function ProfitDashboard() {
   const { data: jobs, isLoading } = useJobs();
+  const refreshPrices = useRefreshPrices();
+  const [expandedJob, setExpandedJob] = useState<number | null>(null);
 
   if (isLoading) {
     return <div className="flex justify-center py-10"><Loader2 className="animate-spin h-8 w-8 text-primary" /></div>;
@@ -176,8 +261,41 @@ function ProfitDashboard() {
   const grandProfit = grandTotalSale - grandTotalPurchase;
   const profitMargin = grandTotalSale > 0 ? (grandProfit / grandTotalSale) * 100 : 0;
 
+  const barChartData = allTotals
+    .filter(t => t.totalSale > 0 || t.totalPurchase > 0)
+    .map(t => ({
+      name: t.clientName.length > 15 ? t.clientName.substring(0, 15) + '...' : t.clientName,
+      Shitja: parseFloat(t.totalSale.toFixed(2)),
+      Blerja: parseFloat(t.totalPurchase.toFixed(2)),
+      Fitimi: parseFloat(t.profit.toFixed(2)),
+    }));
+
+  const categoryTotals: Record<string, number> = {};
+  allTotals.forEach(t => {
+    const label = JOB_CATEGORY_LABELS[t.category as JobCategory] || t.category;
+    categoryTotals[label] = (categoryTotals[label] || 0) + t.totalSale;
+  });
+  const pieData = Object.entries(categoryTotals)
+    .filter(([, v]) => v > 0)
+    .map(([name, value]) => ({ name, value: parseFloat(value.toFixed(2)) }));
+
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <h2 className="text-xl font-bold flex items-center gap-2">
+          <BarChart3 className="w-5 h-5 text-primary" />
+          Paneli i Fitimeve
+        </h2>
+        <Button
+          onClick={() => refreshPrices.mutate()}
+          disabled={refreshPrices.isPending}
+          data-testid="button-refresh-prices"
+        >
+          <RefreshCw className={`w-4 h-4 mr-2 ${refreshPrices.isPending ? 'animate-spin' : ''}`} />
+          {refreshPrices.isPending ? 'Po përditësohen...' : 'Përditëso Çmimet nga Katalogu'}
+        </Button>
+      </div>
+
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Card>
           <CardContent className="pt-4 pb-4">
@@ -210,12 +328,71 @@ function ProfitDashboard() {
           <CardContent className="pt-4 pb-4">
             <div className="flex items-center gap-2 mb-1">
               <TrendingUp className="w-4 h-4 text-green-600" />
-              <span className="text-xs text-muted-foreground">Fitimi Total ({profitMargin.toFixed(1)}%)</span>
+              <span className="text-xs text-muted-foreground">Fitimi ({profitMargin.toFixed(1)}%)</span>
             </div>
             <p className="text-2xl font-black text-green-600" data-testid="text-grand-profit">{grandProfit.toFixed(2)} €</p>
           </CardContent>
         </Card>
       </div>
+
+      {barChartData.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <Card className="lg:col-span-2">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Shitja vs Blerja per Klient</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={barChartData} margin={{ top: 5, right: 10, left: 0, bottom: 60 }}>
+                    <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                    <XAxis dataKey="name" tick={{ fontSize: 11 }} angle={-35} textAnchor="end" interval={0} />
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <Tooltip
+                      formatter={(value: number) => `${value.toFixed(2)} €`}
+                      contentStyle={{ borderRadius: '8px', fontSize: '12px' }}
+                    />
+                    <Legend wrapperStyle={{ fontSize: '12px' }} />
+                    <Bar dataKey="Shitja" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Blerja" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Fitimi" fill="#10b981" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          {pieData.length > 0 && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Shitjet sipas Kategorisë</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[300px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={pieData}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={90}
+                        dataKey="value"
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        labelLine={true}
+                      >
+                        {pieData.map((_entry, index) => (
+                          <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value: number) => `${value.toFixed(2)} €`} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
 
       <Card>
         <CardHeader className="pb-2">
@@ -233,18 +410,31 @@ function ProfitDashboard() {
             <span className="col-span-2 text-right">Blerja</span>
             <span className="col-span-2 text-right">Fitimi</span>
           </div>
-          <div className="space-y-1">
+          <div className="space-y-0">
             {allTotals.length === 0 && (
               <p className="text-muted-foreground text-center text-sm py-6">Nuk ka pune te regjistruara.</p>
             )}
             {allTotals.map(t => (
-              <div key={t.jobId} className="grid grid-cols-12 gap-2 items-center p-2 rounded hover:bg-muted/20 text-sm">
-                <span className="col-span-3 font-medium truncate" data-testid={`text-client-${t.jobId}`}>{t.clientName}</span>
-                <span className="col-span-2 text-xs text-muted-foreground">{JOB_CATEGORY_LABELS[t.category as keyof typeof JOB_CATEGORY_LABELS] || t.category}</span>
-                <span className="col-span-1 text-xs text-muted-foreground">{t.workDate}</span>
-                <span className="col-span-2 text-right font-medium text-primary" data-testid={`text-sale-${t.jobId}`}>{t.totalSale.toFixed(2)} €</span>
-                <span className="col-span-2 text-right font-medium text-amber-600" data-testid={`text-purchase-${t.jobId}`}>{t.totalPurchase.toFixed(2)} €</span>
-                <span className={`col-span-2 text-right font-bold ${t.profit >= 0 ? 'text-green-600' : 'text-destructive'}`} data-testid={`text-profit-${t.jobId}`}>{t.profit.toFixed(2)} €</span>
+              <div key={t.jobId}>
+                <div className="grid grid-cols-12 gap-2 items-center p-2 rounded hover:bg-muted/20 text-sm">
+                  <div className="col-span-3 flex items-center gap-1">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => setExpandedJob(expandedJob === t.jobId ? null : t.jobId)}
+                      data-testid={`button-view-products-${t.jobId}`}
+                    >
+                      {expandedJob === t.jobId ? <ChevronUp className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </Button>
+                    <span className="font-medium truncate" data-testid={`text-client-${t.jobId}`}>{t.clientName}</span>
+                  </div>
+                  <span className="col-span-2 text-xs text-muted-foreground">{JOB_CATEGORY_LABELS[t.category as JobCategory] || t.category}</span>
+                  <span className="col-span-1 text-xs text-muted-foreground">{t.workDate}</span>
+                  <span className="col-span-2 text-right font-medium text-primary" data-testid={`text-sale-${t.jobId}`}>{t.totalSale.toFixed(2)} €</span>
+                  <span className="col-span-2 text-right font-medium text-amber-600" data-testid={`text-purchase-${t.jobId}`}>{t.totalPurchase.toFixed(2)} €</span>
+                  <span className={`col-span-2 text-right font-bold ${t.profit >= 0 ? 'text-green-600' : 'text-destructive'}`} data-testid={`text-profit-${t.jobId}`}>{t.profit.toFixed(2)} €</span>
+                </div>
+                {expandedJob === t.jobId && <ClientProductBreakdown totals={t} />}
               </div>
             ))}
           </div>
@@ -287,7 +477,7 @@ export default function AdminPage() {
               {isAdmin ? "Menaxho artikujt, njësitë dhe çmimet (Admin)" : "Shiko artikujt dhe çmimet e shitjes"}
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             {isAdmin && (
               <div className="flex rounded-lg border overflow-hidden">
                 <button
