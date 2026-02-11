@@ -21,7 +21,14 @@ Key features:
 - **6 Material Categories**: Pajisje elektrike, Kabllo & Gypa, Kamera, Interfon, Alarm, Punë/Shërbime
 - **Dynamic Catalog System**: Admin-managed catalog of items with units, dual pricing (purchase/sale) per category
 - **Dual Pricing**: Each catalog item has purchase price (cost) and sale price (client price), with price snapshots saved per job
-- **Admin Mode**: localStorage-based admin toggle in header — reveals purchase costs, profit margins, and cost analysis in job form
+- **Multi-User Authentication**: Session-based auth with bcrypt, role-based access (admin/technician), login/register pages
+- **Client Management (CRM)**: Client CRUD, job history per client, search, auto-suggest
+- **Inventory/Stock Management**: Stock in/out/adjustment tracking, low stock warnings, per-item history
+- **Advanced Analytics**: Seasonal analysis, trend predictions, category breakdown, monthly/yearly filtering
+- **Notification System**: Bell icon with unread count, stale offer detection, upcoming work reminders, low stock alerts
+- **Catalog Price History**: Tracks all price changes over time per catalog item
+- **Quote vs Actual Comparison**: Job snapshots saved when status changes for comparison
+- **Admin Mode**: Role-based admin access — reveals purchase costs, profit margins, and cost analysis in job form
 - **Admin Profit Dashboard**: Date filtering (month/year/custom), category-level profit breakdown, monthly trend chart, top products ranking
 - **Intelligent Checklists**: Category-specific checklists (Elektrike, Kamera, Alarm, Interfon, Final)
 - **Auto-calculation**: Row totals computed automatically from room quantities, with sale/purchase/profit totals

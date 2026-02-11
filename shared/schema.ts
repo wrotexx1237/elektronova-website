@@ -1,4 +1,4 @@
-import { pgTable, text, serial, jsonb, timestamp, integer, real } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, jsonb, timestamp, integer, real, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -52,6 +52,15 @@ export const JOB_CATEGORY_PREFIXES: Record<JobCategory, string> = {
 
 export const DISCOUNT_TYPES = ["percent", "fixed"] as const;
 export type DiscountType = typeof DISCOUNT_TYPES[number];
+
+export const USER_ROLES = ["admin", "technician"] as const;
+export type UserRole = typeof USER_ROLES[number];
+
+export const NOTIFICATION_TYPES = ["stale_offer", "upcoming_work", "low_stock", "price_change", "job_completed"] as const;
+export type NotificationType = typeof NOTIFICATION_TYPES[number];
+
+export const STOCK_ENTRY_TYPES = ["in", "out", "adjustment"] as const;
+export type StockEntryType = typeof STOCK_ENTRY_TYPES[number];
 
 // --- Checklist Templates ---
 export const CHECKLIST_ELEKTRIKE = [
@@ -112,6 +121,48 @@ export const simpleDataSchema = z.record(z.string(), z.number());
 export const priceDataSchema = z.record(z.string(), z.number());
 export const checklistDataSchema = z.record(z.string(), z.boolean());
 
+// --- Users Table ---
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  fullName: text("full_name").notNull(),
+  role: text("role").notNull().default("technician"),
+  phone: text("phone"),
+  email: text("email"),
+  isActive: integer("is_active").notNull().default(1),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
+
+// --- Clients Table ---
+export const clients = pgTable("clients", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  phone: text("phone"),
+  address: text("address"),
+  email: text("email"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertClientSchema = createInsertSchema(clients).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type Client = typeof clients.$inferSelect;
+export type InsertClient = z.infer<typeof insertClientSchema>;
+
 // --- Catalog Items Table ---
 export const catalogItems = pgTable("catalog_items", {
   id: serial("id").primaryKey(),
@@ -120,6 +171,8 @@ export const catalogItems = pgTable("catalog_items", {
   unit: text("unit").notNull().default("copë"),
   purchasePrice: real("purchase_price").default(0),
   salePrice: real("sale_price").default(0),
+  currentStock: real("current_stock").default(0),
+  minStockLevel: real("min_stock_level").default(0),
   notes: text("notes"),
   sortOrder: integer("sort_order").default(0),
   createdAt: timestamp("created_at").defaultNow(),
@@ -132,6 +185,92 @@ export const insertCatalogItemSchema = createInsertSchema(catalogItems).omit({
 
 export type CatalogItem = typeof catalogItems.$inferSelect;
 export type InsertCatalogItem = z.infer<typeof insertCatalogItemSchema>;
+
+// --- Price History Table ---
+export const priceHistory = pgTable("price_history", {
+  id: serial("id").primaryKey(),
+  catalogItemId: integer("catalog_item_id").notNull(),
+  itemName: text("item_name").notNull(),
+  oldPurchasePrice: real("old_purchase_price"),
+  newPurchasePrice: real("new_purchase_price"),
+  oldSalePrice: real("old_sale_price"),
+  newSalePrice: real("new_sale_price"),
+  changedBy: text("changed_by"),
+  changedAt: timestamp("changed_at").defaultNow(),
+});
+
+export const insertPriceHistorySchema = createInsertSchema(priceHistory).omit({
+  id: true,
+  changedAt: true,
+});
+
+export type PriceHistory = typeof priceHistory.$inferSelect;
+export type InsertPriceHistory = z.infer<typeof insertPriceHistorySchema>;
+
+// --- Stock Entries Table ---
+export const stockEntries = pgTable("stock_entries", {
+  id: serial("id").primaryKey(),
+  catalogItemId: integer("catalog_item_id").notNull(),
+  itemName: text("item_name").notNull(),
+  entryType: text("entry_type").notNull().default("in"),
+  quantity: real("quantity").notNull(),
+  previousStock: real("previous_stock").default(0),
+  newStock: real("new_stock").default(0),
+  jobId: integer("job_id"),
+  notes: text("notes"),
+  createdBy: text("created_by"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertStockEntrySchema = createInsertSchema(stockEntries).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type StockEntry = typeof stockEntries.$inferSelect;
+export type InsertStockEntry = z.infer<typeof insertStockEntrySchema>;
+
+// --- Job Snapshots Table (Quote vs Actual) ---
+export const jobSnapshots = pgTable("job_snapshots", {
+  id: serial("id").primaryKey(),
+  jobId: integer("job_id").notNull(),
+  snapshotType: text("snapshot_type").notNull().default("quote"),
+  materialData: jsonb("material_data").$type<Record<string, any>>().notNull().default({}),
+  prices: jsonb("prices").$type<Record<string, number>>().notNull().default({}),
+  purchasePrices: jsonb("purchase_prices").$type<Record<string, number>>().notNull().default({}),
+  totalSale: real("total_sale").default(0),
+  totalPurchase: real("total_purchase").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertJobSnapshotSchema = createInsertSchema(jobSnapshots).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type JobSnapshot = typeof jobSnapshots.$inferSelect;
+export type InsertJobSnapshot = z.infer<typeof insertJobSnapshotSchema>;
+
+// --- Notifications Table ---
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  type: text("type").notNull(),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  jobId: integer("job_id"),
+  catalogItemId: integer("catalog_item_id"),
+  isRead: integer("is_read").notNull().default(0),
+  userId: integer("user_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 
 // --- Jobs Table ---
 export const jobs = pgTable("jobs", {
@@ -146,6 +285,8 @@ export const jobs = pgTable("jobs", {
   status: text("status").default("oferte"),
   notes: text("notes"),
   isTemplate: integer("is_template").default(0),
+  userId: integer("user_id"),
+  clientId: integer("client_id"),
 
   discountType: text("discount_type").default("percent"),
   discountValue: real("discount_value").default(0),
@@ -176,6 +317,8 @@ export const insertJobSchema = z.object({
   status: z.enum(JOB_STATUSES).optional().default("oferte"),
   notes: z.string().nullable().optional(),
   isTemplate: z.coerce.number().min(0).max(1).optional().default(0),
+  userId: z.number().nullable().optional(),
+  clientId: z.number().nullable().optional(),
   discountType: z.enum(DISCOUNT_TYPES).optional().default("percent"),
   discountValue: z.coerce.number().min(0).optional().default(0),
   table1Data: z.record(z.string(), z.record(z.string(), z.coerce.number().default(0))).optional().default({}),

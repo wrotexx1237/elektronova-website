@@ -1,9 +1,10 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import type { Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import { CATEGORIES, JOB_CATEGORY_PREFIXES, type JobCategory } from "@shared/schema";
+import bcrypt from "bcryptjs";
 
 async function generateInvoiceNumber(category: string): Promise<string> {
   const prefix = JOB_CATEGORY_PREFIXES[category as JobCategory] || "ELK";
@@ -20,12 +21,149 @@ async function generateInvoiceNumber(category: string): Promise<string> {
   return `${prefix}-${String(next).padStart(3, "0")}`;
 }
 
+function requireAuth(req: Request, res: Response, next: NextFunction) {
+  if (req.session?.userId) {
+    return next();
+  }
+  return res.status(401).json({ message: "Duhet të identifikoheni" });
+}
+
+function requireAdmin(req: Request, res: Response, next: NextFunction) {
+  if (req.session?.role === "admin") {
+    return next();
+  }
+  return res.status(403).json({ message: "Vetëm admini ka qasje" });
+}
+
+function getJobMaterialTotals(job: any) {
+  const allItemNames = new Set<string>();
+  const quantities: Record<string, number> = {};
+
+  const t1 = (job.table1Data || {}) as Record<string, Record<string, number>>;
+  for (const [itemName, rooms] of Object.entries(t1)) {
+    allItemNames.add(itemName);
+    let total = 0;
+    for (const qty of Object.values(rooms)) total += qty;
+    quantities[itemName] = (quantities[itemName] || 0) + total;
+  }
+
+  const simpleFields = ['table2Data', 'cameraData', 'intercomData', 'alarmData', 'serviceData'] as const;
+  for (const f of simpleFields) {
+    const d = (job[f] || {}) as Record<string, number>;
+    for (const [itemName, qty] of Object.entries(d)) {
+      allItemNames.add(itemName);
+      quantities[itemName] = (quantities[itemName] || 0) + qty;
+    }
+  }
+
+  return { allItemNames, quantities };
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
 
-  // --- JOBS ---
+  // ==================== AUTH ====================
+
+  app.post('/api/auth/login', async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      if (!username || !password) {
+        return res.status(400).json({ message: "Emri dhe fjalëkalimi janë të detyrueshëm" });
+      }
+      const user = await storage.getUserByUsername(username);
+      if (!user || !user.isActive) {
+        return res.status(401).json({ message: "Emri ose fjalëkalimi nuk është i saktë" });
+      }
+      const valid = await bcrypt.compare(password, user.passwordHash);
+      if (!valid) {
+        return res.status(401).json({ message: "Emri ose fjalëkalimi nuk është i saktë" });
+      }
+      req.session.userId = user.id;
+      req.session.role = user.role;
+      req.session.username = user.username;
+      req.session.fullName = user.fullName;
+      const { passwordHash, ...safeUser } = user;
+      res.json(safeUser);
+    } catch (err) {
+      console.error('Login error:', err);
+      res.status(500).json({ message: "Gabim në server" });
+    }
+  });
+
+  app.post('/api/auth/logout', (req, res) => {
+    req.session.destroy(() => {
+      res.json({ message: "U çkyçët me sukses" });
+    });
+  });
+
+  app.get('/api/auth/me', async (req, res) => {
+    if (!req.session?.userId) {
+      return res.status(401).json({ message: "Nuk jeni të identifikuar" });
+    }
+    const user = await storage.getUser(req.session.userId);
+    if (!user) {
+      return res.status(401).json({ message: "Përdoruesi nuk u gjet" });
+    }
+    const { passwordHash, ...safeUser } = user;
+    res.json(safeUser);
+  });
+
+  app.post('/api/auth/register', async (req, res) => {
+    try {
+      const { username, password, fullName, role, phone, email } = req.body;
+      if (!username || !password || !fullName) {
+        return res.status(400).json({ message: "Plotësoni fushat e detyrueshme" });
+      }
+      const existing = await storage.getUserByUsername(username);
+      if (existing) {
+        return res.status(400).json({ message: "Ky emër përdoruesi ekziston" });
+      }
+      const passwordHash = await bcrypt.hash(password, 10);
+      const user = await storage.createUser({
+        username,
+        passwordHash,
+        fullName,
+        role: role || "technician",
+        phone: phone || null,
+        email: email || null,
+        isActive: 1,
+      });
+      const { passwordHash: _, ...safeUser } = user;
+      res.status(201).json(safeUser);
+    } catch (err) {
+      console.error('Register error:', err);
+      res.status(500).json({ message: "Gabim në regjistrim" });
+    }
+  });
+
+  // --- USERS MANAGEMENT (admin only) ---
+  app.get('/api/users', requireAuth, requireAdmin, async (_req, res) => {
+    const allUsers = await storage.getUsers();
+    const safe = allUsers.map(({ passwordHash, ...u }) => u);
+    res.json(safe);
+  });
+
+  app.put('/api/users/:id', requireAuth, requireAdmin, async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "ID e pavlefshme" });
+    const updates: any = {};
+    if (req.body.fullName) updates.fullName = req.body.fullName;
+    if (req.body.role) updates.role = req.body.role;
+    if (req.body.phone !== undefined) updates.phone = req.body.phone;
+    if (req.body.email !== undefined) updates.email = req.body.email;
+    if (req.body.isActive !== undefined) updates.isActive = req.body.isActive;
+    if (req.body.password) {
+      updates.passwordHash = await bcrypt.hash(req.body.password, 10);
+    }
+    const updated = await storage.updateUser(id, updates);
+    const { passwordHash, ...safeUser } = updated;
+    res.json(safeUser);
+  });
+
+  // ==================== JOBS ====================
+
   app.get(api.jobs.list.path, async (req, res) => {
     const search = req.query.search as string | undefined;
     const jobsList = await storage.getJobs(search);
@@ -46,7 +184,30 @@ export async function registerRoutes(
       if (!input.invoiceNumber) {
         input.invoiceNumber = await generateInvoiceNumber(input.category || "electric");
       }
+      if (req.session?.userId) {
+        input.userId = req.session.userId;
+      }
       const job = await storage.createJob(input);
+
+      if (input.status === "oferte") {
+        await storage.createJobSnapshot({
+          jobId: job.id,
+          snapshotType: "quote",
+          materialData: {
+            table1Data: input.table1Data,
+            table2Data: input.table2Data,
+            cameraData: input.cameraData,
+            intercomData: input.intercomData,
+            alarmData: input.alarmData,
+            serviceData: input.serviceData,
+          },
+          prices: input.prices || {},
+          purchasePrices: input.purchasePrices || {},
+          totalSale: 0,
+          totalPurchase: 0,
+        });
+      }
+
       res.status(201).json(job);
     } catch (err) {
       if (err instanceof z.ZodError) {
@@ -63,6 +224,104 @@ export async function registerRoutes(
       const existing = await storage.getJob(id);
       if (!existing) return res.status(404).json({ message: "Job not found" });
       const input = api.jobs.update.input.parse(req.body);
+
+      const oldStatus = existing.status;
+      const newStatus = input.status;
+
+      if (oldStatus === "oferte" && newStatus && newStatus !== "oferte") {
+        const snapshots = await storage.getJobSnapshots(id);
+        const hasQuote = snapshots.some(s => s.snapshotType === "quote");
+        if (!hasQuote) {
+          await storage.createJobSnapshot({
+            jobId: id,
+            snapshotType: "quote",
+            materialData: {
+              table1Data: existing.table1Data,
+              table2Data: existing.table2Data,
+              cameraData: existing.cameraData,
+              intercomData: existing.intercomData,
+              alarmData: existing.alarmData,
+              serviceData: existing.serviceData,
+            },
+            prices: (existing.prices as Record<string, number>) || {},
+            purchasePrices: (existing.purchasePrices as Record<string, number>) || {},
+            totalSale: 0,
+            totalPurchase: 0,
+          });
+        }
+      }
+
+      if (newStatus === "e_perfunduar" && oldStatus !== "e_perfunduar") {
+        const finalData = { ...existing, ...input };
+        await storage.createJobSnapshot({
+          jobId: id,
+          snapshotType: "actual",
+          materialData: {
+            table1Data: finalData.table1Data,
+            table2Data: finalData.table2Data,
+            cameraData: finalData.cameraData,
+            intercomData: finalData.intercomData,
+            alarmData: finalData.alarmData,
+            serviceData: finalData.serviceData,
+          },
+          prices: (finalData.prices as Record<string, number>) || {},
+          purchasePrices: (finalData.purchasePrices as Record<string, number>) || {},
+          totalSale: 0,
+          totalPurchase: 0,
+        });
+
+        try {
+          const { quantities } = getJobMaterialTotals(finalData);
+          const catalog = await storage.getCatalogItems();
+          const catalogMap = new Map(catalog.map(c => [c.name, c]));
+
+          for (const [itemName, qty] of Object.entries(quantities)) {
+            if (qty <= 0) continue;
+            const catItem = catalogMap.get(itemName);
+            if (catItem && (catItem.currentStock || 0) > 0) {
+              const previousStock = catItem.currentStock || 0;
+              const newStock = Math.max(0, previousStock - qty);
+              await storage.updateCatalogStock(catItem.id, newStock);
+              await storage.createStockEntry({
+                catalogItemId: catItem.id,
+                itemName: catItem.name,
+                entryType: "out",
+                quantity: qty,
+                previousStock,
+                newStock,
+                jobId: id,
+                notes: `Zbritje automatike - Pune #${id}`,
+                createdBy: req.session?.fullName || "System",
+              });
+
+              if (catItem.minStockLevel && newStock <= catItem.minStockLevel) {
+                await storage.createNotification({
+                  type: "low_stock",
+                  title: "Stoku i ulët",
+                  message: `${catItem.name}: ${newStock} ${catItem.unit} mbetur (min: ${catItem.minStockLevel})`,
+                  catalogItemId: catItem.id,
+                  jobId: null,
+                  isRead: 0,
+                  userId: null,
+                });
+              }
+            }
+          }
+        } catch (stockErr) {
+          console.error('Stock deduction error:', stockErr);
+        }
+
+        await storage.createNotification({
+          type: "job_completed",
+          title: "Punë e përfunduar",
+          message: `Puna ${existing.invoiceNumber || '#' + id} për ${existing.clientName} u përfundua`,
+          jobId: id,
+          catalogItemId: null,
+          isRead: 0,
+          userId: null,
+        });
+      }
+
       const updated = await storage.updateJob(id, input);
       res.json(updated);
     } catch (err) {
@@ -114,6 +373,8 @@ export async function registerRoutes(
       purchasePrices: (existing.purchasePrices as any) || {},
       checklistData: {},
       isTemplate: 0,
+      userId: req.session?.userId || null,
+      clientId: existing.clientId || null,
     });
     res.status(201).json(duplicated);
   });
@@ -166,11 +427,13 @@ export async function registerRoutes(
       prices: (template.prices as any) || {},
       purchasePrices: (template.purchasePrices as any) || {},
       checklistData: {},
+      userId: req.session?.userId || null,
     });
     res.status(201).json(newJob);
   });
 
-  // --- CATALOG ---
+  // ==================== CATALOG ====================
+
   app.get(api.catalog.list.path, async (_req, res) => {
     const items = await storage.getCatalogItems();
     res.json(items);
@@ -196,6 +459,34 @@ export async function registerRoutes(
     if (!existing) return res.status(404).json({ message: "Item not found" });
     try {
       const input = api.catalog.update.input.parse(req.body);
+
+      const oldPurchase = existing.purchasePrice || 0;
+      const oldSale = existing.salePrice || 0;
+      const newPurchase = input.purchasePrice ?? oldPurchase;
+      const newSale = input.salePrice ?? oldSale;
+
+      if (oldPurchase !== newPurchase || oldSale !== newSale) {
+        await storage.createPriceHistory({
+          catalogItemId: id,
+          itemName: existing.name,
+          oldPurchasePrice: oldPurchase,
+          newPurchasePrice: newPurchase,
+          oldSalePrice: oldSale,
+          newSalePrice: newSale,
+          changedBy: req.session?.fullName || "Admin",
+        });
+
+        await storage.createNotification({
+          type: "price_change",
+          title: "Ndryshim çmimi",
+          message: `${existing.name}: Shitje ${oldSale}€ → ${newSale}€, Blerje ${oldPurchase}€ → ${newPurchase}€`,
+          catalogItemId: id,
+          jobId: null,
+          isRead: 0,
+          userId: null,
+        });
+      }
+
       const updated = await storage.updateCatalogItem(id, input);
       res.json(updated);
     } catch (err) {
@@ -215,7 +506,356 @@ export async function registerRoutes(
     res.status(204).send();
   });
 
-  // --- REFRESH PRICES (update all jobs with latest catalog prices) ---
+  // ==================== CLIENTS ====================
+
+  app.get('/api/clients', async (req, res) => {
+    const search = req.query.search as string | undefined;
+    if (search) {
+      const results = await storage.searchClients(search);
+      return res.json(results);
+    }
+    const allClients = await storage.getClients();
+    res.json(allClients);
+  });
+
+  app.get('/api/clients/:id', async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "ID e pavlefshme" });
+    const client = await storage.getClient(id);
+    if (!client) return res.status(404).json({ message: "Klienti nuk u gjet" });
+    res.json(client);
+  });
+
+  app.get('/api/clients/:id/jobs', async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "ID e pavlefshme" });
+    const clientJobs = await storage.getJobsByClientId(id);
+    res.json(clientJobs);
+  });
+
+  app.post('/api/clients', async (req, res) => {
+    try {
+      const { name, phone, address, email, notes } = req.body;
+      if (!name) return res.status(400).json({ message: "Emri është i detyrueshëm" });
+      const client = await storage.createClient({
+        name, phone: phone || null, address: address || null,
+        email: email || null, notes: notes || null,
+      });
+      res.status(201).json(client);
+    } catch (err) {
+      console.error('Create client error:', err);
+      res.status(500).json({ message: "Gabim" });
+    }
+  });
+
+  app.put('/api/clients/:id', async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "ID e pavlefshme" });
+    const existing = await storage.getClient(id);
+    if (!existing) return res.status(404).json({ message: "Klienti nuk u gjet" });
+    const updated = await storage.updateClient(id, req.body);
+    res.json(updated);
+  });
+
+  app.delete('/api/clients/:id', async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "ID e pavlefshme" });
+    await storage.deleteClient(id);
+    res.status(204).send();
+  });
+
+  // ==================== PRICE HISTORY ====================
+
+  app.get('/api/price-history', async (req, res) => {
+    const catalogItemId = req.query.catalogItemId ? parseInt(req.query.catalogItemId as string) : undefined;
+    const history = await storage.getPriceHistory(catalogItemId);
+    res.json(history);
+  });
+
+  // ==================== STOCK / INVENTORY ====================
+
+  app.get('/api/stock', async (req, res) => {
+    const catalogItemId = req.query.catalogItemId ? parseInt(req.query.catalogItemId as string) : undefined;
+    const entries = await storage.getStockEntries(catalogItemId);
+    res.json(entries);
+  });
+
+  app.get('/api/stock/low', async (_req, res) => {
+    const lowItems = await storage.getLowStockItems();
+    res.json(lowItems);
+  });
+
+  app.post('/api/stock/entry', async (req, res) => {
+    try {
+      const { catalogItemId, quantity, entryType, notes } = req.body;
+      if (!catalogItemId || quantity === undefined) {
+        return res.status(400).json({ message: "Plotësoni fushat" });
+      }
+      const catItem = await storage.getCatalogItem(catalogItemId);
+      if (!catItem) return res.status(404).json({ message: "Artikulli nuk u gjet" });
+
+      const previousStock = catItem.currentStock || 0;
+      let newStock = previousStock;
+
+      if (entryType === "in") {
+        newStock = previousStock + quantity;
+      } else if (entryType === "out") {
+        newStock = Math.max(0, previousStock - quantity);
+      } else {
+        newStock = quantity;
+      }
+
+      await storage.updateCatalogStock(catalogItemId, newStock);
+
+      const entry = await storage.createStockEntry({
+        catalogItemId,
+        itemName: catItem.name,
+        entryType: entryType || "in",
+        quantity,
+        previousStock,
+        newStock,
+        jobId: req.body.jobId || null,
+        notes: notes || null,
+        createdBy: req.session?.fullName || "Admin",
+      });
+
+      if (catItem.minStockLevel && newStock <= catItem.minStockLevel) {
+        await storage.createNotification({
+          type: "low_stock",
+          title: "Stoku i ulët",
+          message: `${catItem.name}: ${newStock} ${catItem.unit} mbetur (min: ${catItem.minStockLevel})`,
+          catalogItemId,
+          jobId: null,
+          isRead: 0,
+          userId: null,
+        });
+      }
+
+      res.status(201).json(entry);
+    } catch (err) {
+      console.error('Stock entry error:', err);
+      res.status(500).json({ message: "Gabim" });
+    }
+  });
+
+  // ==================== JOB SNAPSHOTS (Quote vs Actual) ====================
+
+  app.get('/api/jobs/:id/snapshots', async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "ID e pavlefshme" });
+    const snapshots = await storage.getJobSnapshots(id);
+    res.json(snapshots);
+  });
+
+  // ==================== NOTIFICATIONS ====================
+
+  app.get('/api/notifications', async (req, res) => {
+    const userId = req.session?.userId;
+    const notifs = await storage.getNotifications(userId);
+    res.json(notifs);
+  });
+
+  app.get('/api/notifications/unread-count', async (req, res) => {
+    const userId = req.session?.userId;
+    const count = await storage.getUnreadNotificationCount(userId);
+    res.json({ count });
+  });
+
+  app.put('/api/notifications/:id/read', async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "ID e pavlefshme" });
+    await storage.markNotificationRead(id);
+    res.json({ success: true });
+  });
+
+  app.put('/api/notifications/read-all', async (req, res) => {
+    const userId = req.session?.userId;
+    await storage.markAllNotificationsRead(userId);
+    res.json({ success: true });
+  });
+
+  // --- CHECK STALE OFFERS AND CREATE NOTIFICATIONS ---
+  app.post('/api/notifications/check-stale', async (_req, res) => {
+    try {
+      const allJobs = await storage.getJobs();
+      const now = new Date();
+      let created = 0;
+
+      for (const job of allJobs) {
+        if (job.status !== "oferte" || job.isTemplate === 1) continue;
+        const createdDate = job.createdAt ? new Date(job.createdAt) : null;
+        if (!createdDate) continue;
+
+        const daysSince = Math.floor((now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24));
+        if (daysSince >= 7) {
+          const existingNotifs = await storage.getNotifications();
+          const alreadyNotified = existingNotifs.some(
+            n => n.type === "stale_offer" && n.jobId === job.id &&
+              n.createdAt && (now.getTime() - new Date(n.createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000
+          );
+          if (!alreadyNotified) {
+            await storage.createNotification({
+              type: "stale_offer",
+              title: "Ofertë e vjetër",
+              message: `Oferta ${job.invoiceNumber || '#' + job.id} për ${job.clientName} ka ${daysSince} ditë pa u konfirmuar`,
+              jobId: job.id,
+              catalogItemId: null,
+              isRead: 0,
+              userId: null,
+            });
+            created++;
+          }
+        }
+      }
+
+      const upcomingJobs = allJobs.filter(j => {
+        if (j.status === "e_perfunduar" || j.isTemplate === 1) return false;
+        const workDate = new Date(j.workDate);
+        const daysUntil = Math.floor((workDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        return daysUntil >= 0 && daysUntil <= 3;
+      });
+
+      for (const job of upcomingJobs) {
+        const existingNotifs = await storage.getNotifications();
+        const alreadyNotified = existingNotifs.some(
+          n => n.type === "upcoming_work" && n.jobId === job.id &&
+            n.createdAt && (now.getTime() - new Date(n.createdAt).getTime()) < 24 * 60 * 60 * 1000
+        );
+        if (!alreadyNotified) {
+          const daysUntil = Math.floor((new Date(job.workDate).getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+          await storage.createNotification({
+            type: "upcoming_work",
+            title: "Punë e afërt",
+            message: `${job.invoiceNumber || '#' + job.id} - ${job.clientName}: ${daysUntil === 0 ? 'SOT' : `për ${daysUntil} ditë`}`,
+            jobId: job.id,
+            catalogItemId: null,
+            isRead: 0,
+            userId: job.userId || null,
+          });
+          created++;
+        }
+      }
+
+      res.json({ created });
+    } catch (err) {
+      console.error('Check stale error:', err);
+      res.status(500).json({ message: "Gabim" });
+    }
+  });
+
+  // ==================== ANALYTICS ====================
+
+  app.get('/api/analytics/profit', async (req, res) => {
+    try {
+      const allJobs = await storage.getJobs();
+      const completedJobs = allJobs.filter(j => j.status === "e_perfunduar" && j.isTemplate !== 1);
+
+      const monthlyData: Record<string, { revenue: number; cost: number; profit: number; jobCount: number }> = {};
+
+      for (const job of completedJobs) {
+        const date = job.updatedAt || job.createdAt;
+        if (!date) continue;
+        const d = new Date(date);
+        const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+
+        if (!monthlyData[monthKey]) {
+          monthlyData[monthKey] = { revenue: 0, cost: 0, profit: 0, jobCount: 0 };
+        }
+
+        const { quantities } = getJobMaterialTotals(job);
+        const prices = (job.prices || {}) as Record<string, number>;
+        const purchasePrices = (job.purchasePrices || {}) as Record<string, number>;
+
+        let totalSale = 0;
+        let totalPurchase = 0;
+        for (const [name, qty] of Object.entries(quantities)) {
+          totalSale += (prices[name] || 0) * qty;
+          totalPurchase += (purchasePrices[name] || 0) * qty;
+        }
+
+        monthlyData[monthKey].revenue += totalSale;
+        monthlyData[monthKey].cost += totalPurchase;
+        monthlyData[monthKey].profit += (totalSale - totalPurchase);
+        monthlyData[monthKey].jobCount++;
+      }
+
+      const months = Object.keys(monthlyData).sort();
+      const trend = months.map(m => ({
+        month: m,
+        ...monthlyData[m],
+      }));
+
+      const categoryData: Record<string, { revenue: number; cost: number; profit: number; count: number }> = {};
+      for (const job of completedJobs) {
+        const cat = job.category || "electric";
+        if (!categoryData[cat]) {
+          categoryData[cat] = { revenue: 0, cost: 0, profit: 0, count: 0 };
+        }
+        const { quantities } = getJobMaterialTotals(job);
+        const prices = (job.prices || {}) as Record<string, number>;
+        const purchasePrices = (job.purchasePrices || {}) as Record<string, number>;
+        let totalSale = 0, totalPurchase = 0;
+        for (const [name, qty] of Object.entries(quantities)) {
+          totalSale += (prices[name] || 0) * qty;
+          totalPurchase += (purchasePrices[name] || 0) * qty;
+        }
+        categoryData[cat].revenue += totalSale;
+        categoryData[cat].cost += totalPurchase;
+        categoryData[cat].profit += (totalSale - totalPurchase);
+        categoryData[cat].count++;
+      }
+
+      const seasonalData: Record<string, { revenue: number; profit: number; count: number }> = {};
+      const seasonNames: Record<number, string> = { 0: "Dimër", 1: "Pranverë", 2: "Verë", 3: "Vjeshtë" };
+      for (const job of completedJobs) {
+        const date = job.updatedAt || job.createdAt;
+        if (!date) continue;
+        const month = new Date(date).getMonth();
+        const season = Math.floor(((month + 1) % 12) / 3);
+        const seasonName = seasonNames[season];
+        if (!seasonalData[seasonName]) {
+          seasonalData[seasonName] = { revenue: 0, profit: 0, count: 0 };
+        }
+        const { quantities } = getJobMaterialTotals(job);
+        const prices = (job.prices || {}) as Record<string, number>;
+        const purchasePrices = (job.purchasePrices || {}) as Record<string, number>;
+        let totalSale = 0, totalPurchase = 0;
+        for (const [name, qty] of Object.entries(quantities)) {
+          totalSale += (prices[name] || 0) * qty;
+          totalPurchase += (purchasePrices[name] || 0) * qty;
+        }
+        seasonalData[seasonName].revenue += totalSale;
+        seasonalData[seasonName].profit += totalSale - totalPurchase;
+        seasonalData[seasonName].count++;
+      }
+
+      const totalRevenue = trend.reduce((s, t) => s + t.revenue, 0);
+      const totalCost = trend.reduce((s, t) => s + t.cost, 0);
+      const totalProfit = totalRevenue - totalCost;
+      const avgMonthlyProfit = months.length > 0 ? totalProfit / months.length : 0;
+
+      let prediction = avgMonthlyProfit;
+      if (trend.length >= 3) {
+        const last3 = trend.slice(-3);
+        prediction = last3.reduce((s, t) => s + t.profit, 0) / 3;
+      }
+
+      res.json({
+        trend,
+        categoryBreakdown: categoryData,
+        seasonal: seasonalData,
+        totals: { revenue: totalRevenue, cost: totalCost, profit: totalProfit },
+        avgMonthlyProfit,
+        prediction,
+        totalJobs: completedJobs.length,
+      });
+    } catch (err) {
+      console.error('Analytics error:', err);
+      res.status(500).json({ message: "Gabim" });
+    }
+  });
+
+  // --- REFRESH PRICES ---
   app.post('/api/jobs/refresh-prices', async (_req, res) => {
     try {
       const catalogList = await storage.getCatalogItems();
@@ -355,10 +995,28 @@ export async function registerRoutes(
         unit: d.unit,
         purchasePrice: 0,
         salePrice: 0,
+        currentStock: 0,
+        minStockLevel: 0,
         notes: null,
         sortOrder: 0,
       });
     }
+  }
+
+  // Seed default admin user if no users exist
+  const existingUsers = await storage.getUsers();
+  if (existingUsers.length === 0) {
+    console.log("Seeding default admin user...");
+    const hash = await bcrypt.hash("Endrit123$", 10);
+    await storage.createUser({
+      username: "admin",
+      passwordHash: hash,
+      fullName: "Admin Elektronova",
+      role: "admin",
+      phone: "+383 49 771 673",
+      email: null,
+      isActive: 1,
+    });
   }
 
   // Seed sample job if empty

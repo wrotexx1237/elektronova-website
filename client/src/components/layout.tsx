@@ -1,20 +1,36 @@
 import { Link, useLocation } from "wouter";
-import { Zap, LayoutDashboard, PlusCircle, Menu, X, Package, Shield, ShieldOff } from "lucide-react";
+import { Zap, LayoutDashboard, PlusCircle, Menu, X, Package, Users, Warehouse, BarChart3, Bell, LogOut, User } from "lucide-react";
 import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
-import { useAdmin } from "@/hooks/use-admin";
+import { useAuth } from "@/hooks/use-auth";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import type { Notification } from "@shared/schema";
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { isAdmin, toggleAdmin } = useAdmin();
+  const { user, isAdmin } = useAuth();
 
   const navItems = [
     { label: "Dashboard", href: "/", icon: LayoutDashboard },
     { label: "Procesverbal i Ri", href: "/new", icon: PlusCircle },
+    { label: "Klientët", href: "/clients", icon: Users },
+    { label: "Stoku", href: "/inventory", icon: Warehouse },
     { label: "Katalogu", href: "/admin", icon: Package },
+    ...(isAdmin ? [{ label: "Analiza", href: "/analytics", icon: BarChart3 }] : []),
   ];
+
+  const logoutMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/auth/logout"),
+    onSuccess: () => {
+      queryClient.setQueryData(["/api/auth/me"], null);
+      queryClient.clear();
+    },
+  });
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -24,16 +40,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <div className="bg-primary/10 p-2 rounded-lg group-hover:bg-primary/20 transition-colors">
               <Zap className="h-6 w-6 text-primary" />
             </div>
-            <span className="font-display font-bold text-xl tracking-tight">Elektronova</span>
+            <span className="font-display font-bold text-xl tracking-tight hidden sm:inline">Elektronova</span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-6">
+          <nav className="hidden lg:flex items-center gap-4">
             {navItems.map((item) => (
-              <Link 
-                key={item.href} 
+              <Link
+                key={item.href}
                 href={item.href}
                 className={cn(
-                  "text-sm font-medium transition-colors hover:text-primary flex items-center gap-2",
+                  "text-sm font-medium transition-colors hover:text-primary flex items-center gap-1.5",
                   location === item.href ? "text-primary font-bold" : "text-muted-foreground"
                 )}
               >
@@ -44,23 +60,28 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="flex items-center gap-2">
-            <button
-              onClick={toggleAdmin}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors border",
-                isAdmin
-                  ? "bg-amber-500/10 text-amber-600 border-amber-500/30"
-                  : "bg-muted/50 text-muted-foreground border-transparent hover:border-border"
-              )}
-              data-testid="button-admin-toggle"
-            >
-              {isAdmin ? <Shield className="h-3.5 w-3.5" /> : <ShieldOff className="h-3.5 w-3.5" />}
-              {isAdmin ? "Admin" : "User"}
-            </button>
+            <NotificationBell />
 
-            <button 
-              className="md:hidden p-2 text-foreground"
+            {isAdmin && (
+              <Badge variant="outline" className="border-amber-500/30 text-amber-600 hidden sm:inline-flex">
+                Admin
+              </Badge>
+            )}
+
+            <div className="hidden sm:flex items-center gap-1 text-sm text-muted-foreground">
+              <User className="h-3.5 w-3.5" />
+              <span>{user?.fullName || user?.username}</span>
+            </div>
+
+            <Button size="icon" variant="ghost" onClick={() => logoutMutation.mutate()}
+              data-testid="button-logout" title="Dil">
+              <LogOut className="h-4 w-4" />
+            </Button>
+
+            <button
+              className="lg:hidden p-2 text-foreground"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              data-testid="button-mobile-menu"
             >
               {mobileMenuOpen ? <X /> : <Menu />}
             </button>
@@ -68,10 +89,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </div>
 
         {mobileMenuOpen && (
-          <div className="md:hidden border-t bg-background p-4 flex flex-col gap-4 shadow-lg animate-in slide-in-from-top-5">
+          <div className="lg:hidden border-t bg-background p-4 flex flex-col gap-4 shadow-lg animate-in slide-in-from-top-5">
             {navItems.map((item) => (
-              <Link 
-                key={item.href} 
+              <Link
+                key={item.href}
                 href={item.href}
                 className={cn(
                   "text-base font-medium transition-colors flex items-center gap-3 p-2 rounded-md hover:bg-muted",
@@ -83,6 +104,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 {item.label}
               </Link>
             ))}
+            <div className="border-t pt-3 flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">{user?.fullName}</span>
+              <Button variant="ghost" size="sm" onClick={() => logoutMutation.mutate()}>
+                <LogOut className="h-4 w-4 mr-1" /> Dil
+              </Button>
+            </div>
           </div>
         )}
       </header>
@@ -97,5 +124,118 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </div>
       </footer>
     </div>
+  );
+}
+
+function NotificationBell() {
+  const [open, setOpen] = useState(false);
+
+  const { data: countData } = useQuery<{ count: number }>({
+    queryKey: ["/api/notifications/unread-count"],
+    refetchInterval: 60000,
+  });
+
+  const { data: notifications = [] } = useQuery<Notification[]>({
+    queryKey: ["/api/notifications"],
+    enabled: open,
+  });
+
+  const checkStaleMutation = useMutation({
+    mutationFn: () => apiRequest("POST", "/api/notifications/check-stale"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications/unread-count"] });
+    },
+  });
+
+  const markReadMutation = useMutation({
+    mutationFn: (id: number) => apiRequest("PUT", `/api/notifications/${id}/read`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications/unread-count"] });
+    },
+  });
+
+  const markAllReadMutation = useMutation({
+    mutationFn: () => apiRequest("PUT", "/api/notifications/read-all"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications/unread-count"] });
+    },
+  });
+
+  const unreadCount = countData?.count || 0;
+
+  const typeLabels: Record<string, string> = {
+    stale_offer: "Ofertë e vjetër",
+    upcoming_work: "Punë e afërt",
+    low_stock: "Stok i ulët",
+    price_change: "Ndryshim çmimi",
+    job_completed: "Punë e përfunduar",
+  };
+
+  const typeColors: Record<string, string> = {
+    stale_offer: "text-amber-500",
+    upcoming_work: "text-blue-500",
+    low_stock: "text-red-500",
+    price_change: "text-purple-500",
+    job_completed: "text-green-500",
+  };
+
+  return (
+    <Popover open={open} onOpenChange={(o) => {
+      setOpen(o);
+      if (o) checkStaleMutation.mutate();
+    }}>
+      <PopoverTrigger asChild>
+        <Button size="icon" variant="ghost" className="relative" data-testid="button-notifications">
+          <Bell className="h-4 w-4" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center"
+              data-testid="text-unread-count">
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </span>
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 p-0" align="end">
+        <div className="flex items-center justify-between p-3 border-b">
+          <h3 className="font-semibold text-sm">Njoftimet</h3>
+          {unreadCount > 0 && (
+            <Button variant="ghost" size="sm" onClick={() => markAllReadMutation.mutate()}
+              data-testid="button-mark-all-read">
+              Lexo të gjitha
+            </Button>
+          )}
+        </div>
+        <div className="max-h-80 overflow-y-auto">
+          {notifications.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-8">Asnjë njoftim</p>
+          ) : (
+            notifications.slice(0, 20).map(notif => (
+              <div
+                key={notif.id}
+                className={cn(
+                  "p-3 border-b last:border-0 cursor-pointer hover:bg-muted/50 transition-colors",
+                  notif.isRead === 0 && "bg-primary/5"
+                )}
+                onClick={() => notif.isRead === 0 && markReadMutation.mutate(notif.id)}
+                data-testid={`notification-${notif.id}`}
+              >
+                <div className="flex items-start gap-2">
+                  <span className={cn("text-xs font-medium mt-0.5", typeColors[notif.type] || "")}>
+                    {typeLabels[notif.type] || notif.type}
+                  </span>
+                </div>
+                <p className="text-sm mt-1">{notif.message}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {notif.createdAt ? new Date(notif.createdAt).toLocaleString('sq') : ''}
+                </p>
+              </div>
+            ))
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
