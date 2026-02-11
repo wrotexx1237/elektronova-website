@@ -149,7 +149,11 @@ function getJobProducts(job: Job): ProductProfit[] {
     if (qty > 0) {
       const sp = prices[itemName] || 0;
       const pp = purchasePrices[itemName] || 0;
-      products.push({ name: itemName, qty, salePrice: sp, purchasePrice: pp, totalSale: qty * sp, totalPurchase: qty * pp, profit: qty * (sp - pp) });
+      const totalS = qty * sp;
+      const totalP = qty * pp;
+      if (totalS > 0 || totalP > 0) {
+        products.push({ name: itemName, qty, salePrice: sp, purchasePrice: pp, totalSale: totalS, totalPurchase: totalP, profit: totalS - totalP });
+      }
     }
   });
 
@@ -160,7 +164,11 @@ function getJobProducts(job: Job): ProductProfit[] {
       if (qty > 0) {
         const sp = prices[itemName] || 0;
         const pp = purchasePrices[itemName] || 0;
-        products.push({ name: itemName, qty, salePrice: sp, purchasePrice: pp, totalSale: qty * sp, totalPurchase: qty * pp, profit: qty * (sp - pp) });
+        const totalS = qty * sp;
+        const totalP = qty * pp;
+        if (totalS > 0 || totalP > 0) {
+          products.push({ name: itemName, qty, salePrice: sp, purchasePrice: pp, totalSale: totalS, totalPurchase: totalP, profit: totalS - totalP });
+        }
       }
     });
   });
