@@ -527,46 +527,45 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
     const m = 14;
     const colMid = pageW / 2;
     const cW = pageW - 2 * m;
-    const s = 3.8;
+    const s = 3.5;
 
     addPDFHeader(doc);
 
     doc.setFontSize(13); doc.setTextColor(0); doc.setFont("helvetica", "bold");
     doc.text("KONTRATE PUNE", colMid, 35, { align: "center" });
-    doc.setFontSize(8); doc.setTextColor(100); doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5); doc.setTextColor(100); doc.setFont("helvetica", "normal");
     doc.text(`Nr. ${initialData?.invoiceNumber || "___"}  |  Data: ${data.workDate}`, colMid, 40, { align: "center" });
 
-    let y = 45;
+    let y = 44;
     doc.setDrawColor(tc[0], tc[1], tc[2]); doc.setLineWidth(0.5);
     doc.line(m, y, pageW - m, y);
-    y += 6;
+    y += 5;
 
-    doc.setFontSize(7); doc.setTextColor(tc[0], tc[1], tc[2]); doc.setFont("helvetica", "bold");
+    doc.setFontSize(6.5); doc.setTextColor(tc[0], tc[1], tc[2]); doc.setFont("helvetica", "bold");
     doc.text("KONTRAKTORI", m, y);
     doc.text("POROSITESI (KLIENTI)", colMid + 5, y);
-    y += s + 0.5;
-    doc.setFont("helvetica", "bold"); doc.setTextColor(0); doc.setFontSize(8);
+    y += s;
+    doc.setFont("helvetica", "bold"); doc.setTextColor(0); doc.setFontSize(7.5);
     doc.text("ELEKTRONOVA", m, y);
     doc.text(`${data.clientName}`, colMid + 5, y);
     y += s;
-    doc.setFont("helvetica", "normal"); doc.setTextColor(60); doc.setFontSize(7);
+    doc.setFont("helvetica", "normal"); doc.setTextColor(60); doc.setFontSize(6.5);
     doc.text("Sherbime Elektrike & Siguri", m, y);
-    const addrLines = doc.splitTextToSize(data.clientAddress || "", colMid - m - 5);
-    doc.text(addrLines[0] || "", colMid + 5, y);
+    doc.text(`${data.clientAddress || ""}`, colMid + 5, y);
     y += s;
     doc.text("Tel: +383 49 771 673 / +383 49 205 271", m, y);
     if (data.clientPhone) doc.text(`Tel: ${data.clientPhone}`, colMid + 5, y);
 
-    y += 5;
+    y += 4;
     doc.setDrawColor(200); doc.setLineWidth(0.2);
     doc.line(m, y, pageW - m, y);
-    y += 5;
+    y += 4;
 
     const sect = (num: string, title: string) => {
-      doc.setFontSize(8); doc.setTextColor(tc[0], tc[1], tc[2]); doc.setFont("helvetica", "bold");
+      doc.setFontSize(7); doc.setTextColor(tc[0], tc[1], tc[2]); doc.setFont("helvetica", "bold");
       doc.text(`NENI ${num} - ${title}`, m, y);
-      y += s + 1;
-      doc.setFontSize(7); doc.setTextColor(40); doc.setFont("helvetica", "normal");
+      y += s + 0.5;
+      doc.setFontSize(6.5); doc.setTextColor(40); doc.setFont("helvetica", "normal");
     };
 
     const txt = (text: string) => {
@@ -575,78 +574,57 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
       y += lines.length * s;
     };
 
-    sect("1", "OBJEKTI I KONTRATES");
     const catLabel = JOB_CATEGORY_LABELS[category] || category;
-    txt(`Kontraktori merr persiper kryerjen e punimeve te llojit "${data.workType}" - Kategoria: ${catLabel}, ne adresen e specifikuar te klientit. Punimet perfshijne furnizimin dhe instalimin e materialeve elektrike/sigurise sipas specifikimeve te marreveshura ndermjet paleve, duke siguruar standarde profesionale te punes.`);
-    y += 2;
 
-    if (items.length > 0 && items.length <= 8) {
-      sect("2", "MATERIALET DHE SHERBIMET");
-      let nr = 1;
-      const tableBody = items.slice(0, 8).map(i => [
-        (nr++).toString(),
-        i.name,
-        i.unit,
-        i.qty.toString(),
-        i.salePrice > 0 ? `${i.salePrice.toFixed(2)}` : "-",
-        (i.qty * i.salePrice) > 0 ? `${(i.qty * i.salePrice).toFixed(2)}` : "-",
-      ]);
+    sect("1", "PALET KONTRAKTUESE");
+    txt(`Kjo kontrate lidhet ndermjet ELEKTRONOVA (Sherbime Elektrike & Siguri), me seli ne Kosove, si kryeres i punimeve (Kontraktori), dhe ${data.clientName}, me adrese ne ${data.clientAddress || "---"}, si porositesi i punimeve (Klienti). Te dyja palet deklarojne se kane kapacitetin ligjor per te hyre ne kete marreveshje dhe pranojne kushtet e meposhtme.`);
+    y += 1.5;
 
-      autoTable(doc, {
-        startY: y,
-        head: [["Nr", "Pershkrimi", "Njesia", "Sasia", "Cmimi/nj", "Totali"]],
-        body: tableBody,
-        theme: 'grid',
-        headStyles: { fillColor: tc, fontSize: 6.5, fontStyle: 'bold', cellPadding: 1.5 },
-        styles: { fontSize: 6, cellPadding: 1.2 },
-        columnStyles: {
-          0: { cellWidth: 8, halign: 'center' },
-          1: { cellWidth: 70 },
-          2: { cellWidth: 15, halign: 'center' },
-          3: { cellWidth: 12, halign: 'center' },
-          4: { cellWidth: 20, halign: 'right' },
-          5: { cellWidth: 22, halign: 'right', fontStyle: 'bold' },
-        },
-      });
-      y = (doc as any).lastAutoTable?.finalY ? (doc as any).lastAutoTable.finalY + 3 : y + 15;
-    } else if (items.length > 8) {
-      sect("2", "MATERIALET DHE SHERBIMET");
-      txt(`Materialet dhe sherbimet jane te listuara ne faturen/oferten Nr. ${initialData?.invoiceNumber || "___"} e cila eshte pjese e pandashme e kesaj kontrate. Lista perfshine gjithsej ${items.length} artikuj/sherbime.`);
-      y += 2;
+    sect("2", "OBJEKTI I KONTRATES");
+    txt(`Kontraktori merr persiper kryerjen e punimeve te llojit "${data.workType}" - Kategoria: ${catLabel}, ne adresen e specifikuar te klientit. Punimet perfshijne furnizimin, transportin dhe instalimin e te gjitha materialeve elektrike dhe te sigurise sipas specifikimeve te marreveshura ndermjet paleve, duke siguruar standarde profesionale te punes dhe perputhshmeri me normat teknike ne fuqi.`);
+    y += 1.5;
+
+    sect("3", "MATERIALET DHE SHERBIMET");
+    if (items.length > 0) {
+      txt(`Materialet dhe sherbimet e perfshira ne kete kontrate jane te listuara ne faturen/oferten Nr. ${initialData?.invoiceNumber || "___"} e cila eshte pjese e pandashme e kesaj kontrate. Lista perfshine gjithsej ${items.length} artikuj/sherbime. Kontraktori garanton se te gjitha materialet jane te reja, origjinale dhe ne perputhje me standardet e cilesise. Cdo ndryshim ne liste behet vetem me pelqimin e te dyja paleve.`);
     } else {
-      y += 1;
+      txt(`Materialet dhe sherbimet do te specifikohen ne oferten perfundimtare e cila do te jete pjese e pandashme e kesaj kontrate. Kontraktori garanton se te gjitha materialet do te jene te reja, origjinale dhe ne perputhje me standardet e cilesise.`);
     }
+    y += 1.5;
 
-    sect("3", "CMIMI DHE PAGESA");
+    sect("4", "CMIMI DHE MENYRA E PAGESES");
     if (discountAmount > 0) {
       doc.setFont("helvetica", "normal");
       doc.text(`Nentotali: ${subtotalSale.toFixed(2)} EUR`, m, y);
-      doc.text(`Zbritja: -${discountAmount.toFixed(2)} EUR`, m + 60, y);
+      doc.text(`Zbritja: -${discountAmount.toFixed(2)} EUR`, m + 55, y);
       y += s;
     }
-    doc.setFont("helvetica", "bold"); doc.setTextColor(0); doc.setFontSize(7.5);
+    doc.setFont("helvetica", "bold"); doc.setTextColor(0); doc.setFontSize(7);
     doc.text(`Vlera totale e kontrates: ${totalSale.toFixed(2)} EUR`, m, y);
-    y += s + 0.5;
-    doc.setFont("helvetica", "normal"); doc.setTextColor(40); doc.setFontSize(7);
-    txt("Pagesa realizohet ne dy keste: 50% parapagim para fillimit te punimeve dhe 50% pas perfundimit te plote te punimeve dhe pranimit nga klienti. Pagesa mund te behet me para ne dore ose transfer bankar.");
-    y += 2;
+    y += s;
+    doc.setFont("helvetica", "normal"); doc.setTextColor(40); doc.setFontSize(6.5);
+    txt("Pagesa realizohet ne dy keste: 50% parapagim para fillimit te punimeve dhe 50% pas perfundimit te plote te punimeve dhe pranimit zyrtar nga klienti. Pagesa mund te behet me para ne dore ose permes transferit bankar. Ne rast te vonesave ne pagese mbi 15 dite, kontraktori rezervon te drejten per te nderpre punimet deri ne rregullimin e pageses.");
+    y += 1.5;
 
-    sect("4", "AFATI I KRYERJES");
-    txt(`Punimet fillojne me daten: ${data.scheduledDate || data.workDate}. Afati i perfundimit caktohet sipas marreveshjes se paleve (zakonisht 1-5 dite pune). Ne rast te vonesave per arsye objektive, kontraktori njofton klientin brenda 24 oreve.`);
-    y += 2;
+    sect("5", "AFATI I FILLIMIT DHE PERFUNDIMIT");
+    txt(`Punimet fillojne me daten ${data.scheduledDate || data.workDate}, ose ne nje date tjeter te marreveshur me shkrim ndermjet paleve. Afati i perfundimit percaktohet sipas volumit te punimeve dhe kushteve ne terren. Kontraktori angazhohet te perfundoje punimet brenda afatit te marreveshur. Ne rast vonesash per arsye objektive (kushte atmosferike, mungese materialesh ne treg, ndryshime nga klienti), kontraktori njofton klientin menjehere dhe afati zgjatet perkatesiht.`);
+    y += 1.5;
 
-    sect("5", "GARANCIA DHE PERGJEGJESIA");
-    txt("Kontraktori garanton cilesine e materialeve dhe punimeve per nje periudhe prej 12 muajsh nga data e perfundimit. Garancia mbulon defektet ne material dhe pune. Garancia nuk vlen per demtimet e shkaktuara nga perdorimi i gabuar, fatkeqesite natyrore, ose nderhyrjet e paleve te treta pa autorizim te kontraktorit.");
-    y += 2;
+    sect("6", "GARANCIA DHE PERGJEGJESIA");
+    txt("Kontraktori garanton cilesine e materialeve dhe punimeve per nje periudhe prej 12 (dymbedhjete) muajsh nga data e perfundimit te punimeve. Garancia mbulon defektet ne materiale dhe ne cilesine e punes se kryer. Garancia nuk aplikohet per demtime te shkaktuara nga perdorimi i gabuar i instalimeve, fatkeqesite natyrore, nderhyrjet e personave te paautorizuar, ose mos-mirembajtja e duhur e sistemit nga klienti.");
+    y += 1.5;
 
-    sect("6", "KUSHTET E PERGJITHSHME");
+    sect("7", "TE DREJTAT DHE DETYRIMET E PALEVE");
+    txt("Kontraktori detyrohet: te kryeje punimet me profesionalizem, te perdore materiale cilesore, te respektoje afatet, dhe te lere vendin e punes te paster. Klienti detyrohet: te siguroje qasje te lire ne objekt, te mos nderhyje ne punimet ne progres, te kryeje pagesat sipas afateve, dhe te njoftoje kontraktorin per cdo problem brenda periudhes se garancise.");
+    y += 1.5;
+
+    sect("8", "KUSHTET PERFUNDIMTARE");
     const terms = [
-      "6.1 Punimet shtese qe nuk jane perfshire ne kete kontrate faturohen vecmas pas marreveshjes me klientin.",
-      "6.2 Kontraktori nuk mban pergjegjesi per demtimet ne infrastrukturen ekzistuese te objektit.",
-      "6.3 Materialet e teperta i kthehen kontraktorit pas perfundimit te punimeve.",
-      "6.4 Klienti siguron qasje te lire ne objekt gjate kohezgjatjes se punimeve.",
-      "6.5 Cdo mosmarreveshje zgjidhet fillimisht me mireuptim. Ne rast te deshtimit, kompetente eshte gjykata kompetente.",
-      "6.6 Kjo kontrate hyn ne fuqi menjehere pas nenshkrimit te te dyja paleve.",
+      "8.1 Punimet shtese jashte objektit te kesaj kontrate faturohen vecmas pas marreveshjes paraprake me klientin.",
+      "8.2 Kontraktori nuk mban pergjegjesi per demtimet ne infrastrukturen ekzistuese te objektit qe nuk jane shkaktuar nga punimet.",
+      "8.3 Materialet e teperta mbeten prone e kontraktorit dhe i kthehen atij pas perfundimit te punimeve.",
+      "8.4 Cdo mosmarreveshje ndermjet paleve zgjidhet fillimisht permes dialogut. Ne pamundesi, kompetente eshte gjykata kompetente ne Kosove.",
+      "8.5 Kjo kontrate eshte hartuar ne dy kopje origjinale, nga nje per secilen pale, dhe hyn ne fuqi menjehere pas nenshkrimit.",
     ];
     terms.forEach(t => {
       const tLines = doc.splitTextToSize(t, cW);
@@ -654,25 +632,25 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
       y += tLines.length * s;
     });
 
-    y += 3;
+    y += 2;
     doc.setDrawColor(tc[0], tc[1], tc[2]); doc.setLineWidth(0.3);
     doc.line(m, y, pageW - m, y);
 
-    const signY = Math.max(y + 12, pageH - 38);
-    doc.setFontSize(7); doc.setTextColor(80); doc.setFont("helvetica", "normal");
+    const signY = pageH - 30;
+    doc.setFontSize(6.5); doc.setTextColor(80); doc.setFont("helvetica", "normal");
     doc.text("Data: ____/____/________", m, signY);
     doc.text("Data: ____/____/________", colMid + 15, signY);
 
     doc.setDrawColor(120); doc.setLineWidth(0.3);
-    doc.line(m, signY + 10, m + 72, signY + 10);
-    doc.line(colMid + 15, signY + 10, colMid + 87, signY + 10);
-    doc.setFontSize(7); doc.setTextColor(80);
-    doc.text("Nenshkrimi i Klientit", m + 18, signY + 14);
-    doc.text("ELEKTRONOVA (Kontraktori)", colMid + 23, signY + 14);
+    doc.line(m, signY + 8, m + 72, signY + 8);
+    doc.line(colMid + 15, signY + 8, colMid + 87, signY + 8);
+    doc.setFontSize(6.5); doc.setTextColor(80);
+    doc.text("Nenshkrimi i Klientit", m + 18, signY + 12);
+    doc.text("ELEKTRONOVA (Kontraktori)", colMid + 23, signY + 12);
 
     doc.setDrawColor(200); doc.setLineWidth(0.2);
     doc.line(m, pageH - 12, pageW - m, pageH - 12);
-    doc.setFontSize(6); doc.setTextColor(140); doc.setFont("helvetica", "normal");
+    doc.setFontSize(5.5); doc.setTextColor(140); doc.setFont("helvetica", "normal");
     doc.text("ELEKTRONOVA | Sherbime Elektrike & Siguri | Tel: +383 49 771 673 / +383 49 205 271", m, pageH - 8);
     doc.text(`Kontrate Nr. ${initialData?.invoiceNumber || "___"}`, pageW - m, pageH - 8, { align: "right" });
 
