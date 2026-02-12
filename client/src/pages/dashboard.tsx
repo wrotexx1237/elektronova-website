@@ -1,6 +1,6 @@
 import { useJobs, useDeleteJob, useDuplicateJob } from "@/hooks/use-jobs";
 import { Layout } from "@/components/layout";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { 
   Plus, 
   Search, 
@@ -85,47 +85,6 @@ function getStatusBadgeProps(status: string | null | undefined) {
   }
 }
 
-function useSaveAsTemplate() {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-  return useMutation({
-    mutationFn: async (id: number) => {
-      const res = await apiRequest('POST', `/api/jobs/${id}/save-template`);
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/jobs'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/templates'] });
-      toast({ title: "Sukses", description: "Puna u ruajt si shabllone!" });
-    },
-    onError: (e: Error) => toast({ title: "Gabim", description: e.message, variant: "destructive" }),
-  });
-}
-
-function useTemplates() {
-  return useQuery<Job[]>({
-    queryKey: ['/api/templates'],
-  });
-}
-
-function useCreateFromTemplate() {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-  const [, navigate] = useLocation();
-  return useMutation({
-    mutationFn: async (id: number) => {
-      const res = await apiRequest('POST', `/api/templates/${id}/use`);
-      return res.json();
-    },
-    onSuccess: (data: Job) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/jobs'] });
-      toast({ title: "Sukses", description: "Punë e re u krijua nga shablloneja!" });
-      navigate(`/edit/${data.id}`);
-    },
-    onError: (e: Error) => toast({ title: "Gabim", description: e.message, variant: "destructive" }),
-  });
-}
-
 function formatTimestamp(ts: string | Date | null | undefined): string {
   if (!ts) return "-";
   const d = new Date(ts);
@@ -136,9 +95,6 @@ export default function Dashboard() {
   const { data: jobs, isLoading, error } = useJobs();
   const deleteJob = useDeleteJob();
   const duplicateJob = useDuplicateJob();
-  const saveTemplate = useSaveAsTemplate();
-  const { data: templates } = useTemplates();
-  const createFromTemplate = useCreateFromTemplate();
   const { user, isAdmin } = useAuth();
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
@@ -156,7 +112,7 @@ export default function Dashboard() {
     return CATEGORY_CARDS.filter(c => userCategories!.includes(c.key));
   }, [isAdmin, hasCategories, userCategories]);
 
-  const regularJobs = (jobs || []).filter((j: Job) => !j.isTemplate);
+  const regularJobs = (jobs || []);
 
   const filteredJobs = regularJobs.filter((job: Job) => {
     const matchesSearch = job.clientName.toLowerCase().includes(search.toLowerCase()) || 
@@ -266,42 +222,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {templates && templates.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2" data-testid="text-templates-title">
-            <BookTemplate className="w-4 h-4" /> Shabllone Pune
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-            {templates.map((tpl: Job) => {
-              const catBadge = getCategoryBadgeProps(tpl.category);
-              const CatIcon = catBadge.icon;
-              return (
-                <Card key={tpl.id} className="hover-elevate cursor-pointer group" data-testid={`card-template-${tpl.id}`}>
-                  <CardContent className="py-4 flex flex-col gap-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-bold text-sm truncate">{tpl.workType}</span>
-                      <Badge variant="outline" className={`text-[10px] font-bold shrink-0 no-default-hover-elevate no-default-active-elevate ${catBadge.className}`}>
-                        <CatIcon className="h-3 w-3 mr-1" />
-                        {catBadge.label}
-                      </Badge>
-                    </div>
-                    {tpl.notes && <p className="text-xs text-muted-foreground line-clamp-2">{tpl.notes}</p>}
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => createFromTemplate.mutate(tpl.id)}
-                      disabled={createFromTemplate.isPending}
-                      data-testid={`button-use-template-${tpl.id}`}
-                    >
-                      <Plus className="w-3 h-3 mr-1" /> Përdor Shabllonën
-                    </Button>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-20">
@@ -366,12 +286,6 @@ export default function Dashboard() {
                         data-testid={`button-duplicate-${job.id}`}
                       >
                         <Copy className="mr-2 h-4 w-4" /> Duplikato
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => saveTemplate.mutate(job.id)}
-                        data-testid={`button-save-template-${job.id}`}
-                      >
-                        <BookTemplate className="mr-2 h-4 w-4" /> Ruaj si Shabllone
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <AlertDialog>
