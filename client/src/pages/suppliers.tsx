@@ -465,9 +465,21 @@ function SupplierPricesDialog({ open, onClose, supplier, catalogItems, allSuppli
     });
   };
 
-  const filteredCatalog = searchItem
-    ? catalogItems.filter(c => c.name.toLowerCase().includes(searchItem.toLowerCase()))
+  const supplierCategories = (supplier.categories as string[] | null) || [];
+
+  const categoryFilteredCatalog = supplierCategories.length > 0
+    ? catalogItems.filter(c => {
+        const catLower = c.category.toLowerCase();
+        return supplierCategories.some(sc => {
+          const scLower = sc.toLowerCase();
+          return catLower.startsWith(scLower) || scLower.startsWith(catLower);
+        });
+      })
     : catalogItems;
+
+  const filteredCatalog = searchItem
+    ? categoryFilteredCatalog.filter(c => c.name.toLowerCase().includes(searchItem.toLowerCase()))
+    : categoryFilteredCatalog;
 
   const getOtherSupplierPrices = (catalogItemId: number) => {
     return allSupplierPrices
