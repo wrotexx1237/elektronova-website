@@ -51,6 +51,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useState, useMemo } from "react";
 import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -103,6 +104,7 @@ export default function Dashboard() {
   const [dateTo, setDateTo] = useState<string>("");
   const [mapJob, setMapJob] = useState<Job | null>(null);
   const [shareJob, setShareJob] = useState<Job | null>(null);
+  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
 
   const userCategories = user?.assignedCategories;
   const hasCategories = userCategories && userCategories.length > 0;
@@ -131,12 +133,10 @@ export default function Dashboard() {
           <h1 className="text-3xl md:text-4xl font-bold text-foreground" data-testid="text-dashboard-title">Procesverbalet</h1>
           <p className="text-muted-foreground mt-2 text-lg">Menaxho punimet dhe klientët</p>
         </div>
-        <Link href="/new">
-          <Button size="lg" className="shadow-lg shadow-primary/20" data-testid="button-new-job">
-            <Plus className="mr-2 h-5 w-5" />
-            Procesverbal i Ri
-          </Button>
-        </Link>
+        <Button size="lg" className="shadow-lg shadow-primary/20" onClick={() => setShowCategoryPicker(true)} data-testid="button-new-job">
+          <Plus className="mr-2 h-5 w-5" />
+          Procesverbal i Ri
+        </Button>
       </div>
 
       <div className="mb-8">
@@ -397,6 +397,28 @@ export default function Dashboard() {
           job={shareJob}
         />
       )}
+
+      <Dialog open={showCategoryPicker} onOpenChange={setShowCategoryPicker}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Zgjidhni Kategorinë</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-3 pt-2">
+            {visibleCategoryCards.map(cat => (
+              <Link key={cat.key} href={`/new?category=${cat.key}`}>
+                <Card className="hover-elevate cursor-pointer group" data-testid={`dialog-category-${cat.key}`} onClick={() => setShowCategoryPicker(false)}>
+                  <CardContent className="flex flex-col items-center justify-center py-5 gap-2">
+                    <div className={`p-3 rounded-xl bg-muted/50 group-hover:bg-muted transition-colors ${cat.color}`}>
+                      <cat.icon className="h-7 w-7" />
+                    </div>
+                    <span className="text-sm font-bold text-center">{cat.label}</span>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }
