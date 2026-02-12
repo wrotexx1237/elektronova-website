@@ -337,19 +337,31 @@ function PriceComparisonView({ comparisonData, allSuppliers, catalogItems }: {
                         {item.suppliers.length} furnitorë
                       </Badge>
                     </div>
+                    {item.suppliers.length > 0 && (
+                      <div className="mt-1.5 text-sm">
+                        <span className="text-green-700 dark:text-green-400 font-medium">
+                          Furnitori më i lirë: {item.suppliers[0].supplier.name} — {minPrice.toFixed(2)} €
+                        </span>
+                        {priceDiff > 0 && (
+                          <span className="text-muted-foreground ml-2">
+                            (kurseni {priceDiff.toFixed(2)} € nga më i shtrenjtë)
+                          </span>
+                        )}
+                      </div>
+                    )}
                     <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground flex-wrap">
                       <span className="flex items-center gap-1">
                         <TrendingDown className="h-3 w-3 text-green-600 dark:text-green-400" />
-                        Min: {minPrice.toFixed(2)} &euro;
+                        Min: {minPrice.toFixed(2)} €
                       </span>
                       <span className="flex items-center gap-1">
                         <TrendingUp className="h-3 w-3 text-red-500 dark:text-red-400" />
-                        Max: {maxPrice.toFixed(2)} &euro;
+                        Max: {maxPrice.toFixed(2)} €
                       </span>
                       {priceDiff > 0 && (
                         <span className="flex items-center gap-1">
                           <ArrowUpDown className="h-3 w-3" />
-                          Diferenca: {priceDiff.toFixed(2)} &euro;
+                          Diferenca: {priceDiff.toFixed(2)} €
                         </span>
                       )}
                     </div>
