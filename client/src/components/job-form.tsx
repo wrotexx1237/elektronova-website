@@ -1102,6 +1102,13 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
     );
   };
 
+  const lowStockItems = (catalog || []).filter((c: CatalogItem) => {
+    if (!c.minStockLevel || c.minStockLevel <= 0) return false;
+    return (c.currentStock || 0) <= c.minStockLevel;
+  });
+
+  const [stockWarningOpen, setStockWarningOpen] = useState(false);
+
   const availableWorkTypes = getWorkTypesForCategory(category);
   const watchedDiscountType = form.watch("discountType");
   const watchedDiscountValue = form.watch("discountValue");
@@ -1222,6 +1229,35 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
                 <TabsTrigger value="cmimet" className="gap-2" data-testid="tab-cmimet"><Banknote className="w-4 h-4" /> Cmimet</TabsTrigger>
               </TabsList>
             </div>
+
+            {lowStockItems.length > 0 && (
+              <div className="border border-amber-500/30 rounded-lg bg-amber-500/5 mb-2">
+                <button
+                  type="button"
+                  className="w-full flex items-center justify-between p-3 text-left"
+                  onClick={() => setStockWarningOpen(!stockWarningOpen)}
+                  data-testid="button-stock-warning-toggle"
+                >
+                  <span className="text-sm font-bold text-amber-700 dark:text-amber-400 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4" />
+                    {lowStockItems.length} produkte me stok te ulet
+                  </span>
+                  <ChevronDown className={`w-4 h-4 text-amber-600 transition-transform ${stockWarningOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {stockWarningOpen && (
+                  <div className="px-3 pb-3 space-y-1">
+                    {lowStockItems.map((item: CatalogItem) => (
+                      <div key={item.id} className="flex items-center justify-between text-xs p-1.5 rounded bg-amber-500/10" data-testid={`stock-warning-${item.id}`}>
+                        <span className="font-medium truncate">{item.name}</span>
+                        <span className="shrink-0 text-amber-700 dark:text-amber-400 font-bold">
+                          {item.currentStock || 0} / {item.minStockLevel} {item.unit}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             <TabsContent value="info">
               <Card>

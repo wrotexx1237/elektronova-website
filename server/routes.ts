@@ -489,6 +489,30 @@ export async function registerRoutes(
           isRead: 0,
           userId: null,
         });
+
+        try {
+          const expFinalData = { ...existing, ...input };
+          const { quantities: expQuantities } = getJobMaterialTotals(expFinalData);
+          const expPurchasePrices = (expFinalData.purchasePrices || {}) as Record<string, number>;
+          let totalPurchase = 0;
+          for (const [name, qty] of Object.entries(expQuantities)) {
+            totalPurchase += (expPurchasePrices[name] || 0) * qty;
+          }
+          if (totalPurchase > 0) {
+            await storage.createExpense({
+              description: `Materiale - ${existing.clientName} (${existing.invoiceNumber || '#' + id})`,
+              amount: totalPurchase,
+              category: "material",
+              date: new Date().toISOString().split('T')[0],
+              jobId: id,
+              supplierId: existing.supplierId || null,
+              notes: `Shpenzim automatik nga përfundimi i punës`,
+              createdBy: req.session?.fullName || "System",
+            });
+          }
+        } catch (expErr) {
+          console.error('Auto expense creation error:', expErr);
+        }
       }
 
       const updated = await storage.updateJob(id, input);
@@ -936,7 +960,7 @@ export async function registerRoutes(
       const allJobs = await storage.getJobs();
       const completedJobs = allJobs.filter(j => j.status === "e_perfunduar" && j.isTemplate !== 1);
 
-      const monthlyData: Record<string, { revenue: number; cost: number; profit: number; jobCount: number }> = {};
+      const monthlyData: Record<string, { revenue: number; cost: number; profit: number; jobCount: number; expenses: number }> = {};
 
       for (const job of completedJobs) {
         const date = job.updatedAt || job.createdAt;
@@ -945,7 +969,7 @@ export async function registerRoutes(
         const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 
         if (!monthlyData[monthKey]) {
-          monthlyData[monthKey] = { revenue: 0, cost: 0, profit: 0, jobCount: 0 };
+          monthlyData[monthKey] = { revenue: 0, cost: 0, profit: 0, jobCount: 0, expenses: 0 };
         }
 
         const { quantities } = getJobMaterialTotals(job);
@@ -964,12 +988,6 @@ export async function registerRoutes(
         monthlyData[monthKey].profit += (totalSale - totalPurchase);
         monthlyData[monthKey].jobCount++;
       }
-
-      const months = Object.keys(monthlyData).sort();
-      const trend = months.map(m => ({
-        month: m,
-        ...monthlyData[m],
-      }));
 
       const categoryData: Record<string, { revenue: number; cost: number; profit: number; count: number }> = {};
       for (const job of completedJobs) {
@@ -1015,6 +1033,33 @@ export async function registerRoutes(
         seasonalData[seasonName].count++;
       }
 
+      const allExpenses = await storage.getExpenses({});
+      const expensesByCategory: Record<string, number> = {};
+      let totalExpenseAmount = 0;
+
+      for (const expense of allExpenses) {
+        const expDate = expense.date;
+        if (!expDate) continue;
+        const eParts = expDate.split('-');
+        const eMonthKey = `${eParts[0]}-${eParts[1]}`;
+
+        if (!monthlyData[eMonthKey]) {
+          monthlyData[eMonthKey] = { revenue: 0, cost: 0, profit: 0, jobCount: 0, expenses: 0 };
+        }
+        monthlyData[eMonthKey].expenses += expense.amount;
+        monthlyData[eMonthKey].profit -= expense.amount;
+        totalExpenseAmount += expense.amount;
+
+        const eCat = expense.category || "tjeter";
+        expensesByCategory[eCat] = (expensesByCategory[eCat] || 0) + expense.amount;
+      }
+
+      const months = Object.keys(monthlyData).sort();
+      const trend = months.map(m => ({
+        month: m,
+        ...monthlyData[m],
+      }));
+
       const totalRevenue = trend.reduce((s, t) => s + t.revenue, 0);
       const totalCost = trend.reduce((s, t) => s + t.cost, 0);
       const totalProfit = totalRevenue - totalCost;
@@ -1034,6 +1079,9 @@ export async function registerRoutes(
         avgMonthlyProfit,
         prediction,
         totalJobs: completedJobs.length,
+        totalExpenses: totalExpenseAmount,
+        netProfit: totalProfit - totalExpenseAmount,
+        expensesByCategory,
       });
     } catch (err) {
       console.error('Analytics error:', err);
@@ -1370,23 +1418,100 @@ export async function registerRoutes(
       const expiresDate = new Date(completedDate);
       expiresDate.setMonth(expiresDate.getMonth() + months);
       const daysLeft = Math.ceil((expiresDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-      if (daysLeft > 0 && daysLeft <= 30) {
-        const existing = await storage.getNotifications();
-        const alreadyNotified = existing.some(n =>
+      if (daysLeft <= 30) {
+        const existingNotifs = await storage.getNotifications();
+        const alreadyNotified = existingNotifs.some(n =>
           n.type === 'warranty_expiring' && n.jobId === job.id &&
           n.createdAt && new Date(n.createdAt).toISOString().split('T')[0] === todayStr
         );
         if (!alreadyNotified) {
-          await storage.createNotification({
-            type: 'warranty_expiring',
-            title: 'Garancia skadon se shpejti',
-            message: `${job.clientName} - ${job.invoiceNumber || '#' + job.id}: ${daysLeft} dite te mbetura`,
-            jobId: job.id,
-            catalogItemId: null,
-            isRead: 0,
-            userId: null,
-          });
+          if (daysLeft <= 0) {
+            await storage.createNotification({
+              type: 'warranty_expiring',
+              title: 'Garancia ka skaduar',
+              message: `${job.clientName} - ${job.invoiceNumber || '#' + job.id}: Garancia ka skaduar ${Math.abs(daysLeft)} dite me pare`,
+              jobId: job.id,
+              catalogItemId: null,
+              isRead: 0,
+              userId: null,
+            });
+          } else {
+            await storage.createNotification({
+              type: 'warranty_expiring',
+              title: 'Garancia skadon se shpejti',
+              message: `${job.clientName} - ${job.invoiceNumber || '#' + job.id}: ${daysLeft} dite te mbetura`,
+              jobId: job.id,
+              catalogItemId: null,
+              isRead: 0,
+              userId: null,
+            });
+          }
         }
+      }
+    }
+
+    const allCatalogForStock = await storage.getCatalogItems();
+    const lowStockItems = allCatalogForStock.filter(c => c.minStockLevel && c.minStockLevel > 0 && (c.currentStock || 0) <= c.minStockLevel);
+    for (const item of lowStockItems) {
+      const existingNotifs = await storage.getNotifications();
+      const alreadyNotified = existingNotifs.some(n =>
+        n.type === 'low_stock' && n.catalogItemId === item.id &&
+        n.createdAt && new Date(n.createdAt).toISOString().split('T')[0] === todayStr
+      );
+      if (!alreadyNotified) {
+        await storage.createNotification({
+          type: 'low_stock',
+          title: 'Stoku i ulët',
+          message: `${item.name}: ${item.currentStock || 0} ${item.unit} mbetur (min: ${item.minStockLevel})`,
+          catalogItemId: item.id,
+          jobId: null,
+          isRead: 0,
+          userId: null,
+        });
+      }
+    }
+
+    const currentDay = today.getDate();
+    if (currentDay <= 3) {
+      const existingNotifs = await storage.getNotifications();
+      const thisMonthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+      const alreadySummary = existingNotifs.some(n =>
+        n.type === 'monthly_summary' &&
+        n.createdAt && n.createdAt.toISOString().substring(0, 7) === thisMonthKey
+      );
+      if (!alreadySummary) {
+        const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+        const lastMonthStart = `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, '0')}-01`;
+        const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
+        const lastMonthEndStr = `${lastMonthEnd.getFullYear()}-${String(lastMonthEnd.getMonth() + 1).padStart(2, '0')}-${String(lastMonthEnd.getDate()).padStart(2, '0')}`;
+
+        const lastMonthCompletedJobs = allJobs.filter(j => {
+          if (j.status !== 'e_perfunduar' || j.isTemplate) return false;
+          const d = j.completedDate || (j.updatedAt ? new Date(j.updatedAt).toISOString().split('T')[0] : null);
+          return d && d >= lastMonthStart && d <= lastMonthEndStr;
+        });
+
+        let lastMonthRevenue = 0;
+        for (const job of lastMonthCompletedJobs) {
+          const { quantities } = getJobMaterialTotals(job);
+          const prices = (job.prices || {}) as Record<string, number>;
+          for (const [name, qty] of Object.entries(quantities)) {
+            lastMonthRevenue += (prices[name] || 0) * qty;
+          }
+        }
+
+        const lastMonthExpenses = await storage.getExpenses({ startDate: lastMonthStart, endDate: lastMonthEndStr });
+        const lastMonthExpenseTotal = lastMonthExpenses.reduce((s, e) => s + e.amount, 0);
+
+        await storage.createNotification({
+          type: 'monthly_summary',
+          title: 'Përmbledhje Mujore',
+          message: `Muaji i kaluar: ${lastMonthCompletedJobs.length} punë, ${lastMonthRevenue.toFixed(0)} € fitim, ${lastMonthExpenseTotal.toFixed(0)} € shpenzime`,
+          jobId: null,
+          catalogItemId: null,
+          isRead: 0,
+          userId: null,
+        });
       }
     }
   } catch (reminderErr) {

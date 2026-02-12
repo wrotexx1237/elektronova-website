@@ -2,17 +2,20 @@ import { Layout } from "@/components/layout";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, DollarSign, BarChart3, Calendar, Sun, Snowflake, Leaf, CloudRain, Target } from "lucide-react";
+import { TrendingUp, DollarSign, BarChart3, Calendar, Sun, Snowflake, Leaf, CloudRain, Target, Receipt, Wallet } from "lucide-react";
 import { JOB_CATEGORY_LABELS, type JobCategory } from "@shared/schema";
 
 interface AnalyticsData {
-  trend: Array<{ month: string; revenue: number; cost: number; profit: number; jobCount: number }>;
+  trend: Array<{ month: string; revenue: number; cost: number; profit: number; jobCount: number; expenses?: number }>;
   categoryBreakdown: Record<string, { revenue: number; cost: number; profit: number; count: number }>;
   seasonal: Record<string, { revenue: number; profit: number; count: number }>;
   totals: { revenue: number; cost: number; profit: number };
   avgMonthlyProfit: number;
   prediction: number;
   totalJobs: number;
+  totalExpenses?: number;
+  netProfit?: number;
+  expensesByCategory?: Record<string, number>;
 }
 
 const seasonIcons: Record<string, any> = {
@@ -94,6 +97,48 @@ export default function AnalyticsPage() {
           </Card>
         </div>
 
+        {(analytics.totalExpenses !== undefined && analytics.totalExpenses > 0) && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <Receipt className="h-8 w-8 text-red-500" />
+                  <div>
+                    <p className="text-2xl font-bold" data-testid="text-total-expenses">{analytics.totalExpenses.toFixed(2)}€</p>
+                    <p className="text-sm text-muted-foreground">Shpenzime totale</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <Wallet className="h-8 w-8 text-emerald-600" />
+                  <div>
+                    <p className="text-2xl font-bold text-emerald-600" data-testid="text-net-profit">{(analytics.netProfit || 0).toFixed(2)}€</p>
+                    <p className="text-sm text-muted-foreground">Fitim neto (pas shpenzimeve)</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            {analytics.expensesByCategory && Object.keys(analytics.expensesByCategory).length > 0 && (
+              <Card>
+                <CardContent className="p-4">
+                  <p className="text-sm font-medium mb-2 text-muted-foreground">Shpenzime sipas kategorisë</p>
+                  <div className="space-y-1">
+                    {Object.entries(analytics.expensesByCategory).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([cat, amount]) => (
+                      <div key={cat} className="flex items-center justify-between text-sm" data-testid={`expense-cat-${cat}`}>
+                        <span className="capitalize">{cat}</span>
+                        <span className="font-medium">{amount.toFixed(0)}€</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
+
         <div className="grid md:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
@@ -123,8 +168,9 @@ export default function AnalyticsPage() {
                             style={{ width: `${(month.profit / maxRevenue) * 100}%` }}
                           />
                         </div>
-                        <div className="flex justify-between text-xs text-muted-foreground">
+                        <div className="flex justify-between gap-2 flex-wrap text-xs text-muted-foreground">
                           <span>Të ardhura: {month.revenue.toFixed(0)}€</span>
+                          {(month.expenses || 0) > 0 && <span className="text-red-500">Shpenzime: {(month.expenses || 0).toFixed(0)}€</span>}
                           <span>Fitim: {month.profit.toFixed(0)}€</span>
                         </div>
                       </div>

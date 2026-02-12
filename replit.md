@@ -25,7 +25,11 @@ Key features:
 - **Client Management (CRM)**: Client CRUD, job history per client, search, auto-suggest
 - **Inventory/Stock Management**: Stock in/out/adjustment tracking, low stock warnings, per-item history
 - **Advanced Analytics**: Seasonal analysis, trend predictions, category breakdown, monthly/yearly filtering
-- **Notification System**: Bell icon with unread count, stale offer detection, upcoming work reminders, low stock alerts
+- **Notification System**: Bell icon with unread count, stale offer detection, upcoming work reminders, low stock alerts, warranty expiration alerts, monthly summary
+- **Auto-Expense on Job Completion**: Automatically creates material expense linked to supplier when job status changes to completed
+- **Stock Warnings in Job Form**: Collapsible warning section showing items at or below minimum stock level
+- **Calendar with Contact Info**: Client phone numbers displayed in calendar with clickable tel: links
+- **Expenses in Analytics**: Business expenses subtracted from profit, net profit calculation, expense breakdown by category
 - **Catalog Price History**: Tracks all price changes over time per catalog item
 - **Quote vs Actual Comparison**: Job snapshots saved when status changes for comparison
 - **Admin Mode**: Role-based admin access — reveals purchase costs, profit margins, and cost analysis in job form
