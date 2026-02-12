@@ -1,4 +1,4 @@
-import { pgTable, text, serial, jsonb, timestamp, integer, real, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, jsonb, timestamp, integer, real, boolean, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -326,6 +326,26 @@ export const insertSupplierSchema = createInsertSchema(suppliers).omit({
 
 export type Supplier = typeof suppliers.$inferSelect;
 export type InsertSupplier = z.infer<typeof insertSupplierSchema>;
+
+// --- Supplier Prices Table ---
+export const supplierPrices = pgTable("supplier_prices", {
+  id: serial("id").primaryKey(),
+  supplierId: integer("supplier_id").notNull(),
+  catalogItemId: integer("catalog_item_id").notNull(),
+  price: real("price").notNull().default(0),
+  notes: text("notes"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  uniqueIndex("supplier_catalog_unique").on(table.supplierId, table.catalogItemId),
+]);
+
+export const insertSupplierPriceSchema = createInsertSchema(supplierPrices).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type SupplierPrice = typeof supplierPrices.$inferSelect;
+export type InsertSupplierPrice = z.infer<typeof insertSupplierPriceSchema>;
 
 // --- Expenses Table ---
 export const expenses = pgTable("expenses", {

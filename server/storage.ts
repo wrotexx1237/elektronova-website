@@ -1,6 +1,6 @@
 import {
   jobs, catalogItems, users, clients, priceHistory, stockEntries, jobSnapshots, notifications,
-  suppliers, expenses, feedback,
+  suppliers, supplierPrices, expenses, feedback,
   type Job, type InsertJob,
   type CatalogItem, type InsertCatalogItem,
   type User, type InsertUser,
@@ -10,6 +10,7 @@ import {
   type JobSnapshot, type InsertJobSnapshot,
   type Notification, type InsertNotification,
   type Supplier, type InsertSupplier,
+  type SupplierPrice, type InsertSupplierPrice,
   type Expense, type InsertExpense,
   type Feedback, type InsertFeedback,
 } from "@shared/schema";
@@ -66,6 +67,11 @@ export interface IStorage {
   createSupplier(supplier: InsertSupplier): Promise<Supplier>;
   updateSupplier(id: number, updates: Partial<InsertSupplier>): Promise<Supplier>;
   deleteSupplier(id: number): Promise<void>;
+
+  getSupplierPrices(supplierId?: number): Promise<SupplierPrice[]>;
+  getSupplierPricesByItem(catalogItemId: number): Promise<SupplierPrice[]>;
+  upsertSupplierPrice(data: InsertSupplierPrice): Promise<SupplierPrice>;
+  deleteSupplierPrice(id: number): Promise<void>;
 
   getExpenses(filters?: { startDate?: string; endDate?: string; category?: string }): Promise<Expense[]>;
   getExpense(id: number): Promise<Expense | undefined>;
@@ -312,7 +318,39 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteSupplier(id: number): Promise<void> {
+    await db.delete(supplierPrices).where(eq(supplierPrices.supplierId, id));
     await db.delete(suppliers).where(eq(suppliers.id, id));
+  }
+
+  // --- SUPPLIER PRICES ---
+  async getSupplierPrices(supplierId?: number): Promise<SupplierPrice[]> {
+    if (supplierId) {
+      return await db.select().from(supplierPrices)
+        .where(eq(supplierPrices.supplierId, supplierId))
+        .orderBy(asc(supplierPrices.catalogItemId));
+    }
+    return await db.select().from(supplierPrices).orderBy(asc(supplierPrices.supplierId));
+  }
+
+  async getSupplierPricesByItem(catalogItemId: number): Promise<SupplierPrice[]> {
+    return await db.select().from(supplierPrices)
+      .where(eq(supplierPrices.catalogItemId, catalogItemId))
+      .orderBy(asc(supplierPrices.price));
+  }
+
+  async upsertSupplierPrice(data: InsertSupplierPrice): Promise<SupplierPrice> {
+    const [result] = await db.insert(supplierPrices)
+      .values(data)
+      .onConflictDoUpdate({
+        target: [supplierPrices.supplierId, supplierPrices.catalogItemId],
+        set: { price: data.price, notes: data.notes, updatedAt: new Date() },
+      })
+      .returning();
+    return result;
+  }
+
+  async deleteSupplierPrice(id: number): Promise<void> {
+    await db.delete(supplierPrices).where(eq(supplierPrices.id, id));
   }
 
   // --- EXPENSES ---

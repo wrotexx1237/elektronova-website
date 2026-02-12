@@ -40,6 +40,7 @@ Key features:
 - **Payment Tracking**: 3-tier payment status (Pa Paguar/Pjeserisht/Paguar), tracks paid amount, date, method (Cash/Bank/Other)
 - **Business Expenses**: Full CRUD with 8 categories (Karburant, Transport, Vegla, Material, Ushqim, Telefon, Qira, Tjeter), filtering by date/category
 - **Supplier Management**: Full CRUD for material suppliers with contact info, categories, search
+- **Supplier Price Comparison**: Per-supplier pricing for catalog items, side-by-side price comparison across suppliers with difference indicators, cheapest supplier highlighting
 - **Client Feedback**: 1-5 star rating with optional comments per completed job
 - **Warranty Tracking**: Configurable warranty period per job (default 12 months), auto-calculated expiration, warranty API endpoint
 - **Automatic Reminders**: Server checks on startup for upcoming scheduled work (today/tomorrow) and warranties expiring within 30 days
@@ -81,6 +82,7 @@ Preferred communication style: Simple, everyday language.
   - `jobs` - stores client info, work metadata, material data as JSONB, payment/VAT/warranty fields
   - `catalog_items` - dynamic catalog of items per category with units and prices
   - `suppliers` - material supplier contacts and categories
+  - `supplier_prices` - per-supplier pricing for catalog items with unique constraint on (supplier_id, catalog_item_id)
   - `expenses` - business expense tracking with 8 categories
   - `feedback` - client ratings and comments per job
 - Storage layer abstracted via `IStorage` interface in `server/storage.ts` (currently `DatabaseStorage` implementation)

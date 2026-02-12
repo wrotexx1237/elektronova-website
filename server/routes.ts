@@ -1135,6 +1135,91 @@ export async function registerRoutes(
     res.status(204).send();
   });
 
+  // ==================== SUPPLIER PRICES ====================
+
+  app.get('/api/supplier-prices', requireAuth, async (req, res) => {
+    const supplierId = req.query.supplierId ? parseInt(req.query.supplierId as string) : undefined;
+    const list = await storage.getSupplierPrices(supplierId);
+    res.json(list);
+  });
+
+  app.get('/api/supplier-prices/by-item/:catalogItemId', requireAuth, async (req, res) => {
+    const catalogItemId = parseInt(req.params.catalogItemId);
+    if (isNaN(catalogItemId)) return res.status(400).json({ message: "ID e pavlefshme" });
+    const list = await storage.getSupplierPricesByItem(catalogItemId);
+    res.json(list);
+  });
+
+  app.get('/api/supplier-prices/comparison', requireAuth, async (req, res) => {
+    try {
+      const allPrices = await storage.getSupplierPrices();
+      const allSuppliers = await storage.getSuppliers();
+      const allCatalog = await storage.getCatalogItems();
+
+      const supplierMap = new Map(allSuppliers.map(s => [s.id, s]));
+      const catalogMap = new Map(allCatalog.map(c => [c.id, c]));
+
+      const byItem: Record<number, { catalogItem: any; suppliers: { supplier: any; price: number; notes: string | null }[] }> = {};
+
+      for (const sp of allPrices) {
+        if (!byItem[sp.catalogItemId]) {
+          const cat = catalogMap.get(sp.catalogItemId);
+          if (!cat) continue;
+          byItem[sp.catalogItemId] = { catalogItem: cat, suppliers: [] };
+        }
+        const supplier = supplierMap.get(sp.supplierId);
+        if (!supplier) continue;
+        byItem[sp.catalogItemId].suppliers.push({
+          supplier: { id: supplier.id, name: supplier.name },
+          price: sp.price,
+          notes: sp.notes,
+        });
+      }
+
+      for (const item of Object.values(byItem)) {
+        item.suppliers.sort((a, b) => a.price - b.price);
+      }
+
+      res.json(Object.values(byItem));
+    } catch (err) {
+      console.error('Supplier comparison error:', err);
+      res.status(500).json({ message: "Gabim" });
+    }
+  });
+
+  app.post('/api/supplier-prices', requireAuth, async (req, res) => {
+    try {
+      const { supplierId, catalogItemId, price, notes } = req.body;
+      const parsedSupplierId = parseInt(supplierId);
+      const parsedCatalogItemId = parseInt(catalogItemId);
+      const parsedPrice = parseFloat(price);
+      if (isNaN(parsedSupplierId) || isNaN(parsedCatalogItemId) || isNaN(parsedPrice) || parsedPrice < 0) {
+        return res.status(400).json({ message: "Të dhëna të pavlefshme. Sigurohuni që furnitori, produkti dhe çmimi janë të sakta." });
+      }
+      const supplier = await storage.getSupplier(parsedSupplierId);
+      if (!supplier) return res.status(404).json({ message: "Furnitori nuk u gjet" });
+      const catalogItem = await storage.getCatalogItem(parsedCatalogItemId);
+      if (!catalogItem) return res.status(404).json({ message: "Produkti nuk u gjet në katalog" });
+      const result = await storage.upsertSupplierPrice({
+        supplierId: parsedSupplierId,
+        catalogItemId: parsedCatalogItemId,
+        price: parsedPrice,
+        notes: notes || null,
+      });
+      res.status(201).json(result);
+    } catch (err) {
+      console.error('Upsert supplier price error:', err);
+      res.status(500).json({ message: "Gabim ne ruajtjen e cmimit" });
+    }
+  });
+
+  app.delete('/api/supplier-prices/:id', requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "ID e pavlefshme" });
+    await storage.deleteSupplierPrice(id);
+    res.status(204).send();
+  });
+
   // ==================== EXPENSES ====================
 
   app.get('/api/expenses', requireAuth, async (req, res) => {
