@@ -2,8 +2,13 @@ import { Layout } from "@/components/layout";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, DollarSign, BarChart3, Calendar, Sun, Snowflake, Leaf, CloudRain, Target, Receipt, Wallet } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { TrendingUp, DollarSign, BarChart3, Calendar, Sun, Snowflake, Leaf, CloudRain, Target, Receipt, Wallet, FileDown, Loader2 } from "lucide-react";
 import { JOB_CATEGORY_LABELS, type JobCategory } from "@shared/schema";
+import { useState } from "react";
+import { apiRequest } from "@/lib/queryClient";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 interface AnalyticsData {
   trend: Array<{ month: string; revenue: number; cost: number; profit: number; jobCount: number; expenses?: number }>;
@@ -25,10 +30,88 @@ const seasonIcons: Record<string, any> = {
   "Vjeshtë": CloudRain,
 };
 
+const MONTH_NAMES = ["Janar", "Shkurt", "Mars", "Prill", "Maj", "Qershor", "Korrik", "Gusht", "Shtator", "Tetor", "Nentor", "Dhjetor"];
+
 export default function AnalyticsPage() {
   const { data: analytics, isLoading } = useQuery<AnalyticsData>({
     queryKey: ["/api/analytics/profit"],
   });
+  const [generatingPdf, setGeneratingPdf] = useState(false);
+
+  const generateMonthlyPDF = async () => {
+    setGeneratingPdf(true);
+    try {
+      const now = new Date();
+      const month = now.getMonth() === 0 ? 12 : now.getMonth();
+      const year = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+      const res = await apiRequest('GET', `/api/reports/monthly?month=${month}&year=${year}`);
+      const data = await res.json();
+
+      const doc = new jsPDF();
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(18);
+      doc.text("Elektronova - Raport Mujor", 14, 20);
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "normal");
+      doc.text(`${MONTH_NAMES[month - 1]} ${year}`, 14, 28);
+      doc.setFontSize(10);
+      doc.text(`Periudha: ${data.startDate} - ${data.endDate}`, 14, 35);
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(13);
+      doc.text("Permbledhje Financiare", 14, 47);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text(`Pune te perfunduara: ${data.completedJobsCount}`, 14, 55);
+      doc.text(`Te ardhura: ${data.totalRevenue.toFixed(2)} EUR`, 14, 62);
+      doc.text(`Kosto materialesh: ${data.totalCost.toFixed(2)} EUR`, 14, 69);
+      doc.text(`Fitimi bruto: ${data.totalProfit.toFixed(2)} EUR`, 14, 76);
+      doc.text(`Shpenzime: ${data.totalExpenses.toFixed(2)} EUR`, 14, 83);
+      doc.setFont("helvetica", "bold");
+      doc.text(`Fitimi neto: ${data.netProfit.toFixed(2)} EUR`, 14, 90);
+
+      if (data.jobs && data.jobs.length > 0) {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(13);
+        doc.text("Lista e Puneve", 14, 103);
+        autoTable(doc, {
+          startY: 108,
+          head: [["Nr.", "Klienti", "Lloji", "Te Ardhura", "Kosto", "Fitimi"]],
+          body: data.jobs.map((j: any) => [
+            j.invoiceNumber || `#${j.id}`,
+            j.clientName,
+            j.workType,
+            `${j.revenue.toFixed(2)}`,
+            `${j.cost.toFixed(2)}`,
+            `${j.profit.toFixed(2)}`,
+          ]),
+          styles: { fontSize: 8 },
+          headStyles: { fillColor: [41, 128, 185] },
+        });
+      }
+
+      let finalY = (doc as any).lastAutoTable?.finalY || 115;
+      if (Object.keys(data.expensesByCategory).length > 0) {
+        finalY += 10;
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(13);
+        doc.text("Shpenzimet sipas Kategorise", 14, finalY);
+        autoTable(doc, {
+          startY: finalY + 5,
+          head: [["Kategoria", "Shuma (EUR)"]],
+          body: Object.entries(data.expensesByCategory).map(([cat, amt]) => [cat, (amt as number).toFixed(2)]),
+          styles: { fontSize: 8 },
+          headStyles: { fillColor: [192, 57, 43] },
+        });
+      }
+
+      doc.save(`Elektronova_Raport_${MONTH_NAMES[month - 1]}_${year}.pdf`);
+    } catch {
+      // silent fail
+    } finally {
+      setGeneratingPdf(false);
+    }
+  };
 
   if (isLoading || !analytics) {
     return (
@@ -45,9 +128,19 @@ export default function AnalyticsPage() {
   return (
     <Layout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold" data-testid="text-analytics-title">Analiza e Avancuar e Fitimit</h1>
-          <p className="text-muted-foreground">Trende, parashikime dhe analiza sezonal</p>
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="text-2xl font-bold" data-testid="text-analytics-title">Analiza e Avancuar e Fitimit</h1>
+            <p className="text-muted-foreground">Trende, parashikime dhe analiza sezonal</p>
+          </div>
+          <Button
+            onClick={generateMonthlyPDF}
+            disabled={generatingPdf}
+            data-testid="button-monthly-report"
+          >
+            {generatingPdf ? <Loader2 className="animate-spin mr-2" /> : <FileDown className="mr-2" />}
+            Shkarko Raportin Mujor
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

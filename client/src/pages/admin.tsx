@@ -16,7 +16,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger
 } from "@/components/ui/alert-dialog";
-import { Plus, Trash2, Edit, Loader2, Package, Save, Lock, TrendingUp, Users, DollarSign, ShoppingCart, BarChart3, RefreshCw, Eye, ChevronDown, ChevronUp, CalendarDays, Award } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Plus, Trash2, Edit, Loader2, Package, Save, Lock, TrendingUp, Users, DollarSign, ShoppingCart, BarChart3, RefreshCw, Eye, ChevronDown, ChevronUp, CalendarDays, Award, History } from "lucide-react";
 import { useState, useMemo } from "react";
 import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -50,6 +51,58 @@ function AddItemForm({ category, onDone }: { category: string; onDone: () => voi
         {create.isPending ? <Loader2 className="animate-spin" /> : <Plus className="mr-1" />} Shto
       </Button>
     </div>
+  );
+}
+
+function PriceHistoryDialog({ itemId, itemName }: { itemId: number; itemName: string }) {
+  const [open, setOpen] = useState(false);
+  const { data: history, isLoading } = useQuery<any[]>({
+    queryKey: ['/api/price-history', itemId],
+    queryFn: async () => {
+      const res = await fetch(`/api/price-history?catalogItemId=${itemId}`);
+      return res.json();
+    },
+    enabled: open,
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="icon" variant="ghost" data-testid={`button-price-history-${itemId}`}>
+          <History className="w-3 h-3" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2"><History className="w-4 h-4" /> Historiku i Cmimeve: {itemName}</DialogTitle>
+        </DialogHeader>
+        {isLoading ? (
+          <div className="flex justify-center py-8"><Loader2 className="animate-spin h-6 w-6 text-primary" /></div>
+        ) : !history || history.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-6">Nuk ka ndryshime cmimesh te regjistruara.</p>
+        ) : (
+          <div className="space-y-2 max-h-80 overflow-y-auto">
+            {history.map((h: any, i: number) => (
+              <div key={i} className="flex items-start gap-3 p-2 rounded border text-sm">
+                <div className="flex flex-col gap-0.5 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs text-muted-foreground">Shitje:</span>
+                    <span className="text-xs line-through text-muted-foreground">{h.oldSalePrice?.toFixed(2) ?? '0.00'}€</span>
+                    <span className="text-xs font-bold">{h.newSalePrice?.toFixed(2) ?? '0.00'}€</span>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs text-muted-foreground">Blerje:</span>
+                    <span className="text-xs line-through text-muted-foreground">{h.oldPurchasePrice?.toFixed(2) ?? '0.00'}€</span>
+                    <span className="text-xs font-bold">{h.newPurchasePrice?.toFixed(2) ?? '0.00'}€</span>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground">{h.changedBy || '-'} - {h.changedAt ? new Date(h.changedAt).toLocaleDateString('sq') : '-'}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -95,6 +148,7 @@ function CatalogRow({ item, isAdmin }: { item: CatalogItem; isAdmin: boolean }) 
       )}
       <span className="text-xs font-medium" data-testid={`text-sale-price-${item.id}`}>{item.salePrice ? `${item.salePrice.toFixed(2)} €` : "-"}</span>
       <div className="flex gap-1 invisible group-hover:visible sm:col-span-2">
+        <PriceHistoryDialog itemId={item.id} itemName={item.name} />
         {isAdmin ? (
           <>
             <Button size="sm" variant="ghost" onClick={() => setEditing(true)} data-testid={`button-edit-${item.id}`}><Edit className="w-3 h-3" /></Button>

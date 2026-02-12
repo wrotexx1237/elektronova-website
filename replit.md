@@ -30,6 +30,12 @@ Key features:
 - **Stock Warnings in Job Form**: Collapsible warning section showing items at or below minimum stock level
 - **Calendar with Contact Info**: Client phone numbers displayed in calendar with clickable tel: links
 - **Expenses in Analytics**: Business expenses subtracted from profit, net profit calculation, expense breakdown by category
+- **Auto-Client from Job**: Automatically creates/links client in CRM when creating a job
+- **Best Supplier Price**: Auto-apply cheapest supplier price to job materials with one click
+- **Auto-Price Update**: Catalog price changes automatically update all open/pending jobs
+- **Monthly PDF Report**: Downloadable monthly summary report with jobs, financials, and expenses
+- **Visual Price History**: Price change timeline graph in catalog admin page
+- **Zero Stock Blocking**: Items with zero stock are disabled in job form with "Pa Stok" badge
 - **Catalog Price History**: Tracks all price changes over time per catalog item
 - **Quote vs Actual Comparison**: Job snapshots saved when status changes for comparison
 - **Admin Mode**: Role-based admin access — reveals purchase costs, profit margins, and cost analysis in job form

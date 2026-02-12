@@ -355,6 +355,28 @@ export async function registerRoutes(
       }
       const job = await storage.createJob(input);
 
+      // Auto-create or link client
+      try {
+        if (input.clientName && input.clientName.trim()) {
+          const existingClients = await storage.searchClients(input.clientName);
+          const exactMatch = existingClients.find(c => c.name.toLowerCase() === input.clientName.toLowerCase());
+          if (exactMatch) {
+            await storage.updateJob(job.id, { clientId: exactMatch.id });
+          } else {
+            const newClient = await storage.createClient({
+              name: input.clientName,
+              phone: input.clientPhone || null,
+              address: input.clientAddress || null,
+              email: null,
+              notes: null,
+            });
+            await storage.updateJob(job.id, { clientId: newClient.id });
+          }
+        }
+      } catch (clientErr) {
+        console.error('Auto-create client error:', clientErr);
+      }
+
       if (input.status === "oferte") {
         await storage.createJobSnapshot({
           jobId: job.id,
@@ -698,6 +720,50 @@ export async function registerRoutes(
       }
 
       const updated = await storage.updateCatalogItem(id, input);
+
+      // Auto-update prices in open jobs
+      try {
+        const allJobs = await storage.getJobs();
+        const openJobs = allJobs.filter(j => j.status !== 'e_perfunduar' && j.isTemplate !== 1);
+        let autoUpdated = 0;
+
+        for (const job of openJobs) {
+          const allData = [
+            ...(Object.keys((job.table1Data || {}) as Record<string, any>)),
+            ...(Object.keys((job.table2Data || {}) as Record<string, any>)),
+            ...(Object.keys((job.cameraData || {}) as Record<string, any>)),
+            ...(Object.keys((job.intercomData || {}) as Record<string, any>)),
+            ...(Object.keys((job.alarmData || {}) as Record<string, any>)),
+            ...(Object.keys((job.serviceData || {}) as Record<string, any>)),
+          ];
+
+          if (allData.includes(existing.name)) {
+            const jobPrices = { ...(job.prices as Record<string, number> || {}) };
+            const jobPurchase = { ...(job.purchasePrices as Record<string, number> || {}) };
+
+            if (input.salePrice !== undefined) jobPrices[existing.name] = input.salePrice;
+            if (input.purchasePrice !== undefined) jobPurchase[existing.name] = input.purchasePrice;
+
+            await storage.updateJob(job.id, { prices: jobPrices, purchasePrices: jobPurchase });
+            autoUpdated++;
+          }
+        }
+
+        if (autoUpdated > 0) {
+          await storage.createNotification({
+            type: 'price_update',
+            title: 'Çmimet u përditësuan',
+            message: `${existing.name}: ${autoUpdated} punë u përditësuan me çmimet e reja`,
+            catalogItemId: id,
+            jobId: null,
+            isRead: 0,
+            userId: null,
+          });
+        }
+      } catch (priceUpdateErr) {
+        console.error('Auto price update error:', priceUpdateErr);
+      }
+
       res.json(updated);
     } catch (err) {
       if (err instanceof z.ZodError) {
@@ -907,7 +973,7 @@ export async function registerRoutes(
             await storage.createNotification({
               type: "stale_offer",
               title: "Ofertë e vjetër",
-              message: `Oferta ${job.invoiceNumber || '#' + job.id} për ${job.clientName} ka ${daysSince} ditë pa u konfirmuar`,
+              message: `Oferta ${job.invoiceNumber || '#' + job.id} për ${job.clientName} ka ${daysSince} ditë pa u konfirmuar${job.clientPhone ? '. Tel: ' + job.clientPhone : ''}`,
               jobId: job.id,
               catalogItemId: null,
               isRead: 0,
@@ -1085,6 +1151,130 @@ export async function registerRoutes(
       });
     } catch (err) {
       console.error('Analytics error:', err);
+      res.status(500).json({ message: "Gabim" });
+    }
+  });
+
+  // --- APPLY BEST SUPPLIER PRICES ---
+  app.post('/api/jobs/:id/apply-best-prices', requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "ID e pavlefshme" });
+    try {
+      const job = await storage.getJob(id);
+      if (!job) return res.status(404).json({ message: "Puna nuk u gjet" });
+
+      const catalog = await storage.getCatalogItems();
+      const catalogByName = new Map(catalog.map(c => [c.name, c]));
+      const allSupplierPrices = await storage.getSupplierPrices();
+      const suppliers = await storage.getSuppliers();
+      const supplierMap = new Map(suppliers.map(s => [s.id, s.name]));
+
+      const pricesByItem: Record<number, { supplierId: number; supplierName: string; price: number }[]> = {};
+      for (const sp of allSupplierPrices) {
+        if (!pricesByItem[sp.catalogItemId]) pricesByItem[sp.catalogItemId] = [];
+        pricesByItem[sp.catalogItemId].push({
+          supplierId: sp.supplierId,
+          supplierName: supplierMap.get(sp.supplierId) || 'Unknown',
+          price: sp.price,
+        });
+      }
+
+      const { quantities } = getJobMaterialTotals(job);
+      const newPurchasePrices: Record<string, number> = { ...(job.purchasePrices as Record<string, number> || {}) };
+      const appliedPrices: { item: string; price: number; supplier: string }[] = [];
+
+      for (const itemName of Object.keys(quantities)) {
+        const catItem = catalogByName.get(itemName);
+        if (!catItem) continue;
+        const itemPrices = pricesByItem[catItem.id];
+        if (!itemPrices || itemPrices.length === 0) continue;
+
+        const cheapest = itemPrices.reduce((min, p) => p.price < min.price ? p : min, itemPrices[0]);
+        newPurchasePrices[itemName] = cheapest.price;
+        appliedPrices.push({ item: itemName, price: cheapest.price, supplier: cheapest.supplierName });
+      }
+
+      await storage.updateJob(id, { purchasePrices: newPurchasePrices });
+      res.json({ applied: appliedPrices, purchasePrices: newPurchasePrices });
+    } catch (err) {
+      console.error('Apply best prices error:', err);
+      res.status(500).json({ message: "Gabim" });
+    }
+  });
+
+  // --- MONTHLY REPORT ---
+  app.get('/api/reports/monthly', requireAuth, async (req, res) => {
+    try {
+      const now = new Date();
+      const monthParam = parseInt(req.query.month as string) || (now.getMonth() === 0 ? 12 : now.getMonth());
+      const yearParam = parseInt(req.query.year as string) || (now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear());
+
+      const startDate = `${yearParam}-${String(monthParam).padStart(2, '0')}-01`;
+      const lastDay = new Date(yearParam, monthParam, 0).getDate();
+      const endDate = `${yearParam}-${String(monthParam).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+
+      const allJobs = await storage.getJobs();
+      const completedJobs = allJobs.filter(j => {
+        if (j.status !== 'e_perfunduar' || j.isTemplate) return false;
+        const d = j.completedDate || (j.updatedAt ? new Date(j.updatedAt).toISOString().split('T')[0] : null);
+        return d && d >= startDate && d <= endDate;
+      });
+
+      let totalRevenue = 0;
+      let totalCost = 0;
+      const jobsSummary = completedJobs.map(job => {
+        const { quantities } = getJobMaterialTotals(job);
+        const prices = (job.prices || {}) as Record<string, number>;
+        const purchasePrices = (job.purchasePrices || {}) as Record<string, number>;
+        let revenue = 0;
+        let cost = 0;
+        for (const [name, qty] of Object.entries(quantities)) {
+          revenue += (prices[name] || 0) * qty;
+          cost += (purchasePrices[name] || 0) * qty;
+        }
+        totalRevenue += revenue;
+        totalCost += cost;
+        return {
+          id: job.id,
+          invoiceNumber: job.invoiceNumber,
+          clientName: job.clientName,
+          workType: job.workType,
+          category: job.category,
+          completedDate: job.completedDate,
+          revenue,
+          cost,
+          profit: revenue - cost,
+        };
+      });
+
+      const expenses = await storage.getExpenses({ startDate, endDate });
+      const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
+      const expensesByCategory: Record<string, number> = {};
+      for (const e of expenses) {
+        expensesByCategory[e.category || 'tjeter'] = (expensesByCategory[e.category || 'tjeter'] || 0) + e.amount;
+      }
+
+      const catalogItems = await storage.getCatalogItems();
+      const lowStockItems = catalogItems.filter(c => c.minStockLevel && c.minStockLevel > 0 && (c.currentStock || 0) <= c.minStockLevel)
+        .map(c => ({ name: c.name, currentStock: c.currentStock || 0, minStockLevel: c.minStockLevel, unit: c.unit }));
+
+      res.json({
+        month: monthParam,
+        year: yearParam,
+        startDate,
+        endDate,
+        completedJobsCount: completedJobs.length,
+        jobs: jobsSummary,
+        totalRevenue,
+        totalCost,
+        totalProfit: totalRevenue - totalCost,
+        totalExpenses,
+        netProfit: totalRevenue - totalCost - totalExpenses,
+        expensesByCategory,
+        lowStockItems,
+      });
+    } catch (err) {
+      console.error('Monthly report error:', err);
       res.status(500).json({ message: "Gabim" });
     }
   });

@@ -892,16 +892,29 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
               const qty = getQtyForRoomItem(c.name);
               const price = getPriceForItem(c.name);
               const rowData = table1Data[c.name] || {};
+              const isOutOfStock = (c.currentStock === 0 || c.currentStock === null) && c.minStockLevel && c.minStockLevel > 0;
               return (
-                <tr key={c.id} className="hover:bg-muted/30">
-                  <td className="p-2 font-medium sticky left-0 bg-background z-10 border-r text-xs">{c.name}</td>
+                <tr key={c.id} className={`hover:bg-muted/30 ${isOutOfStock ? 'opacity-60' : ''}`}>
+                  <td className="p-2 font-medium sticky left-0 bg-background z-10 border-r text-xs">
+                    <span className="flex items-center gap-1">
+                      {c.name}
+                      {isOutOfStock && (
+                        <Badge variant="destructive" className="text-[8px] px-1 py-0">Pa Stok</Badge>
+                      )}
+                    </span>
+                  </td>
                   {ROOMS.map(r => (
                     <td key={r} className="p-0.5">
                       <input
                         type="number"
-                        className="w-full h-8 text-center bg-transparent outline-none border-b border-transparent focus:border-primary text-xs"
+                        className={`w-full h-8 text-center bg-transparent outline-none border-b border-transparent focus:border-primary text-xs ${isOutOfStock ? 'cursor-not-allowed text-muted-foreground' : ''}`}
                         value={rowData[r] || ""}
-                        onChange={e => updateRoomQty(c.name, r, e.target.valueAsNumber)}
+                        onChange={e => {
+                          if (isOutOfStock) return;
+                          updateRoomQty(c.name, r, e.target.valueAsNumber);
+                        }}
+                        disabled={!!isOutOfStock}
+                        title={isOutOfStock ? 'Ky produkt nuk ka stok - shtoni stok para se ta përdorni' : ''}
                         data-testid={`input-${c.name}-${r}`}
                       />
                     </td>
@@ -925,19 +938,30 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
           {items.map(c => {
             const qty = sectionData[c.name] || 0;
             const price = getPriceForItem(c.name);
+            const isOutOfStock = (c.currentStock === 0 || c.currentStock === null) && c.minStockLevel && c.minStockLevel > 0;
             return (
-              <div key={c.id} className="p-2 border rounded-lg flex items-center justify-between gap-2 hover:border-primary/50 transition-colors">
+              <div key={c.id} className={`p-2 border rounded-lg flex items-center justify-between gap-2 hover:border-primary/50 transition-colors ${isOutOfStock ? 'opacity-60 border-destructive/30' : ''}`}>
                 <div className="flex flex-col min-w-0">
-                  <span className="text-xs font-bold truncate">{c.name}</span>
+                  <span className="text-xs font-bold truncate flex items-center gap-1">
+                    {c.name}
+                    {isOutOfStock && (
+                      <Badge variant="destructive" className="text-[8px] px-1 py-0">Pa Stok</Badge>
+                    )}
+                  </span>
                   <span className="text-[10px] text-muted-foreground">{c.unit}</span>
                   {(qty * price) > 0 && <span className="text-[10px] text-primary font-black">{(qty * price).toFixed(2)} €</span>}
                 </div>
                 <div className="flex items-center bg-muted/50 rounded overflow-hidden w-20 shrink-0 border">
                   <Input
                     type="number"
-                    className="h-7 border-0 bg-transparent text-right px-1 text-xs"
+                    className={`h-7 border-0 bg-transparent text-right px-1 text-xs ${isOutOfStock ? 'cursor-not-allowed' : ''}`}
                     value={qty || ""}
-                    onChange={e => updateSimpleQty(fieldName, c.name, e.target.valueAsNumber)}
+                    onChange={e => {
+                      if (isOutOfStock) return;
+                      updateSimpleQty(fieldName, c.name, e.target.valueAsNumber);
+                    }}
+                    disabled={!!isOutOfStock}
+                    title={isOutOfStock ? 'Ky produkt nuk ka stok - shtoni stok para se ta përdorni' : ''}
                     data-testid={`input-${c.name}`}
                   />
                   <span className="text-[9px] px-1 bg-muted uppercase font-bold border-l whitespace-nowrap">{c.unit}</span>
@@ -1021,18 +1045,45 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
     return (
       <div className="space-y-4">
         {isAdmin && (
-          <div className="flex items-center justify-between p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+          <div className="flex items-center justify-between gap-2 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg flex-wrap">
             <span className="text-sm font-bold text-amber-700">Pamja e Kostos (Admin)</span>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setShowCost(!showCost)}
-              data-testid="button-toggle-cost"
-            >
-              {showCost ? <EyeOff className="w-4 h-4 mr-1" /> : <Eye className="w-4 h-4 mr-1" />}
-              {showCost ? "Fshih Koston" : "Shfaq Koston"}
-            </Button>
+            <div className="flex items-center gap-2 flex-wrap">
+              {initialData?.id && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    try {
+                      const res = await apiRequest('POST', `/api/jobs/${initialData.id}/apply-best-prices`);
+                      const data = await res.json();
+                      if (data.applied && data.applied.length > 0) {
+                        const newPP = { ...form.getValues("purchasePrices"), ...data.purchasePrices };
+                        form.setValue("purchasePrices", newPP, { shouldDirty: true });
+                        toast({ title: "Çmimet u aplikuan", description: `${data.applied.length} artikuj u përditësuan me çmimet më të lira` });
+                      } else {
+                        toast({ title: "Asnjë ndryshim", description: "Nuk u gjetën çmime furnitorësh për artikujt e kësaj pune" });
+                      }
+                    } catch {
+                      toast({ title: "Gabim", description: "Nuk u arrit të aplikohen çmimet", variant: "destructive" });
+                    }
+                  }}
+                  data-testid="button-apply-best-prices"
+                >
+                  <ShoppingCart className="w-4 h-4 mr-1" /> Apliko Çmimet më të Lira
+                </Button>
+              )}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowCost(!showCost)}
+                data-testid="button-toggle-cost"
+              >
+                {showCost ? <EyeOff className="w-4 h-4 mr-1" /> : <Eye className="w-4 h-4 mr-1" />}
+                {showCost ? "Fshih Koston" : "Shfaq Koston"}
+              </Button>
+            </div>
           </div>
         )}
 

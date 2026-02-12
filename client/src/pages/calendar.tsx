@@ -198,8 +198,8 @@ export default function CalendarPage() {
                         const style = getCategoryStyle(job.category);
                         const CatIcon = style.icon;
                         return (
-                          <Link key={job.id} href={`/edit/${job.id}`}>
-                            <Card className="hover-elevate cursor-pointer" data-testid={`upcoming-job-${job.id}`}>
+                          <Card key={job.id} className="hover-elevate cursor-pointer" data-testid={`upcoming-job-${job.id}`}>
+                            <Link href={`/edit/${job.id}`}>
                               <CardContent className="p-3 flex items-center gap-3">
                                 <div className={`p-2 rounded-lg ${style.bg}`}>
                                   <CatIcon className="h-4 w-4" />
@@ -207,18 +207,20 @@ export default function CalendarPage() {
                                 <div className="min-w-0 flex-1">
                                   <div className="font-bold text-sm truncate">{job.clientName}</div>
                                   <div className="text-xs text-muted-foreground truncate">{job.clientAddress}</div>
-                                  {job.clientPhone && (
-                                    <a href={`tel:${job.clientPhone}`} className="text-xs text-primary truncate flex items-center gap-1" onClick={(e) => e.stopPropagation()} data-testid={`phone-link-${job.id}`}>
-                                      <Phone className="w-3 h-3 shrink-0" /> {job.clientPhone}
-                                    </a>
-                                  )}
                                 </div>
                                 <Badge variant="outline" className="text-[10px] shrink-0 no-default-hover-elevate no-default-active-elevate">
                                   {JOB_STATUS_LABELS[(job.status as keyof typeof JOB_STATUS_LABELS) || "oferte"]}
                                 </Badge>
                               </CardContent>
-                            </Card>
-                          </Link>
+                            </Link>
+                            {job.clientPhone && (
+                              <div className="px-3 pb-2">
+                                <a href={`tel:${job.clientPhone}`} className="text-xs text-primary truncate flex items-center gap-1" onClick={(e) => e.stopPropagation()} data-testid={`phone-link-${job.id}`}>
+                                  <Phone className="w-3 h-3 shrink-0" /> {job.clientPhone}
+                                </a>
+                              </div>
+                            )}
+                          </Card>
                         );
                       })}
                     </div>
