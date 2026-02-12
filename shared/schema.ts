@@ -404,6 +404,7 @@ export const jobs = pgTable("jobs", {
   isTemplate: integer("is_template").default(0),
   userId: integer("user_id"),
   clientId: integer("client_id"),
+  supplierId: integer("supplier_id"),
 
   discountType: text("discount_type").default("percent"),
   discountValue: real("discount_value").default(0),
@@ -446,6 +447,7 @@ export const insertJobSchema = z.object({
   isTemplate: z.coerce.number().min(0).max(1).optional().default(0),
   userId: z.number().nullable().optional(),
   clientId: z.number().nullable().optional(),
+  supplierId: z.number().nullable().optional(),
   discountType: z.enum(DISCOUNT_TYPES).optional().default("percent"),
   discountValue: z.coerce.number().min(0).optional().default(0),
   vatRate: z.coerce.number().min(0).max(100).optional().default(0),

@@ -31,7 +31,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useState, useEffect } from "react";
-import type { Feedback } from "@shared/schema";
+import type { Feedback, Supplier } from "@shared/schema";
 import { MapDialog } from "@/components/map-dialog";
 import { ShareDialog } from "@/components/share-dialog";
 import jsPDF from "jspdf";
@@ -172,6 +172,10 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
   const [showCost, setShowCost] = useState(false);
   const [mapOpen, setMapOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+
+  const { data: suppliers = [] } = useQuery<Supplier[]>({
+    queryKey: ["/api/suppliers"],
+  });
 
   const resolvedCategory: JobCategory = (initialData?.category || defaultCategory || "electric") as JobCategory;
 
@@ -1111,6 +1115,23 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
                       </FormItem>
                     )}
                   </div>
+                  <FormField control={form.control} name="supplierId" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Furnitori</FormLabel>
+                      <Select
+                        onValueChange={(val) => field.onChange(val === "none" ? null : parseInt(val))}
+                        value={field.value ? String(field.value) : "none"}
+                      >
+                        <FormControl><SelectTrigger data-testid="select-supplier"><SelectValue placeholder="Zgjidhni furnitorin" /></SelectTrigger></FormControl>
+                        <SelectContent>
+                          <SelectItem value="none">Pa furnitor</SelectItem>
+                          {suppliers.map(s => (
+                            <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormItem>
+                  )} />
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <FormField control={form.control} name="discountType" render={({ field }) => (
                       <FormItem>
