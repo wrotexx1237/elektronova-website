@@ -1,14 +1,23 @@
 import { Link, useLocation } from "wouter";
-import { Zap, LayoutDashboard, PlusCircle, Menu, X, Package, Users, Warehouse, BarChart3, Bell, LogOut, User, Sun, Moon, Settings, CalendarDays, Truck, Receipt } from "lucide-react";
+import { Zap, LayoutDashboard, PlusCircle, Menu, X, Package, Users, Warehouse, BarChart3, Bell, LogOut, User, Sun, Moon, Settings, CalendarDays, Truck, Receipt, Camera, ShieldAlert, Phone as PhoneIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import type { Notification } from "@shared/schema";
+import type { Notification, JobCategory } from "@shared/schema";
+
+const NAV_CATEGORY_CARDS: { key: JobCategory; label: string; icon: typeof Zap; color: string }[] = [
+  { key: "electric", label: "Rrymë / Elektrike", icon: Zap, color: "text-blue-500" },
+  { key: "camera", label: "Kamera", icon: Camera, color: "text-emerald-500" },
+  { key: "alarm", label: "Alarm", icon: ShieldAlert, color: "text-red-500" },
+  { key: "intercom", label: "Interfon", icon: PhoneIcon, color: "text-purple-500" },
+];
 
 function ThemeToggle() {
   const [dark, setDark] = useState(() => {
@@ -39,6 +48,7 @@ function ThemeToggle() {
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const { user, isAdmin } = useAuth();
 
   const navItems = [
@@ -74,17 +84,32 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
           <nav className="hidden lg:flex items-center gap-4">
             {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "text-sm font-medium transition-colors hover:text-primary flex items-center gap-1.5",
-                  location === item.href ? "text-primary font-bold" : "text-muted-foreground"
-                )}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.label}
-              </Link>
+              item.href === "/new" ? (
+                <button
+                  key={item.href}
+                  onClick={() => setShowCategoryPicker(true)}
+                  className={cn(
+                    "text-sm font-medium transition-colors hover:text-primary flex items-center gap-1.5 cursor-pointer",
+                    location.startsWith("/new") ? "text-primary font-bold" : "text-muted-foreground"
+                  )}
+                  data-testid="nav-new-job"
+                >
+                  <item.icon className="h-4 w-4" />
+                  {item.label}
+                </button>
+              ) : (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "text-sm font-medium transition-colors hover:text-primary flex items-center gap-1.5",
+                    location === item.href ? "text-primary font-bold" : "text-muted-foreground"
+                  )}
+                >
+                  <item.icon className="h-4 w-4" />
+                  {item.label}
+                </Link>
+              )
             ))}
           </nav>
 
@@ -122,18 +147,33 @@ export function Layout({ children }: { children: React.ReactNode }) {
         {mobileMenuOpen && (
           <div className="lg:hidden border-t bg-background p-4 flex flex-col gap-4 shadow-lg animate-in slide-in-from-top-5">
             {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "text-base font-medium transition-colors flex items-center gap-3 p-2 rounded-md hover:bg-muted",
-                  location === item.href ? "text-primary bg-primary/5" : "text-muted-foreground"
-                )}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <item.icon className="h-5 w-5" />
-                {item.label}
-              </Link>
+              item.href === "/new" ? (
+                <button
+                  key={item.href}
+                  onClick={() => { setMobileMenuOpen(false); setShowCategoryPicker(true); }}
+                  className={cn(
+                    "text-base font-medium transition-colors flex items-center gap-3 p-2 rounded-md hover:bg-muted text-left",
+                    location.startsWith("/new") ? "text-primary bg-primary/5" : "text-muted-foreground"
+                  )}
+                  data-testid="nav-new-job-mobile"
+                >
+                  <item.icon className="h-5 w-5" />
+                  {item.label}
+                </button>
+              ) : (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "text-base font-medium transition-colors flex items-center gap-3 p-2 rounded-md hover:bg-muted",
+                    location === item.href ? "text-primary bg-primary/5" : "text-muted-foreground"
+                  )}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <item.icon className="h-5 w-5" />
+                  {item.label}
+                </Link>
+              )
             ))}
             <div className="border-t pt-3 flex flex-col gap-2">
               <Link
@@ -165,6 +205,28 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <p>&copy; {new Date().getFullYear()} Elektronova. Të gjitha të drejtat e rezervuara.</p>
         </div>
       </footer>
+
+      <Dialog open={showCategoryPicker} onOpenChange={setShowCategoryPicker}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Zgjidhni Kategorinë</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-3 pt-2">
+            {NAV_CATEGORY_CARDS.map(cat => (
+              <Link key={cat.key} href={`/new?category=${cat.key}`}>
+                <Card className="hover-elevate cursor-pointer group" data-testid={`nav-category-${cat.key}`} onClick={() => setShowCategoryPicker(false)}>
+                  <CardContent className="flex flex-col items-center justify-center py-5 gap-2">
+                    <div className={`p-3 rounded-xl bg-muted/50 group-hover:bg-muted transition-colors ${cat.color}`}>
+                      <cat.icon className="h-7 w-7" />
+                    </div>
+                    <span className="text-sm font-bold text-center">{cat.label}</span>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
