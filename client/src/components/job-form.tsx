@@ -31,7 +31,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useState, useEffect } from "react";
-import type { Feedback, Supplier } from "@shared/schema";
+import type { Feedback, Supplier, SupplierPrice } from "@shared/schema";
 import { MapDialog } from "@/components/map-dialog";
 import { ShareDialog } from "@/components/share-dialog";
 import jsPDF from "jspdf";
@@ -175,6 +175,10 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
 
   const { data: suppliers = [] } = useQuery<Supplier[]>({
     queryKey: ["/api/suppliers"],
+  });
+
+  const { data: supplierPrices = [] } = useQuery<SupplierPrice[]>({
+    queryKey: ["/api/supplier-prices"],
   });
 
   const resolvedCategory: JobCategory = (initialData?.category || defaultCategory || "electric") as JobCategory;
@@ -1115,7 +1119,39 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
                       </FormItem>
                     )}
                   </div>
-                  <FormField control={form.control} name="supplierId" render={({ field }) => (
+                  <FormField control={form.control} name="supplierId" render={({ field }) => {
+                    const selectedSupplierId = field.value;
+                    const relevantCatalogItems = catalog?.filter((c: CatalogItem) => {
+                      if (category === "electric") return c.category === "Pajisje elektrike" || c.category === "Kabllo & Gypa" || c.category === "Punë/Shërbime";
+                      if (category === "camera") return c.category === "Kamera" || c.category === "Kabllo & Gypa" || c.category === "Punë/Shërbime";
+                      if (category === "alarm") return c.category === "Alarm" || c.category === "Kabllo & Gypa" || c.category === "Punë/Shërbime";
+                      if (category === "intercom") return c.category === "Interfon" || c.category === "Kabllo & Gypa" || c.category === "Punë/Shërbime";
+                      return true;
+                    }) || [];
+
+                    type PriceComp = { item: CatalogItem; selectedPrice: number; cheapestPrice: number; cheapestSupplierName: string; isCheapest: boolean; diff: number };
+                    const supplierPriceComparison: PriceComp[] = selectedSupplierId ? relevantCatalogItems.map((item: CatalogItem) => {
+                      const pricesForItem = supplierPrices.filter(sp => sp.catalogItemId === item.id);
+                      const selectedPrice = pricesForItem.find(sp => sp.supplierId === selectedSupplierId);
+                      if (!selectedPrice) return null;
+                      const allPricesSorted = [...pricesForItem].sort((a, b) => a.price - b.price);
+                      const cheapestPrice = allPricesSorted[0];
+                      const cheapestSupplier = suppliers.find(s => s.id === cheapestPrice?.supplierId);
+                      const isCheapest = cheapestPrice?.supplierId === selectedSupplierId;
+                      return {
+                        item,
+                        selectedPrice: selectedPrice.price,
+                        cheapestPrice: cheapestPrice?.price || 0,
+                        cheapestSupplierName: cheapestSupplier?.name || "",
+                        isCheapest,
+                        diff: selectedPrice.price - (cheapestPrice?.price || 0),
+                      };
+                    }).filter((x: PriceComp | null): x is PriceComp => x !== null) : [];
+
+                    const totalSelected = supplierPriceComparison.reduce((sum: number, c: PriceComp) => sum + c.selectedPrice, 0);
+                    const totalCheapest = supplierPriceComparison.reduce((sum: number, c: PriceComp) => sum + c.cheapestPrice, 0);
+
+                    return (
                     <FormItem>
                       <FormLabel>Furnitori</FormLabel>
                       <Select
@@ -1130,8 +1166,33 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
                           ))}
                         </SelectContent>
                       </Select>
+                      {selectedSupplierId && supplierPriceComparison.length > 0 && (
+                        <div className="mt-2 border rounded-md p-3 bg-muted/30 space-y-2">
+                          <p className="text-xs font-medium text-muted-foreground">Krahasimi i çmimeve për këtë furnitor:</p>
+                          <div className="space-y-1">
+                            {supplierPriceComparison.map((c) => c && (
+                              <div key={c.item.id} className="flex items-center justify-between text-xs gap-2" data-testid={`supplier-price-row-${c.item.id}`}>
+                                <span className="truncate flex-1 min-w-0">{c.item.name}</span>
+                                <span className="font-medium shrink-0">{c.selectedPrice.toFixed(2)} €</span>
+                                {c.isCheapest ? (
+                                  <Badge variant="default" className="text-[10px] shrink-0 no-default-active-elevate">Më i lirë</Badge>
+                                ) : (
+                                  <span className="text-red-500 dark:text-red-400 shrink-0">+{c.diff.toFixed(2)} € (më lirë: {c.cheapestSupplierName})</span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          {totalSelected > totalCheapest && (
+                            <div className="border-t pt-2 mt-2 text-xs">
+                              <span className="text-muted-foreground">Do të kursenit </span>
+                              <span className="font-semibold text-green-700 dark:text-green-400">{(totalSelected - totalCheapest).toFixed(2)} €</span>
+                              <span className="text-muted-foreground"> duke zgjedhur furnitorët më të lirë</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </FormItem>
-                  )} />
+                  );}} />
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <FormField control={form.control} name="discountType" render={({ field }) => (
                       <FormItem>
