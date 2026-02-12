@@ -1182,13 +1182,22 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
                               </div>
                             ))}
                           </div>
-                          {totalSelected > totalCheapest && (
-                            <div className="border-t pt-2 mt-2 text-xs">
-                              <span className="text-muted-foreground">Do të kursenit </span>
-                              <span className="font-semibold text-green-700 dark:text-green-400">{(totalSelected - totalCheapest).toFixed(2)} €</span>
-                              <span className="text-muted-foreground"> duke zgjedhur furnitorët më të lirë</span>
-                            </div>
-                          )}
+                          <div className="border-t pt-2 mt-2 text-xs">
+                            {totalSelected > totalCheapest ? (
+                              <>
+                                <span className="text-muted-foreground">Për çmim më të mirë, zgjidhni furnitorët e shënuar me të kuqe. Do të kursenit </span>
+                                <span className="font-semibold text-green-700 dark:text-green-400">{(totalSelected - totalCheapest).toFixed(2)} €</span>
+                              </>
+                            ) : (
+                              <span className="text-green-700 dark:text-green-400 font-medium">
+                                Ky furnitor ka çmimet më të lira për të gjitha produktet! Kurseni {supplierPriceComparison.reduce((s: number, c: PriceComp) => {
+                                  const others = supplierPrices.filter(sp => sp.catalogItemId === c.item.id && sp.supplierId !== selectedSupplierId);
+                                  const maxOther = others.length > 0 ? Math.max(...others.map(o => o.price)) : c.selectedPrice;
+                                  return s + (maxOther - c.selectedPrice);
+                                }, 0).toFixed(2)} € krahasuar me furnitorin më të shtrenjtë.
+                              </span>
+                            )}
+                          </div>
                         </div>
                       )}
                     </FormItem>
