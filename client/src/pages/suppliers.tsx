@@ -16,7 +16,8 @@ import {
   DollarSign, ArrowUpDown, TrendingDown, TrendingUp, BarChart3, ChevronDown, ChevronUp
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import type { Supplier, CatalogItem, SupplierPrice } from "@shared/schema";
+import type { Supplier, CatalogItem, SupplierPrice, Job } from "@shared/schema";
+import { Wallet, PiggyBank, Receipt, Package } from "lucide-react";
 
 export default function SuppliersPage() {
   const [search, setSearch] = useState("");
@@ -41,6 +42,10 @@ export default function SuppliersPage() {
 
   const { data: comparisonData = [] } = useQuery<any[]>({
     queryKey: ["/api/supplier-prices/comparison"],
+  });
+
+  const { data: allJobs = [] } = useQuery<Job[]>({
+    queryKey: ["/api/jobs"],
   });
 
   const suppliers = search
@@ -111,6 +116,9 @@ export default function SuppliersPage() {
             </TabsTrigger>
             <TabsTrigger value="comparison" data-testid="tab-price-comparison">
               <BarChart3 className="h-4 w-4 mr-1.5" /> Krahasimi i Çmimeve
+            </TabsTrigger>
+            <TabsTrigger value="summary" data-testid="tab-savings-summary">
+              <PiggyBank className="h-4 w-4 mr-1.5" /> Përmbledhje Kursimesh
             </TabsTrigger>
           </TabsList>
 
@@ -223,6 +231,15 @@ export default function SuppliersPage() {
               catalogItems={catalogItems}
             />
           </TabsContent>
+
+          <TabsContent value="summary" className="space-y-4">
+            <SavingsSummaryView
+              jobs={allJobs}
+              suppliers={allSuppliers}
+              supplierPrices={allSupplierPrices}
+              catalogItems={catalogItems}
+            />
+          </TabsContent>
         </Tabs>
 
         <SupplierFormDialog
@@ -257,6 +274,180 @@ export default function SuppliersPage() {
   );
 }
 
+function SavingsSummaryView({ jobs, suppliers, supplierPrices, catalogItems }: {
+  jobs: Job[];
+  suppliers: Supplier[];
+  supplierPrices: SupplierPrice[];
+  catalogItems: CatalogItem[];
+}) {
+  const jobsWithSupplier = jobs.filter(j => j.supplierId);
+
+  const sumPrices = (pricesObj: Record<string, number> | null | undefined) =>
+    pricesObj ? Object.values(pricesObj).reduce((s, v) => s + (Number(v) || 0), 0) : 0;
+
+  const totalSaleAllJobs = jobs.reduce((s, j) => s + sumPrices(j.prices), 0);
+  const totalPurchaseAllJobs = jobs.reduce((s, j) => s + sumPrices(j.purchasePrices), 0);
+  const totalProfitAllJobs = totalSaleAllJobs - totalPurchaseAllJobs;
+
+  const supplierStats: Record<number, { name: string; jobCount: number; totalPurchase: number; totalSale: number }> = {};
+  jobsWithSupplier.forEach(j => {
+    const sid = j.supplierId!;
+    if (!supplierStats[sid]) {
+      const sup = suppliers.find(s => s.id === sid);
+      supplierStats[sid] = { name: sup?.name || "I panjohur", jobCount: 0, totalPurchase: 0, totalSale: 0 };
+    }
+    supplierStats[sid].jobCount++;
+    supplierStats[sid].totalPurchase += sumPrices(j.purchasePrices);
+    supplierStats[sid].totalSale += sumPrices(j.prices);
+  });
+
+  let potentialSavings = 0;
+  jobsWithSupplier.forEach(j => {
+    const purchasePrices = j.purchasePrices as Record<string, number> || {};
+    Object.entries(purchasePrices).forEach(([key, currentPrice]) => {
+      if (!currentPrice || currentPrice <= 0) return;
+      const itemName = key;
+      const item = catalogItems.find(c => c.name === itemName);
+      if (!item) return;
+      const allPricesForItem = supplierPrices
+        .filter(sp => sp.catalogItemId === item.id)
+        .sort((a, b) => a.price - b.price);
+      if (allPricesForItem.length > 0 && allPricesForItem[0].price < currentPrice) {
+        potentialSavings += currentPrice - allPricesForItem[0].price;
+      }
+    });
+  });
+
+  const bestPriceSavings = catalogItems.reduce((total, item) => {
+    const prices = supplierPrices.filter(sp => sp.catalogItemId === item.id);
+    if (prices.length < 2) return total;
+    const sorted = [...prices].sort((a, b) => a.price - b.price);
+    return total + (sorted[sorted.length - 1].price - sorted[0].price);
+  }, 0);
+
+  const itemsWithMultiplePrices = catalogItems.filter(item => {
+    return supplierPrices.filter(sp => sp.catalogItemId === item.id).length >= 2;
+  });
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card data-testid="card-total-sales">
+          <CardContent className="p-4 space-y-1">
+            <div className="flex items-center gap-2 text-muted-foreground text-sm">
+              <Receipt className="h-4 w-4" /> Totali i Shitjeve
+            </div>
+            <p className="text-2xl font-bold" data-testid="text-total-sales">{totalSaleAllJobs.toFixed(2)} €</p>
+            <p className="text-xs text-muted-foreground">{jobs.length} punë gjithsej</p>
+          </CardContent>
+        </Card>
+        <Card data-testid="card-total-purchases">
+          <CardContent className="p-4 space-y-1">
+            <div className="flex items-center gap-2 text-muted-foreground text-sm">
+              <Wallet className="h-4 w-4" /> Totali i Blerjeve
+            </div>
+            <p className="text-2xl font-bold" data-testid="text-total-purchases">{totalPurchaseAllJobs.toFixed(2)} €</p>
+            <p className="text-xs text-muted-foreground">{jobsWithSupplier.length} punë me furnitor</p>
+          </CardContent>
+        </Card>
+        <Card data-testid="card-total-profit">
+          <CardContent className="p-4 space-y-1">
+            <div className="flex items-center gap-2 text-muted-foreground text-sm">
+              <TrendingUp className="h-4 w-4" /> Fitimi Total
+            </div>
+            <p className={`text-2xl font-bold ${totalProfitAllJobs >= 0 ? "text-green-700 dark:text-green-400" : "text-red-500"}`} data-testid="text-total-profit">
+              {totalProfitAllJobs.toFixed(2)} €
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Marzhë: {totalSaleAllJobs > 0 ? ((totalProfitAllJobs / totalSaleAllJobs) * 100).toFixed(1) : 0}%
+            </p>
+          </CardContent>
+        </Card>
+        <Card data-testid="card-best-price-savings">
+          <CardContent className="p-4 space-y-1">
+            <div className="flex items-center gap-2 text-muted-foreground text-sm">
+              <PiggyBank className="h-4 w-4" /> Diferenca Max Çmimesh
+            </div>
+            <p className="text-2xl font-bold text-green-700 dark:text-green-400" data-testid="text-price-diff">{bestPriceSavings.toFixed(2)} €</p>
+            <p className="text-xs text-muted-foreground">{itemsWithMultiplePrices.length} produkte me çmime të ndryshme</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {Object.keys(supplierStats).length > 0 && (
+        <Card data-testid="card-supplier-breakdown">
+          <CardContent className="p-4 space-y-3">
+            <h3 className="font-semibold text-sm">Ndarja sipas Furnitorit</h3>
+            <div className="space-y-2">
+              {Object.entries(supplierStats)
+                .sort(([, a], [, b]) => b.totalPurchase - a.totalPurchase)
+                .map(([sid, stats]) => {
+                  const profit = stats.totalSale - stats.totalPurchase;
+                  return (
+                    <div key={sid} className="flex items-center justify-between text-sm gap-2 border-b pb-2 last:border-0" data-testid={`supplier-stats-${sid}`}>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium truncate">{stats.name}</p>
+                        <p className="text-xs text-muted-foreground">{stats.jobCount} punë</p>
+                      </div>
+                      <div className="text-right shrink-0 space-y-0.5">
+                        <p className="text-xs text-muted-foreground">Blerje: {stats.totalPurchase.toFixed(2)} €</p>
+                        <p className="text-xs text-muted-foreground">Shitje: {stats.totalSale.toFixed(2)} €</p>
+                        <p className={`text-xs font-medium ${profit >= 0 ? "text-green-700 dark:text-green-400" : "text-red-500"}`}>
+                          Fitim: {profit.toFixed(2)} €
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {itemsWithMultiplePrices.length > 0 && (
+        <Card data-testid="card-price-differences">
+          <CardContent className="p-4 space-y-3">
+            <h3 className="font-semibold text-sm">Produktet me diferencë çmimi mes furnitorëve</h3>
+            <div className="space-y-2">
+              {itemsWithMultiplePrices
+                .map(item => {
+                  const prices = supplierPrices.filter(sp => sp.catalogItemId === item.id).sort((a, b) => a.price - b.price);
+                  const cheapest = prices[0];
+                  const mostExpensive = prices[prices.length - 1];
+                  const cheapestSup = suppliers.find(s => s.id === cheapest.supplierId);
+                  const expensiveSup = suppliers.find(s => s.id === mostExpensive.supplierId);
+                  return { item, cheapest, mostExpensive, cheapestSup, expensiveSup, diff: mostExpensive.price - cheapest.price };
+                })
+                .sort((a, b) => b.diff - a.diff)
+                .map(({ item, cheapest, mostExpensive, cheapestSup, expensiveSup, diff }) => (
+                  <div key={item.id} className="flex items-center justify-between text-sm gap-2 border-b pb-2 last:border-0" data-testid={`price-diff-${item.id}`}>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium truncate">{item.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {cheapestSup?.name}: {cheapest.price.toFixed(2)} € — {expensiveSup?.name}: {mostExpensive.price.toFixed(2)} €
+                      </p>
+                    </div>
+                    <Badge variant="secondary" className="shrink-0 no-default-active-elevate" data-testid={`badge-diff-${item.id}`}>
+                      {diff.toFixed(2)} €
+                    </Badge>
+                  </div>
+                ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {jobs.length === 0 && (
+        <Card>
+          <CardContent className="p-6 text-center text-muted-foreground">
+            Asnjë punë nuk është krijuar ende. Krijoni punë për të parë përmbledhjen e kursimeve.
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
 function PriceComparisonView({ comparisonData, allSuppliers, catalogItems }: {
   comparisonData: any[];
   allSuppliers: Supplier[];
@@ -266,7 +457,7 @@ function PriceComparisonView({ comparisonData, allSuppliers, catalogItems }: {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [expandedItem, setExpandedItem] = useState<number | null>(null);
 
-  const categories = [...new Set(catalogItems.map(c => c.category))];
+  const categories = Array.from(new Set(catalogItems.map(c => c.category)));
 
   const filtered = comparisonData.filter(item => {
     const matchSearch = !searchComparison ||
