@@ -165,6 +165,184 @@ function PriceRow({ item, form, showCost, isAdmin }: { item: CatalogItem; form: 
   );
 }
 
+type BestPriceItem = { item: CatalogItem; price: number; supplierName: string; supplierId: number };
+type PriceComp = { item: CatalogItem; selectedPrice: number; cheapestPrice: number; cheapestSupplierName: string; isCheapest: boolean; diff: number };
+
+function SupplierComparisonField({ form, suppliers, supplierPrices: spData, catalog, category }: {
+  form: any;
+  suppliers: Supplier[];
+  supplierPrices: SupplierPrice[];
+  catalog: CatalogItem[];
+  category: string;
+}) {
+  const [mode, setMode] = useState<"single" | "best">("single");
+
+  const relevantCatalogItems = catalog.filter((c: CatalogItem) => {
+    if (category === "electric") return c.category === "Pajisje elektrike" || c.category === "Kabllo & Gypa" || c.category === "Punë/Shërbime";
+    if (category === "camera") return c.category === "Kamera" || c.category === "Kabllo & Gypa" || c.category === "Punë/Shërbime";
+    if (category === "alarm") return c.category === "Alarm" || c.category === "Kabllo & Gypa" || c.category === "Punë/Shërbime";
+    if (category === "intercom") return c.category === "Interfon" || c.category === "Kabllo & Gypa" || c.category === "Punë/Shërbime";
+    return true;
+  });
+
+  const selectedSupplierId = form.watch("supplierId");
+
+  const supplierPriceComparison: PriceComp[] = (mode === "single" && selectedSupplierId) ? relevantCatalogItems.map((item: CatalogItem) => {
+    const pricesForItem = spData.filter(sp => sp.catalogItemId === item.id);
+    const selectedPrice = pricesForItem.find(sp => sp.supplierId === selectedSupplierId);
+    if (!selectedPrice) return null;
+    const allPricesSorted = [...pricesForItem].sort((a, b) => a.price - b.price);
+    const cheapestPrice = allPricesSorted[0];
+    const cheapestSupplier = suppliers.find(s => s.id === cheapestPrice?.supplierId);
+    const isCheapest = cheapestPrice?.supplierId === selectedSupplierId;
+    return {
+      item,
+      selectedPrice: selectedPrice.price,
+      cheapestPrice: cheapestPrice?.price || 0,
+      cheapestSupplierName: cheapestSupplier?.name || "",
+      isCheapest,
+      diff: selectedPrice.price - (cheapestPrice?.price || 0),
+    };
+  }).filter((x: PriceComp | null): x is PriceComp => x !== null) : [];
+
+  const totalSelected = supplierPriceComparison.reduce((sum: number, c: PriceComp) => sum + c.selectedPrice, 0);
+  const totalCheapest = supplierPriceComparison.reduce((sum: number, c: PriceComp) => sum + c.cheapestPrice, 0);
+
+  const bestPriceList: BestPriceItem[] = mode === "best" ? relevantCatalogItems.map((item: CatalogItem) => {
+    const pricesForItem = [...spData.filter(sp => sp.catalogItemId === item.id)].sort((a, b) => a.price - b.price);
+    if (pricesForItem.length === 0) return null;
+    const best = pricesForItem[0];
+    const supplier = suppliers.find(s => s.id === best.supplierId);
+    return { item, price: best.price, supplierName: supplier?.name || "I panjohur", supplierId: best.supplierId };
+  }).filter((x: BestPriceItem | null): x is BestPriceItem => x !== null) : [];
+
+  const bestBySupplier: Record<string, BestPriceItem[]> = {};
+  bestPriceList.forEach(bp => {
+    if (!bestBySupplier[bp.supplierName]) bestBySupplier[bp.supplierName] = [];
+    bestBySupplier[bp.supplierName].push(bp);
+  });
+
+  const bestTotal = bestPriceList.reduce((s, bp) => s + bp.price, 0);
+  const worstTotal = relevantCatalogItems.reduce((s: number, item: CatalogItem) => {
+    const pricesForItem = spData.filter(sp => sp.catalogItemId === item.id);
+    if (pricesForItem.length === 0) return s;
+    return s + Math.max(...pricesForItem.map(p => p.price));
+  }, 0);
+
+  return (
+    <div className="space-y-2">
+      <FormField control={form.control} name="supplierId" render={({ field }) => (
+        <FormItem>
+          <FormLabel>Furnitori</FormLabel>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant={mode === "single" ? "default" : "outline"}
+              onClick={() => setMode("single")}
+              data-testid="button-mode-single"
+            >
+              Një furnitor
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={mode === "best" ? "default" : "outline"}
+              onClick={() => { setMode("best"); field.onChange(null); }}
+              data-testid="button-mode-best"
+            >
+              Çmimi më i mirë
+            </Button>
+          </div>
+          {mode === "single" && (
+            <Select
+              onValueChange={(val) => field.onChange(val === "none" ? null : parseInt(val))}
+              value={field.value ? String(field.value) : "none"}
+            >
+              <FormControl><SelectTrigger data-testid="select-supplier"><SelectValue placeholder="Zgjidhni furnitorin" /></SelectTrigger></FormControl>
+              <SelectContent>
+                <SelectItem value="none">Pa furnitor</SelectItem>
+                {suppliers.map(s => (
+                  <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          {mode === "single" && selectedSupplierId && supplierPriceComparison.length > 0 && (
+            <div className="mt-2 border rounded-md p-3 bg-muted/30 space-y-2">
+              <p className="text-xs font-medium text-muted-foreground">Krahasimi i çmimeve për këtë furnitor:</p>
+              <div className="space-y-1">
+                {supplierPriceComparison.map((c) => (
+                  <div key={c.item.id} className="flex items-center justify-between text-xs gap-2" data-testid={`supplier-price-row-${c.item.id}`}>
+                    <span className="truncate flex-1 min-w-0">{c.item.name}</span>
+                    <span className="font-medium shrink-0">{c.selectedPrice.toFixed(2)} €</span>
+                    {c.isCheapest ? (
+                      <Badge variant="default" className="text-[10px] shrink-0 no-default-active-elevate">Më i lirë</Badge>
+                    ) : (
+                      <span className="text-red-500 dark:text-red-400 shrink-0">+{c.diff.toFixed(2)} € (më lirë: {c.cheapestSupplierName})</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="border-t pt-2 mt-2 text-xs">
+                {totalSelected > totalCheapest ? (
+                  <>
+                    <span className="text-muted-foreground">Për çmim më të mirë, zgjidhni furnitorët e shënuar me të kuqe. Do të kursenit </span>
+                    <span className="font-semibold text-green-700 dark:text-green-400">{(totalSelected - totalCheapest).toFixed(2)} €</span>
+                  </>
+                ) : (
+                  <span className="text-green-700 dark:text-green-400 font-medium">
+                    Ky furnitor ka çmimet më të lira për të gjitha produktet! Kurseni {supplierPriceComparison.reduce((s: number, c: PriceComp) => {
+                      const others = spData.filter(sp => sp.catalogItemId === c.item.id && sp.supplierId !== selectedSupplierId);
+                      const maxOther = others.length > 0 ? Math.max(...others.map(o => o.price)) : c.selectedPrice;
+                      return s + (maxOther - c.selectedPrice);
+                    }, 0).toFixed(2)} € krahasuar me furnitorin më të shtrenjtë.
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+          {mode === "best" && bestPriceList.length > 0 && (
+            <div className="mt-2 border rounded-md p-3 bg-muted/30 space-y-3">
+              <p className="text-xs font-medium text-muted-foreground">Çmimet më të lira nga të gjithë furnitorët:</p>
+              {Object.entries(bestBySupplier).map(([supplierName, items]) => (
+                <div key={supplierName} className="space-y-1">
+                  <p className="text-xs font-semibold flex items-center gap-1">
+                    <ShoppingCart className="h-3 w-3" /> {supplierName}
+                  </p>
+                  {items.map(bp => (
+                    <div key={bp.item.id} className="flex items-center justify-between text-xs gap-2 pl-4" data-testid={`best-price-row-${bp.item.id}`}>
+                      <span className="truncate flex-1 min-w-0">{bp.item.name}</span>
+                      <span className="font-medium text-green-700 dark:text-green-400 shrink-0">{bp.price.toFixed(2)} €</span>
+                    </div>
+                  ))}
+                  <div className="pl-4 text-xs text-muted-foreground">
+                    Nëntotali: {items.reduce((s, bp) => s + bp.price, 0).toFixed(2)} €
+                  </div>
+                </div>
+              ))}
+              <div className="border-t pt-2 text-xs space-y-1">
+                <div className="flex justify-between font-medium">
+                  <span>Totali me çmimet më të lira:</span>
+                  <span className="text-green-700 dark:text-green-400">{bestTotal.toFixed(2)} €</span>
+                </div>
+                {worstTotal > bestTotal && (
+                  <div className="text-muted-foreground">
+                    Kurseni <span className="font-semibold text-green-700 dark:text-green-400">{(worstTotal - bestTotal).toFixed(2)} €</span> krahasuar me çmimet më të shtrenjta
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          {mode === "best" && bestPriceList.length === 0 && (
+            <p className="text-xs text-muted-foreground mt-1">Asnjë çmim furnitori nuk është vendosur ende.</p>
+          )}
+        </FormItem>
+      )} />
+    </div>
+  );
+}
+
 export function JobForm({ initialData, onSubmit, isPending, title, defaultCategory }: JobFormProps) {
   const { data: catalog } = useCatalog();
   const { toast } = useToast();
@@ -1119,89 +1297,13 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
                       </FormItem>
                     )}
                   </div>
-                  <FormField control={form.control} name="supplierId" render={({ field }) => {
-                    const selectedSupplierId = field.value;
-                    const relevantCatalogItems = catalog?.filter((c: CatalogItem) => {
-                      if (category === "electric") return c.category === "Pajisje elektrike" || c.category === "Kabllo & Gypa" || c.category === "Punë/Shërbime";
-                      if (category === "camera") return c.category === "Kamera" || c.category === "Kabllo & Gypa" || c.category === "Punë/Shërbime";
-                      if (category === "alarm") return c.category === "Alarm" || c.category === "Kabllo & Gypa" || c.category === "Punë/Shërbime";
-                      if (category === "intercom") return c.category === "Interfon" || c.category === "Kabllo & Gypa" || c.category === "Punë/Shërbime";
-                      return true;
-                    }) || [];
-
-                    type PriceComp = { item: CatalogItem; selectedPrice: number; cheapestPrice: number; cheapestSupplierName: string; isCheapest: boolean; diff: number };
-                    const supplierPriceComparison: PriceComp[] = selectedSupplierId ? relevantCatalogItems.map((item: CatalogItem) => {
-                      const pricesForItem = supplierPrices.filter(sp => sp.catalogItemId === item.id);
-                      const selectedPrice = pricesForItem.find(sp => sp.supplierId === selectedSupplierId);
-                      if (!selectedPrice) return null;
-                      const allPricesSorted = [...pricesForItem].sort((a, b) => a.price - b.price);
-                      const cheapestPrice = allPricesSorted[0];
-                      const cheapestSupplier = suppliers.find(s => s.id === cheapestPrice?.supplierId);
-                      const isCheapest = cheapestPrice?.supplierId === selectedSupplierId;
-                      return {
-                        item,
-                        selectedPrice: selectedPrice.price,
-                        cheapestPrice: cheapestPrice?.price || 0,
-                        cheapestSupplierName: cheapestSupplier?.name || "",
-                        isCheapest,
-                        diff: selectedPrice.price - (cheapestPrice?.price || 0),
-                      };
-                    }).filter((x: PriceComp | null): x is PriceComp => x !== null) : [];
-
-                    const totalSelected = supplierPriceComparison.reduce((sum: number, c: PriceComp) => sum + c.selectedPrice, 0);
-                    const totalCheapest = supplierPriceComparison.reduce((sum: number, c: PriceComp) => sum + c.cheapestPrice, 0);
-
-                    return (
-                    <FormItem>
-                      <FormLabel>Furnitori</FormLabel>
-                      <Select
-                        onValueChange={(val) => field.onChange(val === "none" ? null : parseInt(val))}
-                        value={field.value ? String(field.value) : "none"}
-                      >
-                        <FormControl><SelectTrigger data-testid="select-supplier"><SelectValue placeholder="Zgjidhni furnitorin" /></SelectTrigger></FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">Pa furnitor</SelectItem>
-                          {suppliers.map(s => (
-                            <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {selectedSupplierId && supplierPriceComparison.length > 0 && (
-                        <div className="mt-2 border rounded-md p-3 bg-muted/30 space-y-2">
-                          <p className="text-xs font-medium text-muted-foreground">Krahasimi i çmimeve për këtë furnitor:</p>
-                          <div className="space-y-1">
-                            {supplierPriceComparison.map((c) => c && (
-                              <div key={c.item.id} className="flex items-center justify-between text-xs gap-2" data-testid={`supplier-price-row-${c.item.id}`}>
-                                <span className="truncate flex-1 min-w-0">{c.item.name}</span>
-                                <span className="font-medium shrink-0">{c.selectedPrice.toFixed(2)} €</span>
-                                {c.isCheapest ? (
-                                  <Badge variant="default" className="text-[10px] shrink-0 no-default-active-elevate">Më i lirë</Badge>
-                                ) : (
-                                  <span className="text-red-500 dark:text-red-400 shrink-0">+{c.diff.toFixed(2)} € (më lirë: {c.cheapestSupplierName})</span>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                          <div className="border-t pt-2 mt-2 text-xs">
-                            {totalSelected > totalCheapest ? (
-                              <>
-                                <span className="text-muted-foreground">Për çmim më të mirë, zgjidhni furnitorët e shënuar me të kuqe. Do të kursenit </span>
-                                <span className="font-semibold text-green-700 dark:text-green-400">{(totalSelected - totalCheapest).toFixed(2)} €</span>
-                              </>
-                            ) : (
-                              <span className="text-green-700 dark:text-green-400 font-medium">
-                                Ky furnitor ka çmimet më të lira për të gjitha produktet! Kurseni {supplierPriceComparison.reduce((s: number, c: PriceComp) => {
-                                  const others = supplierPrices.filter(sp => sp.catalogItemId === c.item.id && sp.supplierId !== selectedSupplierId);
-                                  const maxOther = others.length > 0 ? Math.max(...others.map(o => o.price)) : c.selectedPrice;
-                                  return s + (maxOther - c.selectedPrice);
-                                }, 0).toFixed(2)} € krahasuar me furnitorin më të shtrenjtë.
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </FormItem>
-                  );}} />
+                  <SupplierComparisonField
+                    form={form}
+                    suppliers={suppliers}
+                    supplierPrices={supplierPrices}
+                    catalog={catalog || []}
+                    category={category}
+                  />
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <FormField control={form.control} name="discountType" render={({ field }) => (
                       <FormItem>
