@@ -22,7 +22,7 @@ import {
   Save, FileDown, ArrowLeft, Loader2, Banknote, Camera, PhoneCall,
   Package, Info, Settings, ShieldAlert, Wrench, CheckCircle2, AlertTriangle, Zap, Phone,
   ChevronDown, ShoppingCart, FileText, Eye, EyeOff, Percent, Hash, Tag,
-  MapPin, Send, FileSignature, CalendarDays
+  MapPin, Send, FileSignature, CalendarDays, Star, MessageSquare
 } from "lucide-react";
 import { Link } from "wouter";
 import { useCatalog } from "@/hooks/use-catalog";
@@ -340,6 +340,85 @@ function SupplierComparisonField({ form, suppliers, supplierPrices: spData, cata
         </FormItem>
       )} />
     </div>
+  );
+}
+
+function FeedbackSection({ jobId }: { jobId: number }) {
+  const { toast } = useToast();
+  const { data: feedbackList, isLoading } = useQuery<any[]>({ queryKey: ['/api/feedback', jobId] });
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState("");
+
+  const submitFeedback = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/feedback", { jobId, rating, comment });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/feedback', jobId] });
+      setComment("");
+      toast({ title: "Vlerësimi u ruajt me sukses!" });
+    },
+  });
+
+  const deleteFeedback = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest("DELETE", `/api/feedback/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/feedback', jobId] });
+      toast({ title: "Vlerësimi u fshi" });
+    },
+  });
+
+  const existingFeedback = feedbackList && feedbackList.length > 0 ? feedbackList[0] : null;
+
+  return (
+    <Card className="mt-4">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <MessageSquare className="w-4 h-4" />
+          Vlerësimi i Klientit
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {existingFeedback ? (
+          <div className="space-y-2">
+            <div className="flex items-center gap-1">
+              {[1, 2, 3, 4, 5].map(s => (
+                <Star key={s} className={`w-5 h-5 ${s <= existingFeedback.rating ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'}`} />
+              ))}
+              <span className="text-sm text-muted-foreground ml-2">{existingFeedback.rating}/5</span>
+            </div>
+            {existingFeedback.comment && <p className="text-sm text-muted-foreground">{existingFeedback.comment}</p>}
+            <Button variant="ghost" size="sm" onClick={() => deleteFeedback.mutate(existingFeedback.id)} data-testid="button-delete-feedback">
+              Fshi vlerësimin
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="flex items-center gap-1">
+              {[1, 2, 3, 4, 5].map(s => (
+                <button key={s} type="button" onClick={() => setRating(s)} data-testid={`button-star-${s}`}>
+                  <Star className={`w-6 h-6 cursor-pointer transition-colors ${s <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground hover:text-yellow-300'}`} />
+                </button>
+              ))}
+            </div>
+            <Textarea
+              placeholder="Komenti i klientit (opsionale)..."
+              value={comment}
+              onChange={e => setComment(e.target.value)}
+              className="resize-none"
+              data-testid="input-feedback-comment"
+            />
+            <Button onClick={() => submitFeedback.mutate()} disabled={submitFeedback.isPending} data-testid="button-submit-feedback">
+              {submitFeedback.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Star className="w-4 h-4 mr-2" />}
+              Ruaj Vlerësimin
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
