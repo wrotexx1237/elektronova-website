@@ -16,13 +16,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import {
   Save, FileDown, ArrowLeft, Loader2, Banknote, Camera, PhoneCall,
   Package, Info, Settings, ShieldAlert, Wrench, CheckCircle2, AlertTriangle, Zap, Phone,
   ChevronDown, ShoppingCart, FileText, Eye, EyeOff, Percent, Hash, Tag,
-  MapPin, Send, FileSignature, CalendarDays, Star, MessageSquare, Link2, Copy, ExternalLink
+  MapPin, Send, FileSignature, CalendarDays, Star, MessageSquare, Link2, Copy, ExternalLink,
+  Award, ClipboardList, FileCheck
 } from "lucide-react";
 import { Link } from "wouter";
 import { useCatalog } from "@/hooks/use-catalog";
@@ -993,6 +994,449 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
     toast({ title: "Kontrata u gjenerua me sukses!" });
   };
 
+  const generateWarrantyPDF = () => {
+    const data = form.getValues();
+    const items = getAllItemsWithQty();
+    const tc: [number, number, number] = [41, 128, 185];
+    const doc = new jsPDF();
+    const pageW = doc.internal.pageSize.width;
+    const pageH = doc.internal.pageSize.height;
+    const m = 14;
+    const colMid = pageW / 2;
+    const cW = pageW - 2 * m;
+
+    addPDFHeader(doc);
+
+    doc.setFontSize(16); doc.setTextColor(0); doc.setFont("helvetica", "bold");
+    doc.text("CERTIFIKATE GARANCIE", colMid, 38, { align: "center" });
+    doc.setFontSize(8); doc.setTextColor(100); doc.setFont("helvetica", "normal");
+    doc.text(`Nr. ${initialData?.invoiceNumber || "___"}  |  Leshuar me: ${data.workDate}`, colMid, 44, { align: "center" });
+
+    let y = 52;
+
+    doc.setFillColor(245, 248, 252);
+    doc.roundedRect(m, y - 3, cW, 32, 2, 2, 'F');
+    doc.setDrawColor(tc[0], tc[1], tc[2]); doc.setLineWidth(0.3);
+    doc.roundedRect(m, y - 3, cW, 32, 2, 2, 'S');
+
+    doc.setFontSize(9); doc.setTextColor(tc[0], tc[1], tc[2]); doc.setFont("helvetica", "bold");
+    doc.text("TE DHENAT E KLIENTIT", m + 4, y + 2);
+    doc.setFontSize(9); doc.setTextColor(0); doc.setFont("helvetica", "normal");
+    doc.text(`Klienti: ${data.clientName}`, m + 4, y + 9);
+    doc.text(`Adresa: ${data.clientAddress || "-"}`, m + 4, y + 15);
+    doc.text(`Tel: ${data.clientPhone || "-"}`, m + 4, y + 21);
+    doc.text(`Kategoria: ${JOB_CATEGORY_LABELS[category] || category}`, pageW / 2 + 10, y + 9);
+    doc.text(`Lloji: ${data.workType}`, pageW / 2 + 10, y + 15);
+    doc.text(`Data e Punes: ${data.workDate}`, pageW / 2 + 10, y + 21);
+
+    y += 38;
+
+    const warrantyMonths = data.warrantyMonths || 12;
+    const startDate = data.completedDate || data.workDate;
+    let endDate = "___";
+    try {
+      const d = new Date(startDate);
+      d.setMonth(d.getMonth() + warrantyMonths);
+      endDate = d.toISOString().split("T")[0];
+    } catch {}
+
+    doc.setFillColor(41, 128, 185);
+    doc.roundedRect(m, y - 3, cW, 22, 2, 2, 'F');
+    doc.setFontSize(11); doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold");
+    doc.text("PERIUDHA E GARANCISE", colMid, y + 4, { align: "center" });
+    doc.setFontSize(14);
+    doc.text(`${warrantyMonths} MUAJ`, colMid, y + 13, { align: "center" });
+
+    y += 26;
+    doc.setFontSize(9); doc.setTextColor(0); doc.setFont("helvetica", "normal");
+    doc.text(`Fillimi: ${startDate}`, m + 20, y + 3);
+    doc.text(`Perfundimi: ${endDate}`, pageW / 2 + 20, y + 3);
+
+    y += 12;
+
+    if (items.length > 0) {
+      doc.setFontSize(9); doc.setTextColor(tc[0], tc[1], tc[2]); doc.setFont("helvetica", "bold");
+      doc.text("MATERIALET E MBULUARA NGA GARANCIA", m, y);
+      y += 3;
+
+      let nr = 1;
+      const body = items.map(i => [(nr++).toString(), i.name, i.unit, i.qty.toString()]);
+
+      autoTable(doc, {
+        startY: y,
+        head: [["Nr.", "Artikulli", "Njesia", "Sasia"]],
+        body,
+        theme: 'striped',
+        headStyles: { fillColor: tc, fontSize: 8, fontStyle: 'bold' },
+        styles: { fontSize: 7.5, cellPadding: 2.5 },
+        alternateRowStyles: { fillColor: [245, 249, 252] },
+        columnStyles: { 0: { cellWidth: 12, halign: 'center' }, 1: { cellWidth: 100 }, 2: { cellWidth: 25, halign: 'center' }, 3: { cellWidth: 20, halign: 'center' } },
+      });
+
+      y = (doc as any).lastAutoTable?.finalY ? (doc as any).lastAutoTable.finalY + 8 : y + 30;
+    }
+
+    if (y > pageH - 80) { doc.addPage(); y = 20; }
+
+    doc.setFontSize(8); doc.setTextColor(tc[0], tc[1], tc[2]); doc.setFont("helvetica", "bold");
+    doc.text("KUSHTET E GARANCISE", m, y);
+    y += 5;
+    doc.setFontSize(7); doc.setTextColor(40); doc.setFont("helvetica", "normal");
+    const terms = [
+      "1. Garancia mbulon defektet ne materiale dhe ne cilesine e punes se kryer.",
+      "2. Garancia nuk aplikohet per demtime te shkaktuara nga perdorimi i gabuar.",
+      "3. Garancia nuk mbulon nderhyrjet e personave te paautorizuar ne sistem.",
+      "4. Garancia nuk aplikohet per demtime nga fatkeqesite natyrore.",
+      "5. Per te aktivizuar garancine, klienti duhet te kontaktoje Elektronova brenda periudhes.",
+      "6. Riparimi ose zevendesimi behet brenda 7 diteve pune nga njoftimi.",
+    ];
+    terms.forEach(t => { doc.text(t, m, y); y += 4; });
+
+    const signY = pageH - 30;
+    doc.setDrawColor(120); doc.setLineWidth(0.3);
+    doc.line(m, signY + 8, m + 72, signY + 8);
+    doc.line(colMid + 15, signY + 8, colMid + 87, signY + 8);
+    doc.setFontSize(7); doc.setTextColor(80);
+    doc.text("Nenshkrimi i Klientit", m + 18, signY + 12);
+    doc.text("ELEKTRONOVA (Garanti)", colMid + 28, signY + 12);
+
+    doc.setDrawColor(200); doc.setLineWidth(0.2);
+    doc.line(m, pageH - 12, pageW - m, pageH - 12);
+    doc.setFontSize(5.5); doc.setTextColor(140);
+    doc.text("ELEKTRONOVA | Sherbime Elektrike & Siguri | Tel: +383 49 771 673 / +383 49 205 271", m, pageH - 8);
+    doc.text(`Certifikate Garancie Nr. ${initialData?.invoiceNumber || "___"}`, pageW - m, pageH - 8, { align: "right" });
+
+    doc.save(`Elektronova_Garanci_${(data.clientName || "").replace(/\s/g, '_')}_${data.workDate}.pdf`);
+    toast({ title: "Certifikata e Garancise u gjenerua!" });
+  };
+
+  const generateWorkReportPDF = () => {
+    const data = form.getValues();
+    const items = getAllItemsWithQty();
+    const { totalSale, totalPurchase, discountAmount, subtotalSale } = calculateTotals();
+    const tc: [number, number, number] = [41, 128, 185];
+    const doc = new jsPDF();
+    const pageW = doc.internal.pageSize.width;
+    const pageH = doc.internal.pageSize.height;
+    const m = 14;
+    const colMid = pageW / 2;
+    const cW = pageW - 2 * m;
+
+    addPDFHeader(doc);
+
+    doc.setFontSize(14); doc.setTextColor(0); doc.setFont("helvetica", "bold");
+    doc.text("RAPORT PUNE / PROCESVERBAL DOREZIMI", colMid, 38, { align: "center" });
+    doc.setFontSize(8); doc.setTextColor(100); doc.setFont("helvetica", "normal");
+    doc.text(`Nr. ${initialData?.invoiceNumber || "___"}  |  Data: ${data.workDate}`, colMid, 44, { align: "center" });
+
+    let y = 52;
+    doc.setFillColor(245, 248, 252);
+    doc.roundedRect(m, y - 3, cW / 2 - 2, 28, 2, 2, 'F');
+    doc.setDrawColor(tc[0], tc[1], tc[2]); doc.setLineWidth(0.2);
+    doc.roundedRect(m, y - 3, cW / 2 - 2, 28, 2, 2, 'S');
+
+    doc.setFontSize(8); doc.setTextColor(tc[0], tc[1], tc[2]); doc.setFont("helvetica", "bold");
+    doc.text("KLIENTI", m + 3, y + 2);
+    doc.setFontSize(8); doc.setTextColor(0); doc.setFont("helvetica", "normal");
+    doc.text(`${data.clientName}`, m + 3, y + 8);
+    doc.text(`${data.clientAddress || "-"}`, m + 3, y + 14);
+    doc.text(`Tel: ${data.clientPhone || "-"}`, m + 3, y + 20);
+
+    const rightX = colMid + 2;
+    doc.setFillColor(245, 248, 252);
+    doc.roundedRect(rightX, y - 3, cW / 2 - 2, 28, 2, 2, 'F');
+    doc.setDrawColor(tc[0], tc[1], tc[2]);
+    doc.roundedRect(rightX, y - 3, cW / 2 - 2, 28, 2, 2, 'S');
+
+    doc.setFontSize(8); doc.setTextColor(tc[0], tc[1], tc[2]); doc.setFont("helvetica", "bold");
+    doc.text("DETAJET E PUNES", rightX + 3, y + 2);
+    doc.setFontSize(8); doc.setTextColor(0); doc.setFont("helvetica", "normal");
+    doc.text(`Kategoria: ${JOB_CATEGORY_LABELS[category] || category}`, rightX + 3, y + 8);
+    doc.text(`Lloji: ${data.workType}`, rightX + 3, y + 14);
+    doc.text(`Statusi: ${JOB_STATUS_LABELS[(data.status || "oferte") as JobStatus] || data.status}`, rightX + 3, y + 20);
+
+    y += 34;
+
+    if (items.length > 0) {
+      doc.setFontSize(9); doc.setTextColor(tc[0], tc[1], tc[2]); doc.setFont("helvetica", "bold");
+      doc.text("MATERIALET E PERDORURA", m, y);
+      y += 3;
+
+      let nr = 1;
+      const body = items.map(i => [
+        (nr++).toString(), i.name, i.unit, i.qty.toString(),
+        i.salePrice > 0 ? i.salePrice.toFixed(2) : "-",
+        (i.qty * i.salePrice) > 0 ? (i.qty * i.salePrice).toFixed(2) : "-",
+      ]);
+
+      autoTable(doc, {
+        startY: y,
+        head: [["Nr.", "Pershkrimi", "Njesia", "Sasia", "Cmimi", "Totali"]],
+        body,
+        theme: 'striped',
+        headStyles: { fillColor: tc, fontSize: 8, fontStyle: 'bold' },
+        styles: { fontSize: 7.5, cellPadding: 2.5 },
+        alternateRowStyles: { fillColor: [245, 249, 252] },
+        columnStyles: {
+          0: { cellWidth: 10, halign: 'center' }, 1: { cellWidth: 65 },
+          2: { cellWidth: 18, halign: 'center' }, 3: { cellWidth: 15, halign: 'center' },
+          4: { cellWidth: 25, halign: 'right' }, 5: { cellWidth: 25, halign: 'right', fontStyle: 'bold' },
+        },
+      });
+
+      y = (doc as any).lastAutoTable?.finalY ? (doc as any).lastAutoTable.finalY + 8 : y + 30;
+    }
+
+    doc.setDrawColor(tc[0], tc[1], tc[2]); doc.setLineWidth(0.3);
+    doc.line(pageW - 75, y, pageW - m, y);
+    y += 5;
+
+    if (discountAmount > 0) {
+      doc.setFontSize(9); doc.setTextColor(80); doc.setFont("helvetica", "normal");
+      doc.text(`Nentotali: ${subtotalSale.toFixed(2)} EUR`, pageW - m, y, { align: "right" });
+      y += 5;
+      doc.setTextColor(220, 50, 50);
+      doc.text(`Zbritja: -${discountAmount.toFixed(2)} EUR`, pageW - m, y, { align: "right" });
+      y += 5;
+    }
+    const vatRate = data.vatRate || 0;
+    if (vatRate > 0) {
+      const vatAmount = totalSale * (vatRate / 100);
+      const totalWithVat = totalSale + vatAmount;
+      doc.setFontSize(9); doc.setTextColor(80); doc.setFont("helvetica", "normal");
+      doc.text(`Totali pa TVSH: ${totalSale.toFixed(2)} EUR`, pageW - m, y, { align: "right" }); y += 5;
+      doc.text(`TVSH (${vatRate}%): ${vatAmount.toFixed(2)} EUR`, pageW - m, y, { align: "right" }); y += 5;
+      doc.setFontSize(11); doc.setTextColor(0); doc.setFont("helvetica", "bold");
+      doc.text(`TOTALI: ${totalWithVat.toFixed(2)} EUR`, pageW - m, y, { align: "right" });
+    } else {
+      doc.setFontSize(11); doc.setTextColor(0); doc.setFont("helvetica", "bold");
+      doc.text(`TOTALI: ${totalSale.toFixed(2)} EUR`, pageW - m, y, { align: "right" });
+    }
+
+    y += 10;
+    if (y > pageH - 80) { doc.addPage(); y = 20; }
+
+    const checklists = [
+      ...(category === "electric" ? CHECKLIST_ELEKTRIKE : []),
+      ...(category === "camera" ? CHECKLIST_KAMERA : []),
+      ...(category === "alarm" ? CHECKLIST_ALARM : []),
+      ...(category === "intercom" ? CHECKLIST_INTERFON : []),
+      ...CHECKLIST_FINAL,
+    ];
+
+    if (checklists.length > 0) {
+      doc.setFontSize(9); doc.setTextColor(tc[0], tc[1], tc[2]); doc.setFont("helvetica", "bold");
+      doc.text("KONTROLLET E KRYERA", m, y);
+      y += 3;
+
+      const checkData = data.checklistData || {};
+      const checkBody = checklists.map(item => [
+        checkData[item] ? "OK" : "X",
+        item,
+      ]);
+
+      autoTable(doc, {
+        startY: y,
+        head: [["Status", "Kontrolli"]],
+        body: checkBody,
+        theme: 'striped',
+        headStyles: { fillColor: tc, fontSize: 8, fontStyle: 'bold' },
+        styles: { fontSize: 7, cellPadding: 2 },
+        columnStyles: {
+          0: { cellWidth: 15, halign: 'center', fontStyle: 'bold' },
+          1: { cellWidth: 140 },
+        },
+        didParseCell: (hookData: any) => {
+          if (hookData.section === 'body' && hookData.column.index === 0) {
+            if (hookData.cell.raw === "OK") {
+              hookData.cell.styles.textColor = [39, 174, 96];
+            } else {
+              hookData.cell.styles.textColor = [231, 76, 60];
+            }
+          }
+        },
+      });
+
+      y = (doc as any).lastAutoTable?.finalY ? (doc as any).lastAutoTable.finalY + 8 : y + 20;
+    }
+
+    if (data.notes) {
+      if (y > pageH - 50) { doc.addPage(); y = 20; }
+      doc.setFillColor(245, 248, 252);
+      doc.roundedRect(m, y - 2, cW, 20, 2, 2, 'F');
+      doc.setDrawColor(tc[0], tc[1], tc[2]); doc.setLineWidth(0.2);
+      doc.roundedRect(m, y - 2, cW, 20, 2, 2, 'S');
+      doc.setFontSize(7); doc.setFont("helvetica", "bold"); doc.setTextColor(tc[0], tc[1], tc[2]);
+      doc.text("SHENIME:", m + 3, y + 3);
+      doc.setFont("helvetica", "normal"); doc.setTextColor(60); doc.setFontSize(7);
+      const splitNotes = doc.splitTextToSize(data.notes, cW - 8);
+      doc.text(splitNotes, m + 3, y + 8);
+    }
+
+    addSignatures(doc);
+
+    const totalPages = doc.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      addPDFFooter(doc, i, totalPages);
+    }
+
+    doc.save(`Elektronova_RaportPune_${(data.clientName || "").replace(/\s/g, '_')}_${data.workDate}.pdf`);
+    toast({ title: "Raporti i Punes u gjenerua!" });
+  };
+
+  const generateDetailedQuotePDF = () => {
+    const data = form.getValues();
+    const items = getAllItemsWithQty();
+    const { subtotalSale, totalSale, discountAmount } = calculateTotals();
+    const tc: [number, number, number] = [41, 128, 185];
+    const doc = new jsPDF();
+    const pageW = doc.internal.pageSize.width;
+    const pageH = doc.internal.pageSize.height;
+    const m = 14;
+    const colMid = pageW / 2;
+    const cW = pageW - 2 * m;
+
+    addPDFHeader(doc);
+
+    doc.setFontSize(16); doc.setTextColor(0); doc.setFont("helvetica", "bold");
+    doc.text("PREVENTIV / OFERTE", colMid, 38, { align: "center" });
+    doc.setFontSize(8); doc.setTextColor(100); doc.setFont("helvetica", "normal");
+    doc.text(`Nr. ${initialData?.invoiceNumber || "___"}  |  Data: ${data.workDate}`, colMid, 44, { align: "center" });
+
+    let y = 52;
+
+    doc.setFillColor(245, 248, 252);
+    doc.roundedRect(m, y - 3, cW / 2 - 2, 28, 2, 2, 'F');
+    doc.setDrawColor(tc[0], tc[1], tc[2]); doc.setLineWidth(0.2);
+    doc.roundedRect(m, y - 3, cW / 2 - 2, 28, 2, 2, 'S');
+
+    doc.setFontSize(8); doc.setTextColor(tc[0], tc[1], tc[2]); doc.setFont("helvetica", "bold");
+    doc.text("PER:", m + 3, y + 2);
+    doc.setFontSize(9); doc.setTextColor(0); doc.setFont("helvetica", "normal");
+    doc.text(`${data.clientName}`, m + 3, y + 8);
+    doc.text(`${data.clientAddress || "-"}`, m + 3, y + 14);
+    doc.text(`Tel: ${data.clientPhone || "-"}`, m + 3, y + 20);
+
+    const rightX = colMid + 2;
+    doc.setFillColor(245, 248, 252);
+    doc.roundedRect(rightX, y - 3, cW / 2 - 2, 28, 2, 2, 'F');
+    doc.setDrawColor(tc[0], tc[1], tc[2]);
+    doc.roundedRect(rightX, y - 3, cW / 2 - 2, 28, 2, 2, 'S');
+
+    doc.setFontSize(8); doc.setTextColor(tc[0], tc[1], tc[2]); doc.setFont("helvetica", "bold");
+    doc.text("NGA:", rightX + 3, y + 2);
+    doc.setFontSize(9); doc.setTextColor(0); doc.setFont("helvetica", "normal");
+    doc.text("ELEKTRONOVA", rightX + 3, y + 8);
+    doc.text("Sherbime Elektrike & Siguri", rightX + 3, y + 14);
+    doc.text("Tel: +383 49 771 673", rightX + 3, y + 20);
+
+    y += 34;
+
+    doc.setFontSize(9); doc.setTextColor(tc[0], tc[1], tc[2]); doc.setFont("helvetica", "bold");
+    doc.text("PERSHKRIMI I PUNIMEVE", m, y);
+    y += 5;
+    doc.setFontSize(8); doc.setTextColor(0); doc.setFont("helvetica", "normal");
+    doc.text(`Kategoria: ${JOB_CATEGORY_LABELS[category] || category}`, m, y);
+    doc.text(`Lloji i Punes: ${data.workType}`, pageW / 2, y);
+    y += 8;
+
+    if (items.length > 0) {
+      let nr = 1;
+      const body = items.map(i => [
+        (nr++).toString(), i.name, i.unit, i.qty.toString(),
+        i.salePrice > 0 ? i.salePrice.toFixed(2) : "-",
+        (i.qty * i.salePrice) > 0 ? (i.qty * i.salePrice).toFixed(2) : "-",
+      ]);
+
+      autoTable(doc, {
+        startY: y,
+        head: [["Nr.", "Pershkrimi i Artikullit", "Njesia", "Sasia", "Cmimi (EUR)", "Totali (EUR)"]],
+        body,
+        theme: 'striped',
+        headStyles: { fillColor: tc, fontSize: 8, fontStyle: 'bold' },
+        styles: { fontSize: 7.5, cellPadding: 2.5 },
+        alternateRowStyles: { fillColor: [245, 249, 252] },
+        columnStyles: {
+          0: { cellWidth: 10, halign: 'center' }, 1: { cellWidth: 65 },
+          2: { cellWidth: 18, halign: 'center' }, 3: { cellWidth: 15, halign: 'center' },
+          4: { cellWidth: 25, halign: 'right' }, 5: { cellWidth: 25, halign: 'right', fontStyle: 'bold' },
+        },
+      });
+
+      y = (doc as any).lastAutoTable?.finalY ? (doc as any).lastAutoTable.finalY + 8 : y + 30;
+    }
+
+    doc.setDrawColor(tc[0], tc[1], tc[2]); doc.setLineWidth(0.3);
+    doc.line(pageW - 75, y, pageW - m, y);
+    y += 6;
+
+    if (discountAmount > 0) {
+      doc.setFontSize(9); doc.setTextColor(80); doc.setFont("helvetica", "normal");
+      doc.text(`Nentotali: ${subtotalSale.toFixed(2)} EUR`, pageW - m, y, { align: "right" }); y += 5;
+      const discLabel = (data.discountType || "percent") === "percent" ? `Zbritja (${data.discountValue || 0}%):` : "Zbritja:";
+      doc.setTextColor(220, 50, 50);
+      doc.text(`${discLabel} -${discountAmount.toFixed(2)} EUR`, pageW - m, y, { align: "right" }); y += 5;
+    }
+    const vatRate = data.vatRate || 0;
+    if (vatRate > 0) {
+      const vatAmount = totalSale * (vatRate / 100);
+      const totalWithVat = totalSale + vatAmount;
+      doc.setFontSize(9); doc.setTextColor(80); doc.setFont("helvetica", "normal");
+      doc.text(`Totali pa TVSH: ${totalSale.toFixed(2)} EUR`, pageW - m, y, { align: "right" }); y += 5;
+      doc.text(`TVSH (${vatRate}%): ${vatAmount.toFixed(2)} EUR`, pageW - m, y, { align: "right" }); y += 5;
+      doc.setFontSize(12); doc.setTextColor(0); doc.setFont("helvetica", "bold");
+      doc.text(`TOTALI me TVSH: ${totalWithVat.toFixed(2)} EUR`, pageW - m, y, { align: "right" });
+    } else {
+      doc.setFontSize(12); doc.setTextColor(0); doc.setFont("helvetica", "bold");
+      doc.text(`TOTALI: ${totalSale.toFixed(2)} EUR`, pageW - m, y, { align: "right" });
+    }
+    y += 8;
+
+    if (y > pageH - 75) { doc.addPage(); y = 20; }
+
+    doc.setFillColor(245, 248, 252);
+    doc.roundedRect(m, y, cW, 42, 2, 2, 'F');
+    doc.setDrawColor(tc[0], tc[1], tc[2]); doc.setLineWidth(0.2);
+    doc.roundedRect(m, y, cW, 42, 2, 2, 'S');
+
+    doc.setFontSize(8); doc.setTextColor(tc[0], tc[1], tc[2]); doc.setFont("helvetica", "bold");
+    doc.text("KUSHTET E OFERTES", m + 3, y + 5);
+    doc.setFontSize(7); doc.setTextColor(40); doc.setFont("helvetica", "normal");
+    const conditions = [
+      "1. Kjo oferte eshte e vlefshme per 30 (tridhjete) dite nga data e leshimit.",
+      "2. Cmimet perfshijne furnizimin, transportin dhe instalimin e materialeve.",
+      "3. Pagesa realizohet: 50% parapagim para fillimit dhe 50% pas perfundimit te punimeve.",
+      "4. Pagesa mund te behet me para ne dore ose transfer bankar.",
+      "5. Punimet fillojne brenda 3-5 diteve pune pas konfirmimit te ofertes dhe parapagimit.",
+      "6. Garancia: " + (data.warrantyMonths || 12) + " muaj per materialet dhe punimet.",
+      "7. Ndryshimet ne projekt pas fillimit te punimeve mund te sjellin kosto shtese.",
+    ];
+    conditions.forEach((c, idx) => {
+      doc.text(c, m + 3, y + 11 + idx * 4);
+    });
+
+    if (data.notes) {
+      y += 48;
+      doc.setFontSize(7); doc.setFont("helvetica", "bold"); doc.setTextColor(tc[0], tc[1], tc[2]);
+      doc.text("SHENIME SHTESE:", m, y);
+      doc.setFont("helvetica", "normal"); doc.setTextColor(60); doc.setFontSize(7);
+      const splitNotes = doc.splitTextToSize(data.notes, cW);
+      doc.text(splitNotes, m, y + 5);
+    }
+
+    addSignatures(doc);
+
+    const totalPages = doc.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      addPDFFooter(doc, i, totalPages);
+    }
+
+    doc.save(`Elektronova_Preventiv_${(data.clientName || "").replace(/\s/g, '_')}_${data.workDate}.pdf`);
+    toast({ title: "Preventivi/Oferta u gjenerua!" });
+  };
+
   const updateRoomQty = (itemName: string, room: string, val: number) => {
     const cur = form.getValues("table1Data") || {};
     const rowData = { ...(cur[itemName] || {}) };
@@ -1331,6 +1775,16 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
               </DropdownMenuItem>
               <DropdownMenuItem onClick={generateContractPDF} data-testid="button-pdf-contract">
                 <FileSignature className="mr-2 w-4 h-4" /> Kontrate Pune
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={generateWarrantyPDF} data-testid="button-pdf-warranty">
+                <Award className="mr-2 w-4 h-4" /> Certifikate Garancie
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={generateWorkReportPDF} data-testid="button-pdf-report">
+                <ClipboardList className="mr-2 w-4 h-4" /> Raport Pune (Dorezimi)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={generateDetailedQuotePDF} data-testid="button-pdf-quote">
+                <FileCheck className="mr-2 w-4 h-4" /> Preventiv / Oferte Detajuar
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
