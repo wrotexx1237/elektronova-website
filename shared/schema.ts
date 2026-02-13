@@ -437,6 +437,7 @@ export const jobs = pgTable("jobs", {
   prices: jsonb("prices").$type<Record<string, number>>().notNull().default({}),
   purchasePrices: jsonb("purchase_prices").$type<Record<string, number>>().notNull().default({}),
   checklistData: jsonb("checklist_data").$type<Record<string, boolean>>().notNull().default({}),
+  roomProgressData: jsonb("room_progress_data").$type<Record<string, Record<string, boolean>>>().notNull().default({}),
 
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -479,6 +480,7 @@ export const insertJobSchema = z.object({
   prices: z.record(z.string(), z.coerce.number().default(0)).optional().default({}),
   purchasePrices: z.record(z.string(), z.coerce.number().default(0)).optional().default({}),
   checklistData: z.record(z.string(), z.boolean()).optional().default({}),
+  roomProgressData: z.record(z.string(), z.record(z.string(), z.boolean())).optional().default({}),
 });
 
 export type Job = typeof jobs.$inferSelect;
