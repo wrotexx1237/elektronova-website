@@ -25,7 +25,10 @@ Key features:
 - **Client Management (CRM)**: Client CRUD, job history per client, search, auto-suggest
 - **Inventory/Stock Management**: Stock in/out/adjustment tracking, low stock warnings, per-item history
 - **Advanced Analytics**: Seasonal analysis, trend predictions, category breakdown, monthly/yearly filtering
-- **Notification System**: Bell icon with unread count, stale offer detection, upcoming work reminders, low stock alerts, warranty expiration alerts, monthly summary
+- **Notification System**: Bell icon with unread count, stale offer detection, upcoming work reminders, low stock alerts, warranty expiration alerts, payment overdue reminders (7/14/30 days), feedback follow-up reminders (3 days after completion), progress 100% alerts, monthly summary
+- **Payment Overdue Notifications**: Auto-alerts at 7, 14, and 30 days when completed jobs remain unpaid
+- **Feedback Follow-up Reminders**: Auto-reminder 3 days after job completion to send rating link to client
+- **Scheduling Conflict Warning**: Shows warning in job form when selected date has other jobs already scheduled
 - **Auto-Expense on Job Completion**: Automatically creates material expense linked to supplier when job status changes to completed
 - **Stock Warnings in Job Form**: Collapsible warning section showing items at or below minimum stock level
 - **Auto Tool Suggestions**: Automatically shows required tools (Dana, Hilti, Shafciger, Qekiq, etc.) based on materials added to a job, with keyword and category matching

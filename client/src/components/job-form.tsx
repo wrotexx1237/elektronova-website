@@ -589,6 +589,17 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
   const tabVis = getTabsForCategory(category);
   const CatIcon = CATEGORY_ICON_MAP[category] || Zap;
 
+  const [scheduleConflicts, setScheduleConflicts] = useState<{ id: number; invoiceNumber: string; clientName: string; workType: string; category: string }[]>([]);
+  const watchedDate = form.watch("workDate");
+  useEffect(() => {
+    if (!watchedDate) { setScheduleConflicts([]); return; }
+    const excludeId = initialData?.id || "";
+    fetch(`/api/jobs/conflicts?date=${watchedDate}&excludeId=${excludeId}`)
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data)) setScheduleConflicts(data); })
+      .catch(() => setScheduleConflicts([]));
+  }, [watchedDate]);
+
   const grouped = (catalog || []).reduce((acc: Record<string, CatalogItem[]>, item: CatalogItem) => {
     if (!acc[item.category]) acc[item.category] = [];
     acc[item.category].push(item);
@@ -2095,7 +2106,21 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
                   )} />
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <FormField control={form.control} name="workDate" render={({ field }) => (
-                      <FormItem><FormLabel>Data e Punës</FormLabel><FormControl><Input type="date" {...field} data-testid="input-work-date" /></FormControl></FormItem>
+                      <FormItem>
+                        <FormLabel>Data e Punës</FormLabel>
+                        <FormControl><Input type="date" {...field} data-testid="input-work-date" /></FormControl>
+                        {scheduleConflicts.length > 0 && (
+                          <div className="flex items-start gap-2 p-2 rounded-md bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 mt-1" data-testid="text-schedule-conflict">
+                            <AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                            <div className="text-xs text-amber-800 dark:text-amber-200">
+                              <p className="font-medium">Keni {scheduleConflicts.length} punë tjera këtë ditë:</p>
+                              {scheduleConflicts.map(c => (
+                                <p key={c.id} className="mt-0.5">{c.invoiceNumber} - {c.clientName} ({c.workType})</p>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </FormItem>
                     )} />
                     <FormField control={form.control} name="scheduledDate" render={({ field }) => (
                       <FormItem>

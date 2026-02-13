@@ -612,6 +612,31 @@ export async function registerRoutes(
     res.status(204).send();
   });
 
+  app.get('/api/jobs/conflicts', requireAuth, async (req, res) => {
+    try {
+      const date = req.query.date as string;
+      const excludeId = req.query.excludeId ? parseInt(req.query.excludeId as string) : null;
+      if (!date) return res.json([]);
+      const allJobs = await storage.getJobs();
+      const conflicts = allJobs.filter(j => {
+        if (j.isTemplate === 1) return false;
+        if (j.status === "e_perfunduar") return false;
+        if (excludeId && j.id === excludeId) return false;
+        return j.workDate === date;
+      }).map(j => ({
+        id: j.id,
+        invoiceNumber: j.invoiceNumber,
+        clientName: j.clientName,
+        workType: j.workType,
+        category: j.category,
+        status: j.status,
+      }));
+      res.json(conflicts);
+    } catch (err) {
+      res.status(500).json({ message: "Gabim" });
+    }
+  });
+
   // --- DUPLICATE JOB ---
   app.post('/api/jobs/:id/duplicate', async (req, res) => {
     const id = parseInt(req.params.id);
@@ -1065,6 +1090,68 @@ export async function registerRoutes(
             userId: job.userId || null,
           });
           created++;
+        }
+      }
+
+      const existingNotifs = await storage.getNotifications();
+
+      for (const job of allJobs) {
+        if (job.status !== "e_perfunduar" || job.isTemplate === 1) continue;
+        if (job.paymentStatus === "paguar") continue;
+        const completedDate = job.completedDate ? new Date(job.completedDate) : (job.updatedAt ? new Date(job.updatedAt) : null);
+        if (!completedDate) continue;
+        const daysSinceComplete = Math.floor((now.getTime() - completedDate.getTime()) / (1000 * 60 * 60 * 24));
+
+        const thresholds = [30, 14, 7];
+        for (const threshold of thresholds) {
+          if (daysSinceComplete >= threshold) {
+            const alreadyNotified = existingNotifs.some(
+              n => n.type === "payment_overdue" && n.jobId === job.id &&
+                n.message?.includes(`${threshold} ditë`)
+            );
+            if (!alreadyNotified) {
+              const paidText = job.paymentStatus === "pjeserisht" ? ` (paguar pjesërisht: €${job.paidAmount || 0})` : "";
+              await storage.createNotification({
+                type: "payment_overdue",
+                title: "Pagesë e vonuar",
+                message: `${job.invoiceNumber || '#' + job.id} - ${job.clientName}: ${threshold} ditë pa pagesë${paidText}${job.clientPhone ? '. Tel: ' + job.clientPhone : ''}`,
+                jobId: job.id,
+                catalogItemId: null,
+                isRead: 0,
+                userId: null,
+              });
+              created++;
+            }
+            break;
+          }
+        }
+      }
+
+      for (const job of allJobs) {
+        if (job.status !== "e_perfunduar" || job.isTemplate === 1) continue;
+        const completedDate = job.completedDate ? new Date(job.completedDate) : (job.updatedAt ? new Date(job.updatedAt) : null);
+        if (!completedDate) continue;
+        const daysSinceComplete = Math.floor((now.getTime() - completedDate.getTime()) / (1000 * 60 * 60 * 24));
+
+        if (daysSinceComplete >= 3) {
+          const allFeedback = await storage.getFeedback(job.id);
+          if (allFeedback.length > 0) continue;
+
+          const alreadyNotified = existingNotifs.some(
+            n => n.type === "feedback_reminder" && n.jobId === job.id
+          );
+          if (!alreadyNotified) {
+            await storage.createNotification({
+              type: "feedback_reminder",
+              title: "Kujtesë - Kërko vlerësim",
+              message: `Puna ${job.invoiceNumber || '#' + job.id} për ${job.clientName} u përfundua ${daysSinceComplete} ditë më parë. Dërgoni linkun e vlerësimit!`,
+              jobId: job.id,
+              catalogItemId: null,
+              isRead: 0,
+              userId: null,
+            });
+            created++;
+          }
         }
       }
 

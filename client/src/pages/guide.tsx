@@ -228,7 +228,10 @@ export default function GuidePage() {
             <h4 className="font-semibold text-sm">Shablonet</h4>
             <p className="text-sm text-muted-foreground">Në fund të faqjes shfaqen shablonet e ruajtura. Klikoni &quot;Përdor&quot; për të krijuar një punë të re nga shablloni.</p>
 
-            <Tip>Në çdo kartelë pune shihni: kategorinë (badge me ngjyrë), statusin, numrin e faturës, datën e krijimit dhe datën e ndryshimit të fundit.</Tip>
+            <h4 className="font-semibold text-sm">Progresi i Punës</h4>
+            <p className="text-sm text-muted-foreground">Për punët elektrike me status &quot;Në Progres&quot;, çdo kartelë shfaq një shirit progresi me përqindjen e përfundimit. Progresi llogaritet automatikisht nga dhomë-pas-dhomës bazuar në materialet e instaluara.</p>
+
+            <Tip>Në çdo kartelë pune shihni: kategorinë (badge me ngjyrë), statusin, numrin e faturës, datën e krijimit, datën e ndryshimit të fundit, dhe progresin (për punët aktive elektrike).</Tip>
           </div>
         </GuideSection>
 
@@ -311,10 +314,19 @@ export default function GuidePage() {
             <h4 className="font-semibold text-sm">Hapi 7: Checklista</h4>
             <p className="text-sm text-muted-foreground">Në tab-in &quot;Kontrolli&quot; keni listën e kontrolleve të sigurisë sipas kategorisë. Shënoni secilin kontroll kur ta keni verifikuar. Nëse ndonjë kontroll nuk është i plotësuar, do të shihni një paralajmërim para ruajtjes.</p>
 
-            <h4 className="font-semibold text-sm">Hapi 8: Ruajtja</h4>
+            <h4 className="font-semibold text-sm">Hapi 8: Progresi i Dhomave (Vetëm Elektrike)</h4>
+            <p className="text-sm text-muted-foreground">Në tab-in &quot;Progresi&quot; mund të shënoni përfundimin e çdo artikulli për çdo dhomë. Kur progresi arrin 100%, merrni njoftim automatik që t&apos;ia ndryshoni statusin në &quot;E Përfunduar&quot;.</p>
+
+            <h4 className="font-semibold text-sm">Hapi 9: Ruajtja</h4>
             <p className="text-sm text-muted-foreground">Klikoni &quot;Ruaj Procesverbalin&quot; në fund të faqjes. Puna do të ruhet dhe do të ridrejtoheni në Dashboard.</p>
 
-            <Tip>Kur ndryshoni statusin në &quot;E Përfunduar&quot;, sistemi automatikisht krijon një shpenzim për materialet e përdorura dhe ul stokun përkatës.</Tip>
+            <h4 className="font-semibold text-sm">Paralajmërim për Konflikte në Orar</h4>
+            <p className="text-sm text-muted-foreground">Kur zgjidhni datën e punës, nëse ka punë tjera të planifikuara për atë ditë, shfaqet një paralajmërim me listën e punëve ekzistuese. Kjo ju ndihmon të shmangni mbingarkesën.</p>
+
+            <h4 className="font-semibold text-sm">Veglat e Sugjeruara</h4>
+            <p className="text-sm text-muted-foreground">Bazuar në materialet që shtoni, sistemi automatikisht sugjeron veglat që nevojiten (Dana, Hilti, Shafciger, Qekiq, etj.). Kjo shfaqet në formë dhe në kalendar.</p>
+
+            <Tip>Kur ndryshoni statusin në &quot;E Përfunduar&quot;, sistemi automatikisht krijon një shpenzim për materialet e përdorura, ul stokun, dhe pas 3 ditësh ju kujton të dërgoni linkun e vlerësimit tek klienti.</Tip>
             <Warning>Nëse një artikull ka stok zero, do të shfaqet me badge &quot;Pa Stok&quot; dhe nuk mund të përdoret në formë.</Warning>
           </div>
         </GuideSection>
@@ -343,7 +355,7 @@ export default function GuidePage() {
             <p className="text-sm text-muted-foreground">Kur krijoni një procesverbal të ri me një emër të ri klienti, sistemi automatikisht e krijon klientin në CRM. Nuk keni nevojë të shkoni në faqjen e klientëve për ta shtuar manualisht.</p>
 
             <h4 className="font-semibold text-sm">Historiku i Punëve</h4>
-            <p className="text-sm text-muted-foreground">Për secilin klient mund të shihni të gjitha punët që keni bërë për ta, duke përfshirë datat, statuset dhe shumat.</p>
+            <p className="text-sm text-muted-foreground">Për secilin klient mund të shihni të gjitha punët që keni bërë për ta, duke përfshirë datat, statuset dhe shumat. Për punët aktive elektrike, shfaqet edhe shiriti i progresit.</p>
 
             <h4 className="font-semibold text-sm">Kërko Klientë</h4>
             <p className="text-sm text-muted-foreground">Përdorni fushën e kërkimit për të gjetur shpejt një klient sipas emrit ose numrit të telefonit.</p>
@@ -411,7 +423,14 @@ export default function GuidePage() {
               </Step>
             </div>
 
-            <Tip>Kalendari është i dobishum për të planifikuar ditën tuaj të punës — shihni çfarë keni për sot, nesër dhe javën e ardhshme.</Tip>
+            <h4 className="font-semibold text-sm">Progresi i Punës</h4>
+            <p className="text-sm text-muted-foreground">Për punët elektrike &quot;Në Progres&quot;, kalendari shfaq automatikisht:</p>
+            <div className="space-y-1 text-sm text-muted-foreground">
+              <p>• <strong>Shiriti i progresit</strong> — Sa përqind e punës është përfunduar (sipas dhomave)</p>
+              <p>• <strong>Veglat e nevojshme</strong> — Lista e veglave që duhen për atë punë (Dana, Hilti, Shafciger, etj.) bazuar në materialet e zgjedhura</p>
+            </div>
+
+            <Tip>Kalendari është i dobishum për të planifikuar ditën tuaj të punës — shihni çfarë keni për sot, nesër dhe javën e ardhshme. Kontrollo veglat e nevojshme para se të nisesh!</Tip>
           </div>
         </GuideSection>
 
@@ -621,6 +640,9 @@ export default function GuidePage() {
               <div className="flex items-center gap-2"><TrendingUp className="h-4 w-4 text-purple-500" /> <span><strong>Ndryshim Çmimi</strong> — Kur ndryshon çmimi i një artikulli në katalog</span></div>
               <div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-green-500" /> <span><strong>Punë e Përfunduar</strong> — Konfirmim kur një punë përfundon</span></div>
               <div className="flex items-center gap-2"><Shield className="h-4 w-4 text-orange-500" /> <span><strong>Garanci në Skadim</strong> — Kur garancia e një pune skadon brenda 30 ditësh</span></div>
+              <div className="flex items-center gap-2"><CreditCard className="h-4 w-4 text-red-500" /> <span><strong>Pagesë e Vonuar</strong> — Kur një punë e përfunduar nuk është paguar pas 7, 14, ose 30 ditësh</span></div>
+              <div className="flex items-center gap-2"><Star className="h-4 w-4 text-yellow-500" /> <span><strong>Kujtesë Vlerësimi</strong> — 3 ditë pas përfundimit, kujton të dërgoni linkun e vlerësimit tek klienti</span></div>
+              <div className="flex items-center gap-2"><BarChart3 className="h-4 w-4 text-cyan-500" /> <span><strong>Progresi 100%</strong> — Kur të gjitha dhomët e një pune elektrike janë përfunduar, sugjeron ndryshimin e statusit</span></div>
             </div>
 
             <h4 className="font-semibold text-sm">Menaxhimi i Njoftimeve</h4>
