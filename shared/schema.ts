@@ -153,6 +153,13 @@ export const simpleDataSchema = z.record(z.string(), z.number());
 export const priceDataSchema = z.record(z.string(), z.number());
 export const checklistDataSchema = z.record(z.string(), z.boolean());
 
+// --- Session Table (managed by connect-pg-simple) ---
+export const userSessions = pgTable("user_sessions", {
+  sid: text("sid").primaryKey(),
+  sess: jsonb("sess").notNull(),
+  expire: timestamp("expire", { precision: 6 }).notNull(),
+});
+
 // --- Users Table ---
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
