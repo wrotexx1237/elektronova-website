@@ -5,9 +5,10 @@ import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight, Zap, Camera, ShieldAlert, Phone, Loader2, FileDown } from "lucide-react";
+import { ChevronLeft, ChevronRight, Zap, Camera, ShieldAlert, Phone, Loader2, FileDown, Wrench } from "lucide-react";
 import { JOB_CATEGORY_LABELS, JOB_STATUS_LABELS, type Job, type JobCategory, type JobStatus } from "@shared/schema";
 import { createElektronovaPDF, addPDFTable, addAllFooters } from "@/lib/pdf-utils";
+import { calculateJobProgress, getRequiredToolsForJob } from "@/lib/job-progress";
 
 function getCategoryStyle(category: string | null | undefined) {
   switch (category) {
@@ -243,6 +244,35 @@ export default function CalendarPage() {
                                 </Badge>
                               </CardContent>
                             </Link>
+                            {job.status === "ne_progres" && job.category === "electric" && (() => {
+                              const progress = calculateJobProgress(job);
+                              if (progress.totalRooms === 0) return null;
+                              return (
+                                <div className="px-3 pb-1">
+                                  <div className="flex items-center justify-between gap-2 mb-1">
+                                    <span className="text-[10px] text-muted-foreground">{progress.completedRooms}/{progress.totalRooms} dhoma</span>
+                                    <span className="text-[10px] font-bold" style={{ color: progress.overallPercent === 100 ? '#22c55e' : progress.overallPercent > 50 ? '#3b82f6' : '#f59e0b' }}>{progress.overallPercent}%</span>
+                                  </div>
+                                  <div className="w-full bg-muted rounded-full h-1 overflow-hidden">
+                                    <div className="h-full rounded-full" style={{ width: `${progress.overallPercent}%`, backgroundColor: progress.overallPercent === 100 ? '#22c55e' : progress.overallPercent > 50 ? '#3b82f6' : '#f59e0b' }} />
+                                  </div>
+                                </div>
+                              );
+                            })()}
+                            {(() => {
+                              const tools = getRequiredToolsForJob(job);
+                              if (tools.length === 0) return null;
+                              return (
+                                <div className="px-3 pb-2">
+                                  <div className="flex items-start gap-1.5">
+                                    <Wrench className="w-3 h-3 text-muted-foreground mt-0.5 shrink-0" />
+                                    <span className="text-[10px] text-muted-foreground leading-relaxed" data-testid={`tools-${job.id}`}>
+                                      {tools.slice(0, 5).join(", ")}{tools.length > 5 ? ` +${tools.length - 5}` : ""}
+                                    </span>
+                                  </div>
+                                </div>
+                              );
+                            })()}
                             {job.clientPhone && (
                               <div className="px-3 pb-2">
                                 <a href={`tel:${job.clientPhone}`} className="text-xs text-primary truncate flex items-center gap-1" onClick={(e) => e.stopPropagation()} data-testid={`phone-link-${job.id}`}>

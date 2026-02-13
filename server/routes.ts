@@ -538,6 +538,61 @@ export async function registerRoutes(
         }
       }
 
+      if (input.roomProgressData && existing.category === "electric") {
+        const rpd = input.roomProgressData as Record<string, Record<string, boolean>>;
+        const t1 = (input.table1Data || existing.table1Data || {}) as Record<string, Record<string, number>>;
+        const ROOM_GENERAL_TASKS = ["Kabllot e ndertuara", "Gypat e vendosura", "Shtekat e hapura"];
+
+        const allRooms = new Set<string>();
+        for (const rooms of Object.values(t1)) {
+          for (const [room, qty] of Object.entries(rooms as Record<string, number>)) {
+            if (qty > 0) allRooms.add(room);
+          }
+        }
+
+        const roomArr = Array.from(allRooms);
+        if (roomArr.length > 0) {
+          let totalTasks = 0;
+          let totalDone = 0;
+          for (const room of roomArr) {
+            for (const [itemName, rooms] of Object.entries(t1)) {
+              if ((rooms as Record<string, number>)[room] > 0) {
+                totalTasks++;
+                if (rpd[room]?.[itemName]) totalDone++;
+              }
+            }
+            for (const task of ROOM_GENERAL_TASKS) {
+              totalTasks++;
+              if (rpd[room]?.[task]) totalDone++;
+            }
+          }
+
+          if (totalTasks > 0 && totalDone === totalTasks) {
+            const oldRpd = (existing.roomProgressData || {}) as Record<string, Record<string, boolean>>;
+            let oldTotalDone = 0;
+            for (const room of roomArr) {
+              for (const [itemName, rooms] of Object.entries(t1)) {
+                if ((rooms as Record<string, number>)[room] > 0 && oldRpd[room]?.[itemName]) oldTotalDone++;
+              }
+              for (const task of ROOM_GENERAL_TASKS) {
+                if (oldRpd[room]?.[task]) oldTotalDone++;
+              }
+            }
+            if (oldTotalDone < totalTasks) {
+              await storage.createNotification({
+                type: "progress_complete",
+                title: "Progresi 100% - Gati për përfundim",
+                message: `Puna ${existing.invoiceNumber || '#' + id} për ${existing.clientName} ka arritur 100%. Ndryshoni statusin në "E Përfunduar".`,
+                jobId: id,
+                catalogItemId: null,
+                isRead: 0,
+                userId: null,
+              });
+            }
+          }
+        }
+      }
+
       const updated = await storage.updateJob(id, input);
       res.json(updated);
     } catch (err) {

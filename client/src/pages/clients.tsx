@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Search, Plus, Phone, MapPin, Mail, FileText, Briefcase, Trash2, Edit2, FileDown } from "lucide-react";
 import { createElektronovaPDF, addPDFTable, addAllFooters } from "@/lib/pdf-utils";
+import { calculateJobProgress } from "@/lib/job-progress";
 import { useAuth } from "@/hooks/use-auth";
 import type { Client, Job } from "@shared/schema";
 import { JOB_STATUS_LABELS, JOB_CATEGORY_LABELS, type JobStatus, type JobCategory } from "@shared/schema";
@@ -241,6 +242,21 @@ export default function ClientsPage() {
                           </div>
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">{job.workDate}</p>
+                        {job.status === "ne_progres" && job.category === "electric" && (() => {
+                          const progress = calculateJobProgress(job);
+                          if (progress.totalRooms === 0) return null;
+                          return (
+                            <div className="mt-2 space-y-1">
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="text-[10px] text-muted-foreground">{progress.completedRooms}/{progress.totalRooms} dhoma</span>
+                                <span className="text-[10px] font-bold" style={{ color: progress.overallPercent === 100 ? '#22c55e' : progress.overallPercent > 50 ? '#3b82f6' : '#f59e0b' }}>{progress.overallPercent}%</span>
+                              </div>
+                              <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
+                                <div className="h-full rounded-full" style={{ width: `${progress.overallPercent}%`, backgroundColor: progress.overallPercent === 100 ? '#22c55e' : progress.overallPercent > 50 ? '#3b82f6' : '#f59e0b' }} />
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </CardContent>
                     </Card>
                   ))

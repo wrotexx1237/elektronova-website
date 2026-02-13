@@ -60,6 +60,7 @@ import { JOB_CATEGORY_LABELS, JOB_STATUS_LABELS, type Job, type JobCategory, typ
 import { useAuth } from "@/hooks/use-auth";
 import { MapDialog } from "@/components/map-dialog";
 import { ShareDialog } from "@/components/share-dialog";
+import { calculateJobProgress } from "@/lib/job-progress";
 
 const CATEGORY_CARDS: { key: JobCategory; label: string; icon: typeof Zap; color: string }[] = [
   { key: "electric", label: "Rrymë (Elektrike)", icon: Zap, color: "text-amber-500" },
@@ -346,6 +347,33 @@ export default function Dashboard() {
                     {job.notes || "Pa shënime shtesë."}
                   </div>
                 </div>
+
+                {job.status === "ne_progres" && job.category === "electric" && (() => {
+                  const progress = calculateJobProgress(job);
+                  if (progress.totalRooms === 0) return null;
+                  return (
+                    <div className="mt-3 space-y-1" data-testid={`progress-section-${job.id}`}>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[10px] text-muted-foreground font-medium">
+                          Progresi: {progress.completedRooms}/{progress.totalRooms} dhoma
+                        </span>
+                        <span className="text-[10px] font-bold" style={{ color: progress.overallPercent === 100 ? '#22c55e' : progress.overallPercent > 50 ? '#3b82f6' : '#f59e0b' }} data-testid={`text-progress-percent-${job.id}`}>
+                          {progress.overallPercent}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{
+                            width: `${progress.overallPercent}%`,
+                            backgroundColor: progress.overallPercent === 100 ? '#22c55e' : progress.overallPercent > 50 ? '#3b82f6' : '#f59e0b',
+                          }}
+                          data-testid={`bar-progress-${job.id}`}
+                        />
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 <div className="mt-4 pt-3 border-t space-y-2">
                   <div className="flex items-center gap-3 text-[10px] text-muted-foreground flex-wrap">
