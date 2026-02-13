@@ -37,6 +37,13 @@ import {
   TrendingUp,
   AlertTriangle,
   Bookmark,
+  LogIn,
+  Hash,
+  Send,
+  Wrench,
+  ShieldCheck,
+  FileBarChart,
+  FileCheck,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -117,6 +124,7 @@ function Warning({ children }: { children: React.ReactNode }) {
 }
 
 const NAV_LINKS = [
+  { id: "login", label: "Hyrja & Regjistrimi", icon: LogIn },
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "procesverbal", label: "Procesverbal i Ri", icon: PlusCircle },
   { id: "clients", label: "Klientët", icon: Users },
@@ -126,7 +134,7 @@ const NAV_LINKS = [
   { id: "suppliers", label: "Furnitorët", icon: Truck },
   { id: "catalog", label: "Katalogu", icon: Package },
   { id: "analytics", label: "Analiza", icon: BarChart3 },
-  { id: "pdf", label: "PDF & Kontrata", icon: FileText },
+  { id: "pdf", label: "PDF & Dokumentet", icon: FileText },
   { id: "notifications", label: "Njoftimet", icon: Bell },
   { id: "gps", label: "GPS & Lokacioni", icon: MapPin },
   { id: "rating", label: "Vlerësimi Publik", icon: Star },
@@ -173,12 +181,58 @@ export default function GuidePage() {
         </Card>
 
         <GuideSection
+          id="login"
+          icon={LogIn}
+          iconColor="bg-slate-100 text-slate-600 dark:bg-slate-950 dark:text-slate-400"
+          title="Hyrja & Regjistrimi"
+          subtitle="Si të hyni ose krijoni llogari të re"
+          defaultOpen={true}
+        >
+          <div className="space-y-4">
+            <p className="text-sm">Para se të përdorni aplikacionin, duhet të hyni me llogarinë tuaj ose të krijoni një llogari të re.</p>
+
+            <h4 className="font-semibold text-sm">Hyrja (Login)</h4>
+            <div className="space-y-3">
+              <Step number={1} title="Hapni faqjen e hyrjes">
+                <p>Kur hapni aplikacionin, nëse nuk jeni i kyqur, do të ridrejtoheni automatikisht te faqja e hyrjes.</p>
+              </Step>
+              <Step number={2} title="Vendosni kredencialet">
+                <p>Shkruani <strong>emrin e përdoruesit</strong> (username) dhe <strong>fjalëkalimin</strong> tuaj.</p>
+              </Step>
+              <Step number={3} title="Klikoni &quot;Hyr&quot;">
+                <p>Do të ridrejtoheni te Dashboard-i nëse të dhënat janë të sakta.</p>
+              </Step>
+            </div>
+
+            <h4 className="font-semibold text-sm">Regjistrimi (Llogari e Re)</h4>
+            <div className="space-y-3">
+              <Step number={1} title="Klikoni &quot;Regjistrohu&quot;">
+                <p>Në faqjen e hyrjes, klikoni linkun &quot;Regjistrohu&quot; për të hapur formën e regjistrimit.</p>
+              </Step>
+              <Step number={2} title="Plotësoni të dhënat">
+                <p>Shkruani: <strong>Emrin e plotë</strong>, <strong>Username</strong> (emrin e përdoruesit), dhe <strong>Fjalëkalimin</strong>.</p>
+              </Step>
+              <Step number={3} title="Roli i llogarisë">
+                <p>Llogaria e re krijohet si <strong>Teknik</strong>. Admini mund ta ndryshojë rolin më vonë.</p>
+              </Step>
+            </div>
+
+            <h4 className="font-semibold text-sm">Dy Llojet e Llogarive</h4>
+            <div className="space-y-1 text-sm text-muted-foreground">
+              <p>&bull; <strong>Admin</strong> — Akses i plotë: çmimet e blerjes, analiza, menaxhimi i përdoruesve, fitimi</p>
+              <p>&bull; <strong>Teknik</strong> — Krijon/ndrysho punë, shiko katalog, stok, klientë, por pa çmimet e blerjes</p>
+            </div>
+
+            <Tip>Fjalëkalimi ruhet i enkriptuar. Nëse harroni fjalëkalimin, kontaktoni administratorin për ta rivendosur.</Tip>
+          </div>
+        </GuideSection>
+
+        <GuideSection
           id="dashboard"
           icon={LayoutDashboard}
           iconColor="bg-blue-100 text-blue-600 dark:bg-blue-950 dark:text-blue-400"
           title="Dashboard (Faqja Kryesore)"
           subtitle="Pamja e përgjithshme e të gjitha punëve"
-          defaultOpen={true}
         >
           <div className="space-y-4">
             <p className="text-sm">Dashboard-i është faqja e parë që shihni kur hyni në aplikacion. Këtu menaxhoni të gjitha procesverbalet (punët) tuaja.</p>
@@ -216,22 +270,48 @@ export default function GuidePage() {
               </Step>
             </div>
 
+            <h4 className="font-semibold text-sm">Informacionet në çdo Kartelë Pune</h4>
+            <p className="text-sm text-muted-foreground">Çdo kartelë pune në Dashboard shfaq:</p>
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center gap-2"><Zap className="h-4 w-4 text-blue-500" /> <span><strong>Kategoria</strong> — Badge me ngjyrë (Elektrike, Kamera, Alarm, Interfon)</span></div>
+              <div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-green-500" /> <span><strong>Statusi</strong> — Ofertë, Në Progres, ose E Përfunduar</span></div>
+              <div className="flex items-center gap-2"><Hash className="h-4 w-4 text-slate-500" /> <span><strong>Numri i Faturës</strong> — Gjenerohet automatikisht: ELK-001, KAM-002, ALM-003, INT-004</span></div>
+              <div className="flex items-center gap-2"><CreditCard className="h-4 w-4 text-orange-500" /> <span><strong>Statusi i Pagesës</strong> — Pa Paguar (kuq), Pjesërisht (portokalli), Paguar (gjelbrët)</span></div>
+              <div className="flex items-center gap-2"><Clock className="h-4 w-4 text-muted-foreground" /> <span><strong>Data e Krijimit / Ndryshimit</strong> — Kur është krijuar dhe ndryshuar puna për herë të fundit</span></div>
+            </div>
+
             <h4 className="font-semibold text-sm">Veprimet në çdo Punë</h4>
             <p className="text-sm text-muted-foreground">Në çdo kartelë pune keni butonin me 3 pika (&bull;&bull;&bull;) që hap menunë e veprimeve:</p>
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2"><Edit className="h-4 w-4 text-blue-500" /> <span><strong>Ndrysho</strong> — Hapni punën për ta edituar</span></div>
-              <div className="flex items-center gap-2"><Copy className="h-4 w-4 text-green-500" /> <span><strong>Dupliko</strong> — Krijon një kopje të punës (e dobishme për punë të ngjashme)</span></div>
+              <div className="flex items-center gap-2"><Copy className="h-4 w-4 text-green-500" /> <span><strong>Dupliko</strong> — Krijon një kopje të punës me &quot;(Kopje)&quot; në emër</span></div>
               <div className="flex items-center gap-2"><Bookmark className="h-4 w-4 text-purple-500" /> <span><strong>Ruaj si Shabllon</strong> — E ruan punën si model për përdorim në të ardhmen</span></div>
               <div className="flex items-center gap-2"><Trash2 className="h-4 w-4 text-red-500" /> <span><strong>Fshij</strong> — Fshin punën përgjithmonë (kërkon konfirmim)</span></div>
             </div>
 
+            <h4 className="font-semibold text-sm">Butonat e Shpejta</h4>
+            <p className="text-sm text-muted-foreground">Në fund të çdo kartele keni dy butona shtesë:</p>
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-red-500" /> <span><strong>Harta</strong> — Shikoni vendndodhjen e punës në hartë (Google Maps)</span></div>
+              <div className="flex items-center gap-2"><Send className="h-4 w-4 text-blue-500" /> <span><strong>Ndaj</strong> — Kopjoni linkun e vlerësimit për ta dërguar tek klienti</span></div>
+            </div>
+
             <h4 className="font-semibold text-sm">Shablonet</h4>
-            <p className="text-sm text-muted-foreground">Në fund të faqjes shfaqen shablonet e ruajtura. Klikoni &quot;Përdor&quot; për të krijuar një punë të re nga shablloni.</p>
+            <p className="text-sm text-muted-foreground">Në fund të faqjes shfaqen shablonet e ruajtura. Klikoni &quot;Përdor&quot; për të krijuar një punë të re nga shablloni. Shablloni ruan të gjitha materialet, sasitë dhe çmimet — vetëm ndryshoni emrin e klientit.</p>
 
             <h4 className="font-semibold text-sm">Progresi i Punës</h4>
-            <p className="text-sm text-muted-foreground">Për punët elektrike me status &quot;Në Progres&quot;, çdo kartelë shfaq një shirit progresi me përqindjen e përfundimit. Progresi llogaritet automatikisht nga dhomë-pas-dhomës bazuar në materialet e instaluara.</p>
+            <p className="text-sm text-muted-foreground">Për punët elektrike me status &quot;Në Progres&quot;, çdo kartelë shfaq një shirit progresi me përqindjen e përfundimit (psh. &quot;5/11 dhoma - 45%&quot;). Progresi llogaritet automatikisht nga dhomë-pas-dhomës bazuar në materialet e instaluara.</p>
 
-            <Tip>Në çdo kartelë pune shihni: kategorinë (badge me ngjyrë), statusin, numrin e faturës, datën e krijimit, datën e ndryshimit të fundit, dhe progresin (për punët aktive elektrike).</Tip>
+            <h4 className="font-semibold text-sm">Numri Automatik i Faturës</h4>
+            <p className="text-sm text-muted-foreground">Çdo punë merr automatikisht një numër fature me prefiksin e kategorisë:</p>
+            <div className="space-y-1 text-sm text-muted-foreground">
+              <p>&bull; <strong>ELK-001</strong> — Për punë Elektrike</p>
+              <p>&bull; <strong>KAM-001</strong> — Për punë Kamera</p>
+              <p>&bull; <strong>ALM-001</strong> — Për punë Alarm</p>
+              <p>&bull; <strong>INT-001</strong> — Për punë Interfon</p>
+            </div>
+
+            <Tip>Numri i faturës rritet automatikisht — nuk keni nevojë ta vendosni manualisht.</Tip>
           </div>
         </GuideSection>
 
@@ -271,6 +351,9 @@ export default function GuidePage() {
               </Step>
             </div>
 
+            <h4 className="font-semibold text-sm">Paralajmërimet e Stokut</h4>
+            <p className="text-sm text-muted-foreground">Në krye të formës shfaqet një seksion i rrudhshëm me artikujt që kanë stok të ulët ose zero. Klikoni për ta hapur/mbyllur. Artikujt me stok zero janë të bllokuar me badge &quot;Pa Stok&quot; dhe nuk mund të përdoren.</p>
+
             <h4 className="font-semibold text-sm">Hapi 3: Tabelat e Materialeve</h4>
             <p className="text-sm text-muted-foreground">Në tab-et e materialeve shihni artikujt e katalogut. Për secilin artikull:</p>
             <div className="space-y-3">
@@ -281,8 +364,15 @@ export default function GuidePage() {
                 <p>Kolona &quot;Çmimi&quot; shfaq çmimin e shitjes për klientin. Në modalitetin Admin shfaqet edhe çmimi i blerjes dhe marzhi i fitimit.</p>
               </Step>
               <Step number={3} title="Totali i rreshtit">
-                <p>Total = Sasia totale × Çmimi. Llogaritet automatikisht.</p>
+                <p>Total = Sasia totale x Çmimi. Llogaritet automatikisht.</p>
               </Step>
+            </div>
+
+            <h4 className="font-semibold text-sm">Furnitori & Çmimet (Tab Çmimet)</h4>
+            <p className="text-sm text-muted-foreground">Në tab-in &quot;Çmimet&quot; keni dy modalitete për zgjedhjen e furnitorit:</p>
+            <div className="space-y-1 text-sm text-muted-foreground">
+              <p>&bull; <strong>Furnitor i Vetëm</strong> — Zgjidhni një furnitor dhe çmimet e tij aplikohen për të gjithë artikujt</p>
+              <p>&bull; <strong>Çmimi më i Mirë</strong> — Sistemi krahasom çmimet e të gjithë furnitorëve dhe zgjedh automatikisht çmimin më të lirë për secilin artikull</p>
             </div>
 
             <h4 className="font-semibold text-sm">Hapi 4: Statusi & Pagesat</h4>
@@ -326,8 +416,28 @@ export default function GuidePage() {
             <h4 className="font-semibold text-sm">Veglat e Sugjeruara</h4>
             <p className="text-sm text-muted-foreground">Bazuar në materialet që shtoni, sistemi automatikisht sugjeron veglat që nevojiten (Dana, Hilti, Shafciger, Qekiq, etj.). Kjo shfaqet në formë dhe në kalendar.</p>
 
-            <Tip>Kur ndryshoni statusin në &quot;E Përfunduar&quot;, sistemi automatikisht krijon një shpenzim për materialet e përdorura, ul stokun, dhe pas 3 ditësh ju kujton të dërgoni linkun e vlerësimit tek klienti.</Tip>
-            <Warning>Nëse një artikull ka stok zero, do të shfaqet me badge &quot;Pa Stok&quot; dhe nuk mund të përdoret në formë.</Warning>
+            <h4 className="font-semibold text-sm">Hapi 10: Vlerësimi i Klientit (Tab Feedback)</h4>
+            <p className="text-sm text-muted-foreground">Për punët e përfunduara, në fund të formës shfaqet seksioni i vlerësimit ku mund të:</p>
+            <div className="space-y-1 text-sm text-muted-foreground">
+              <p>&bull; Shihni vlerësimet ekzistuese (yjet dhe komentet)</p>
+              <p>&bull; Shtoni një vlerësim nga ana juaj (1-5 yje + koment opsional)</p>
+              <p>&bull; Gjeneroni link për vlerësim publik që ia dërgoni klientit</p>
+              <p>&bull; Fshini vlerësimet (vetëm Admin)</p>
+            </div>
+
+            <h4 className="font-semibold text-sm">Çfarë Ndodh Kur Përfundoni një Punë</h4>
+            <p className="text-sm text-muted-foreground">Kur ndryshoni statusin nga &quot;Në Progres&quot; në &quot;E Përfunduar&quot;, sistemi automatikisht:</p>
+            <div className="space-y-1 text-sm text-muted-foreground">
+              <p>&bull; <strong>Krijon shpenzim</strong> — Shpenzim automatik me kategorinë &quot;Material&quot; me vlerën totale të çmimeve të blerjes</p>
+              <p>&bull; <strong>Ul stokun</strong> — Zbrit sasitë e materialeve të përdorura nga stoku</p>
+              <p>&bull; <strong>Ruan datën</strong> — Regjistron datën e përfundimit për garanci dhe analiza</p>
+              <p>&bull; <strong>Ruan foto (snapshot)</strong> — Ruan gjendjen e çmimeve për krahasim në të ardhmen</p>
+              <p>&bull; <strong>Pas 3 ditësh</strong> — Kujton të dërgoni linkun e vlerësimit tek klienti</p>
+              <p>&bull; <strong>Pas 7/14/30 ditësh</strong> — Njoftim nëse puna nuk është paguar ende</p>
+            </div>
+
+            <Tip>Gjithçka bëhet automatikisht kur ndryshoni statusin — nuk keni nevojë të krijoni shpenzime ose ulni stokun manualisht!</Tip>
+            <Warning>Nëse një artikull ka stok zero, do të shfaqet me badge &quot;Pa Stok&quot; dhe nuk mund të përdoret në formë derisa të bëni hyrje stoku.</Warning>
           </div>
         </GuideSection>
 
@@ -542,10 +652,16 @@ export default function GuidePage() {
               <p>• Dërgon njoftim për ndryshimin e çmimit</p>
             </div>
 
+            <h4 className="font-semibold text-sm">Përditësimi Automatik i Çmimeve</h4>
+            <p className="text-sm text-muted-foreground">Kur ndryshoni çmimin e një artikulli, sistemi automatikisht përditëson çmimin në të gjitha punët e hapura (Ofertë ose Në Progres). Punët e përfunduara nuk preken.</p>
+
             <h4 className="font-semibold text-sm">Radha & Organizimi</h4>
             <p className="text-sm text-muted-foreground">Mund të ndryshoni radhën e artikujve duke përdorur fushën &quot;Radha&quot;. Artikujt renditen sipas këtij numri në formën e procesverbalit.</p>
 
-            <Tip>Historiku vizual i çmimeve ju ndihmon të kuptoni se si kanë ndryshuar çmimet me kalimin e kohës.</Tip>
+            <h4 className="font-semibold text-sm">Stoku i Artikullit</h4>
+            <p className="text-sm text-muted-foreground">Çdo artikull në katalog shfaq sasinë aktuale të stokut dhe nivelin minimal. Artikujt me stok zero bllokohen automatikisht në formën e procesverbalit.</p>
+
+            <Tip>Historiku vizual i çmimeve (grafik) ju ndihmon të kuptoni se si kanë ndryshuar çmimet me kalimin e kohës. Shfaqet kur ndryshoni çmimin e një artikulli.</Tip>
           </div>
         </GuideSection>
 
@@ -596,29 +712,44 @@ export default function GuidePage() {
           id="pdf"
           icon={FileText}
           iconColor="bg-cyan-100 text-cyan-600 dark:bg-cyan-950 dark:text-cyan-400"
-          title="PDF & Kontrata"
-          subtitle="Gjeneroni fatura, lista blerjes dhe kontrata"
+          title="PDF & Dokumentet"
+          subtitle="6 lloje dokumentesh PDF nga çdo punë"
         >
           <div className="space-y-4">
-            <p className="text-sm">Nga çdo procesverbal mund të gjeneroni 3 lloje dokumentesh PDF:</p>
+            <p className="text-sm">Nga çdo procesverbal mund të gjeneroni 6 lloje dokumentesh PDF. Klikoni butonin &quot;Gjenero PDF&quot; dhe zgjidhni llojin:</p>
 
             <h4 className="font-semibold text-sm">1. Fatura / Oferta (PDF për Klientin)</h4>
+            <p className="text-sm text-muted-foreground">Dokumenti kryesor për klientin. Përfshin: logon e Elektronova-s, të dhënat e klientit, tabelën e materialeve me çmimin e shitjes, totalin, TVSH-në, zbritjen, dhe kushtet e garancisë.</p>
+
+            <h4 className="font-semibold text-sm">2. Lista e Blerjes (PDF për Ju)</h4>
+            <p className="text-sm text-muted-foreground">Tregon çmimet e blerjes (sa i blini ju materialet nga furnitori). E dobishme për të dhënë në dyqan kur blini materiale.</p>
+
+            <h4 className="font-semibold text-sm">3. Kontrata (PDF Ligjore)</h4>
+            <p className="text-sm text-muted-foreground">Kontratë profesionale 1-faqeshe me 8 nene (NENI) ligjore në gjuhën shqipe. Përfshin: palët kontraktuese, shërbimet, çmimin, garancinë, afatin, dhe kushtet.</p>
+
+            <h4 className="font-semibold text-sm">4. Certifikata e Garancisë</h4>
+            <p className="text-sm text-muted-foreground">Dokument garancije për klientin. Përfshin: periudhën e garancisë, datën e fillimit dhe skadimit, materialet e instaluara, dhe kushtet e garancisë.</p>
+
+            <h4 className="font-semibold text-sm">5. Raporti i Punës</h4>
+            <p className="text-sm text-muted-foreground">Raport teknik i punës së kryer. Përfshin: përshkrimin e punës, materialet e përdorura me sasi, kohën e punës, dhe shënimet teknike.</p>
+
+            <h4 className="font-semibold text-sm">6. Oferta e Detajuar</h4>
+            <p className="text-sm text-muted-foreground">Ofertë e zgjeruar me çmime të ndara për çdo dhomë/zonë. E dobishme kur klienti dëshiron të dijë koston për çdo ambient veçmas.</p>
+
+            <h4 className="font-semibold text-sm">Si ta Gjeneroni</h4>
             <div className="space-y-3">
               <Step number={1} title="Hapni procesverbalin">
                 <p>Shkoni te puna që doni dhe klikoni &quot;Shiko Detajet&quot; ose &quot;Ndrysho&quot;.</p>
               </Step>
-              <Step number={2} title="Klikoni 'Gjenero PDF'">
-                <p>Zgjidhni &quot;Faturë/Ofertë&quot;. PDF-ja përmban: logon, të dhënat e klientit, tabelën e materialeve me çmimin e shitjes, totalin, TVSH-në, zbritjen.</p>
+              <Step number={2} title="Klikoni butonin &quot;Gjenero PDF&quot;">
+                <p>Hapet menyja me 6 opsionet. Zgjidhni llojin që doni.</p>
+              </Step>
+              <Step number={3} title="Shkarkoni ose ndani">
+                <p>PDF-ja shkarkohet automatikisht në pajisjen tuaj. Mund ta ndani me klientin.</p>
               </Step>
             </div>
 
-            <h4 className="font-semibold text-sm">2. Lista e Blerjes (PDF për Ju)</h4>
-            <p className="text-sm text-muted-foreground">Këtu shfaqen çmimet e blerjes (sa i blini ju materialet). E dobishme për të dhënë në dyqan.</p>
-
-            <h4 className="font-semibold text-sm">3. Kontrata (PDF Ligjore)</h4>
-            <p className="text-sm text-muted-foreground">Gjeneron një kontratë profesionale 1-faqeshe me 8 nene (NENI) ligjore në gjuhën shqipe. Përfshin të dhënat e palëve, shërbimet, çmimin, garancinë dhe kushtet.</p>
-
-            <Tip>PDF-ja gjenerohet direkt në telefon/kompjuter (pa nevojë për internet në momentin e gjenerimit).</Tip>
+            <Tip>Të gjitha PDF-të gjerohen direkt në telefon/kompjuter pa nevojë interneti. Të gjitha kanë logon e Elektronova-s dhe janë në gjuhën shqipe me mbështetje të plotë për karakteret shqipe (ë, ç, etj.).</Tip>
           </div>
         </GuideSection>
 
@@ -643,10 +774,28 @@ export default function GuidePage() {
               <div className="flex items-center gap-2"><CreditCard className="h-4 w-4 text-red-500" /> <span><strong>Pagesë e Vonuar</strong> — Kur një punë e përfunduar nuk është paguar pas 7, 14, ose 30 ditësh</span></div>
               <div className="flex items-center gap-2"><Star className="h-4 w-4 text-yellow-500" /> <span><strong>Kujtesë Vlerësimi</strong> — 3 ditë pas përfundimit, kujton të dërgoni linkun e vlerësimit tek klienti</span></div>
               <div className="flex items-center gap-2"><BarChart3 className="h-4 w-4 text-cyan-500" /> <span><strong>Progresi 100%</strong> — Kur të gjitha dhomët e një pune elektrike janë përfunduar, sugjeron ndryshimin e statusit</span></div>
+              <div className="flex items-center gap-2"><FileBarChart className="h-4 w-4 text-indigo-500" /> <span><strong>Përmbledhje Mujore</strong> — Në fillim të çdo muaji, përmbledhje e punëve, të ardhurave dhe shpenzimeve të muajit të kaluar</span></div>
+            </div>
+
+            <h4 className="font-semibold text-sm">Si Funksionon</h4>
+            <p className="text-sm text-muted-foreground">Njoftimet kontrollohen automatikisht çdo herë që hapni faqjen. Sistemi kontrollon:</p>
+            <div className="space-y-1 text-sm text-muted-foreground">
+              <p>&bull; Ofertat e vjetra (mbi 7 ditë pa përgjigje)</p>
+              <p>&bull; Punët e nesërmes/sotme</p>
+              <p>&bull; Stokun e ulët nën nivelin minimal</p>
+              <p>&bull; Garancitë që skadojnë brenda 30 ditësh</p>
+              <p>&bull; Pagesat e vonuara (7, 14, 30 ditë pas përfundimit)</p>
+              <p>&bull; Kujtesat për vlerësim (3 ditë pas përfundimit)</p>
+              <p>&bull; Progresin 100% (kur të gjitha dhomët janë gati)</p>
+              <p>&bull; Përmbledhjen mujore (në fillim të çdo muaji)</p>
             </div>
 
             <h4 className="font-semibold text-sm">Menaxhimi i Njoftimeve</h4>
-            <p className="text-sm text-muted-foreground">Klikoni mbi një njoftim për ta shënuar si të lexuar. Përdorni &quot;Lexo të gjitha&quot; për të pastruar të gjitha njoftimet.</p>
+            <div className="space-y-1 text-sm text-muted-foreground">
+              <p>&bull; Klikoni mbi një njoftim për ta shënuar si të lexuar</p>
+              <p>&bull; Përdorni &quot;Lexo të gjitha&quot; për të pastruar të gjitha njoftimet</p>
+              <p>&bull; Numri i njoftimeve të palexuara shfaqet si numër i kuq mbi kambranën</p>
+            </div>
           </div>
         </GuideSection>
 
@@ -759,16 +908,30 @@ export default function GuidePage() {
 
             <h4 className="font-semibold text-sm">Çfarë Sheh Admini më Shumë</h4>
             <div className="space-y-2 text-sm text-muted-foreground">
-              <p>• <strong>Çmimet e blerjes</strong> në formën e procesverbalit (tekniku sheh vetëm çmimin e shitjes)</p>
-              <p>• <strong>Marzhi i fitimit</strong> për çdo artikull (sa fitoni për njësi)</p>
-              <p>• <strong>Analiza e fitimit</strong> — faqja e plotë e Analizës</p>
-              <p>• <strong>Dashboard-i i fitimit</strong> me filtra të avansuara</p>
+              <p>&bull; <strong>Çmimet e blerjes</strong> në formën e procesverbalit (tekniku sheh vetëm çmimin e shitjes)</p>
+              <p>&bull; <strong>Marzhi i fitimit</strong> për çdo artikull (sa fitoni për njësi)</p>
+              <p>&bull; <strong>Analiza e fitimit</strong> — faqja e plotë e Analizës me trende dhe parashikime</p>
+              <p>&bull; <strong>Dashboard-i i fitimit</strong> me filtra të avansuara (muaj/vit/periudhë)</p>
+              <p>&bull; <strong>Butoni &quot;Çmimi më i Mirë&quot;</strong> — Aplikon çmimin më të lirë të furnitorëve për të gjithë artikujt</p>
+              <p>&bull; <strong>Krahasimi Ofertë vs. Aktuale</strong> — Krahason çmimet e ofertës fillestare me çmimet aktuale pas përfundimit</p>
+              <p>&bull; <strong>Lista e Blerjes (PDF)</strong> — PDF me çmimet e blerjes, e fshehur nga tekniku</p>
+              <p>&bull; <strong>Historiku i Çmimeve</strong> — Grafik vizual i ndryshimeve të çmimeve në katalog</p>
+              <p>&bull; <strong>Raporti Mujor PDF</strong> — Shkarko përmbledhje mujore me punë, financa dhe shpenzime</p>
             </div>
 
             <h4 className="font-semibold text-sm">Rolet e Përdoruesve</h4>
             <div className="space-y-1 text-sm text-muted-foreground">
-              <p>• <strong>Admin</strong> — Akses të plotë në të gjitha funksionet, përfshirë çmimet e blerjes, analizën dhe menaxhimin e përdoruesve</p>
-              <p>• <strong>Teknik</strong> — Mund të krijojë/ndryshojë punë, shikojë katalogun, stokun, klientët, por pa parë çmimet e blerjes</p>
+              <p>&bull; <strong>Admin</strong> — Akses të plotë në të gjitha funksionet: çmimet e blerjes, analiza, menaxhimi i katalogut, furnitorëve, dhe përdoruesve</p>
+              <p>&bull; <strong>Teknik</strong> — Krijon/ndrysho punë, shiko stokun, klientët, kalendarin, por pa çmimet e blerjes dhe analizën</p>
+            </div>
+
+            <h4 className="font-semibold text-sm">Pamja e Kostos në Procesverbal</h4>
+            <p className="text-sm text-muted-foreground">Në tab-in &quot;Çmimet&quot; të procesverbalit, Admini sheh një seksion special me ngjyrë portokalli ku tregohen:</p>
+            <div className="space-y-1 text-sm text-muted-foreground">
+              <p>&bull; Çmimi i blerjes për çdo artikull</p>
+              <p>&bull; Çmimi i shitjes</p>
+              <p>&bull; Marzhi (fitimi) për njësi dhe total</p>
+              <p>&bull; Totali i përgjithshëm: shitje, blerje, fitim</p>
             </div>
           </div>
         </GuideSection>
