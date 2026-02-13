@@ -23,7 +23,7 @@ import {
   Package, Info, Settings, ShieldAlert, Wrench, CheckCircle2, AlertTriangle, Zap, Phone,
   ChevronDown, ShoppingCart, FileText, Eye, EyeOff, Percent, Hash, Tag,
   MapPin, Send, FileSignature, CalendarDays, Star, MessageSquare, Link2, Copy, ExternalLink,
-  Award, ClipboardList, FileCheck, Hammer, CircleCheck
+  Award, ClipboardList, FileCheck, Hammer, CircleCheck, Home, BarChart3
 } from "lucide-react";
 import { Link } from "wouter";
 import { useCatalog } from "@/hooks/use-catalog";
@@ -575,7 +575,7 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
       discountValue: 0,
       table1Data: {}, table2Data: {}, cameraData: {},
       intercomData: {}, alarmData: {}, serviceData: {},
-      prices: {}, purchasePrices: {}, checklistData: {},
+      prices: {}, purchasePrices: {}, checklistData: {}, roomProgressData: {},
       vatRate: 0, paymentStatus: "pa_paguar", paidAmount: 0,
       paymentDate: null, paymentMethod: null, warrantyMonths: 12, completedDate: null,
     };
@@ -1929,6 +1929,7 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
                 {tabVis.showAlarm && <TabsTrigger value="alarm" className="gap-2" data-testid="tab-alarm"><ShieldAlert className="w-4 h-4" /> Alarm</TabsTrigger>}
                 {tabVis.showSherbime && <TabsTrigger value="sherbime" className="gap-2" data-testid="tab-sherbime"><Wrench className="w-4 h-4" /> Sherbime</TabsTrigger>}
                 <TabsTrigger value="financat" className="gap-2" data-testid="tab-financat"><Banknote className="w-4 h-4" /> Financat</TabsTrigger>
+                {tabVis.showPajisje && <TabsTrigger value="progresi" className="gap-2" data-testid="tab-progresi"><BarChart3 className="w-4 h-4" /> Progresi</TabsTrigger>}
                 <TabsTrigger value="checklist" className="gap-2" data-testid="tab-checklist"><CheckCircle2 className="w-4 h-4" /> Checklist</TabsTrigger>
                 <TabsTrigger value="cmimet" className="gap-2" data-testid="tab-cmimet"><Banknote className="w-4 h-4" /> Cmimet</TabsTrigger>
               </TabsList>
@@ -2288,6 +2289,175 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
                 </CardContent>
               </Card>
             </TabsContent>
+            {tabVis.showPajisje && (
+              <TabsContent value="progresi">
+                {(() => {
+                  const t1 = form.watch("table1Data") || {};
+                  const t2 = form.watch("table2Data") || {};
+                  const rpd = form.watch("roomProgressData") || {};
+
+                  const ROOM_GENERAL_TASKS = [
+                    "Kabllot e ndertuara",
+                    "Gypat e vendosura",
+                    "Shtekat e hapura",
+                  ];
+
+                  const roomsWithWork = ROOMS.filter(room => {
+                    return pajisjeItems.some((c: CatalogItem) => (t1[c.name]?.[room] || 0) > 0);
+                  });
+
+                  const cableTotal = materialItems.reduce((sum: number, c: CatalogItem) => sum + (t2[c.name] || 0), 0);
+
+                  const getRoomTasks = (room: string) => {
+                    const tasks: { room: string; task: string; label: string; qty: number }[] = [];
+                    pajisjeItems.forEach((c: CatalogItem) => {
+                      const qty = t1[c.name]?.[room] || 0;
+                      if (qty > 0) {
+                        tasks.push({ room, task: c.name, label: `${c.name} (${qty} ${c.unit})`, qty });
+                      }
+                    });
+                    ROOM_GENERAL_TASKS.forEach(task => {
+                      tasks.push({ room, task, label: task, qty: 0 });
+                    });
+                    return tasks;
+                  };
+
+                  const toggleTask = (room: string, task: string) => {
+                    const cur = form.getValues("roomProgressData") || {};
+                    const roomData = { ...(cur[room] || {}) };
+                    roomData[task] = !roomData[task];
+                    form.setValue("roomProgressData", { ...cur, [room]: roomData }, { shouldDirty: true });
+                  };
+
+                  const isTaskDone = (room: string, task: string) => {
+                    return !!rpd[room]?.[task];
+                  };
+
+                  const getRoomProgress = (room: string) => {
+                    const tasks = getRoomTasks(room);
+                    if (tasks.length === 0) return 0;
+                    const done = tasks.filter(t => isTaskDone(t.room, t.task)).length;
+                    return Math.round((done / tasks.length) * 100);
+                  };
+
+                  const completedRooms = roomsWithWork.filter(r => getRoomProgress(r) === 100);
+                  const totalTasks = roomsWithWork.reduce((sum, r) => sum + getRoomTasks(r).length, 0);
+                  const totalDone = roomsWithWork.reduce((sum, r) => sum + getRoomTasks(r).filter(t => isTaskDone(t.room, t.task)).length, 0);
+                  const overallPercent = totalTasks > 0 ? Math.round((totalDone / totalTasks) * 100) : 0;
+
+                  if (roomsWithWork.length === 0) {
+                    return (
+                      <Card>
+                        <CardContent className="pt-6">
+                          <p className="text-muted-foreground text-center text-sm py-8">
+                            Shto sasi ne tab-in "Pajisje" per te pare progresin per dhome.
+                          </p>
+                        </CardContent>
+                      </Card>
+                    );
+                  }
+
+                  return (
+                    <div className="space-y-4">
+                      <Card>
+                        <CardContent className="pt-4">
+                          <div className="flex items-center justify-between gap-4 flex-wrap mb-3">
+                            <div className="flex items-center gap-3">
+                              <Home className="w-5 h-5 text-primary" />
+                              <div>
+                                <p className="text-sm font-bold" data-testid="text-rooms-progress">Progresi i Pergjithshem</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {completedRooms.length} / {roomsWithWork.length} dhoma te perfunduara
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <span className="text-2xl font-black text-primary" data-testid="text-overall-percent">{overallPercent}%</span>
+                            </div>
+                          </div>
+                          <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all duration-500"
+                              style={{
+                                width: `${overallPercent}%`,
+                                backgroundColor: overallPercent === 100 ? '#22c55e' : overallPercent > 50 ? '#3b82f6' : '#f59e0b',
+                              }}
+                              data-testid="bar-overall-progress"
+                            />
+                          </div>
+                          <div className="flex items-center justify-between gap-2 mt-2 flex-wrap">
+                            <span className="text-xs text-muted-foreground">{totalDone} / {totalTasks} detyra te kryera</span>
+                            {cableTotal > 0 && (
+                              <span className="text-xs text-muted-foreground">Kabllo totale: {cableTotal}m</span>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {roomsWithWork.map(room => {
+                          const tasks = getRoomTasks(room);
+                          const progress = getRoomProgress(room);
+                          const isDone = progress === 100;
+                          return (
+                            <Card key={room} className={isDone ? 'border-green-500/30 bg-green-500/5' : ''}>
+                              <CardHeader className="pb-2">
+                                <CardTitle className="text-sm flex items-center justify-between gap-2 flex-wrap">
+                                  <span className="flex items-center gap-2">
+                                    <Home className={`w-4 h-4 ${isDone ? 'text-green-500' : 'text-primary'}`} />
+                                    {room}
+                                  </span>
+                                  <Badge
+                                    variant={isDone ? "default" : "outline"}
+                                    className={isDone ? 'bg-green-500 text-white' : ''}
+                                    data-testid={`badge-room-progress-${room}`}
+                                  >
+                                    {progress}%
+                                  </Badge>
+                                </CardTitle>
+                              </CardHeader>
+                              <CardContent className="pt-0">
+                                <div className="w-full bg-muted rounded-full h-1.5 mb-3 overflow-hidden">
+                                  <div
+                                    className="h-full rounded-full transition-all duration-300"
+                                    style={{
+                                      width: `${progress}%`,
+                                      backgroundColor: isDone ? '#22c55e' : progress > 50 ? '#3b82f6' : '#f59e0b',
+                                    }}
+                                  />
+                                </div>
+                                <div className="space-y-1">
+                                  {tasks.map(task => {
+                                    const done = isTaskDone(task.room, task.task);
+                                    const taskId = `${task.room}-${task.task}`;
+                                    return (
+                                      <label
+                                        key={taskId}
+                                        className="flex items-center gap-2 p-1.5 rounded cursor-pointer"
+                                        data-testid={`task-${taskId}`}
+                                      >
+                                        <Checkbox
+                                          checked={done}
+                                          onCheckedChange={() => toggleTask(task.room, task.task)}
+                                        />
+                                        <span className={`text-xs ${done ? 'line-through text-muted-foreground' : 'font-medium'}`}>
+                                          {task.label}
+                                        </span>
+                                        {done && <CheckCircle2 className="w-3 h-3 text-green-500 ml-auto shrink-0" />}
+                                      </label>
+                                    );
+                                  })}
+                                </div>
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </TabsContent>
+            )}
             <TabsContent value="checklist">{renderChecklist()}</TabsContent>
             <TabsContent value="cmimet">{renderPricing()}</TabsContent>
           </Tabs>
