@@ -20,6 +20,7 @@ import ExpensesPage from "@/pages/expenses";
 import SuppliersPage from "@/pages/suppliers";
 import NotFound from "@/pages/not-found";
 import PublicRatePage from "@/pages/public-rate";
+import GuidePage from "@/pages/guide";
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType<any> }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -55,6 +56,7 @@ function Router() {
       <Route path="/expenses">{() => <ProtectedRoute component={ExpensesPage} />}</Route>
       <Route path="/suppliers">{() => <ProtectedRoute component={SuppliersPage} />}</Route>
       <Route path="/profile">{() => <ProtectedRoute component={ProfilePage} />}</Route>
+      <Route path="/guide">{() => <ProtectedRoute component={GuidePage} />}</Route>
       <Route component={NotFound} />
     </Switch>
   );

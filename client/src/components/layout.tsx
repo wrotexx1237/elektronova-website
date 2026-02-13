@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Zap, LayoutDashboard, PlusCircle, Menu, X, Package, Users, Warehouse, BarChart3, Bell, LogOut, User, Sun, Moon, Settings, CalendarDays, Truck, Receipt, Camera, ShieldAlert, Phone as PhoneIcon } from "lucide-react";
+import { Zap, LayoutDashboard, PlusCircle, Menu, X, Package, Users, Warehouse, BarChart3, Bell, LogOut, User, Sun, Moon, Settings, CalendarDays, Truck, Receipt, Camera, ShieldAlert, Phone as PhoneIcon, BookOpen } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
@@ -201,8 +201,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </main>
 
       <footer className="border-t py-6 bg-muted/30 mt-auto">
-        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} Elektronova. Të gjitha të drejtat e rezervuara.</p>
+        <div className="container mx-auto px-4 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} Elektronova. Të gjitha të drejtat e rezervuara.</p>
+          <Link href="/guide">
+            <Button variant="default" className="bg-amber-500 text-white border-amber-600 gap-2" data-testid="button-guide">
+              <BookOpen className="h-4 w-4" />
+              Si Përdoret
+            </Button>
+          </Link>
         </div>
       </footer>
 
