@@ -1661,10 +1661,20 @@ export async function registerRoutes(
       if (existing.length > 0) {
         return res.status(400).json({ message: "Kjo punë ka tashmë një vlerësim" });
       }
+      const parsedRating = Math.min(5, Math.max(1, parseInt(rating)));
       const fb = await storage.createFeedback({
         jobId, clientId: clientId || null,
-        rating: Math.min(5, Math.max(1, parseInt(rating))),
+        rating: parsedRating,
         comment: comment || null,
+      });
+      const job = await storage.getJob(jobId);
+      const starText = '★'.repeat(parsedRating) + '☆'.repeat(5 - parsedRating);
+      await storage.createNotification({
+        type: "feedback_received",
+        title: "Vlerësim i Ri",
+        message: `Vlerësim ${starText} (${parsedRating}/5) për punën "${job?.workType || 'N/A'}" - ${job?.clientName || 'Klient'}${comment ? ': "' + comment.substring(0, 100) + '"' : ''}`,
+        jobId,
+        isRead: 0,
       });
       res.status(201).json(fb);
     } catch (err) {
@@ -1724,6 +1734,14 @@ export async function registerRoutes(
         clientId: job.clientId || null,
         rating: parsed.data.rating,
         comment: parsed.data.comment || null,
+      });
+      const starText = '★'.repeat(parsed.data.rating) + '☆'.repeat(5 - parsed.data.rating);
+      await storage.createNotification({
+        type: "feedback_received",
+        title: "Vlerësim i Ri nga Klienti",
+        message: `${job.clientName || 'Klient'} vlerësoi punën "${job.workType}" me ${starText} (${parsed.data.rating}/5)${parsed.data.comment ? ': "' + parsed.data.comment.substring(0, 100) + '"' : ''}`,
+        jobId: job.id,
+        isRead: 0,
       });
       res.status(201).json({ id: fb.id, rating: fb.rating });
     } catch (err) {
