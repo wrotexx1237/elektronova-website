@@ -1,5 +1,6 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import type { Server } from "http";
+import crypto from "crypto";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
@@ -1531,6 +1532,76 @@ export async function registerRoutes(
     if (isNaN(id)) return res.status(400).json({ message: "ID e pavlefshme" });
     await storage.deleteFeedback(id);
     res.status(204).send();
+  });
+
+  // ==================== PUBLIC FEEDBACK (no auth) ====================
+
+  app.get('/api/public/rate/:token', async (req, res) => {
+    try {
+      const { token } = req.params;
+      if (!token || token.length < 10) return res.status(400).json({ message: "Token i pavlefshëm" });
+      const job = await storage.getJobByFeedbackToken(token);
+      if (!job) return res.status(404).json({ message: "Puna nuk u gjet" });
+      const existingFeedback = await storage.getFeedback(job.id);
+      res.json({
+        workType: job.workType,
+        category: job.category,
+        hasFeedback: existingFeedback.length > 0,
+        existingRating: existingFeedback.length > 0 ? existingFeedback[0].rating : null,
+      });
+    } catch (err) {
+      console.error('Public rate get error:', err);
+      res.status(500).json({ message: "Gabim" });
+    }
+  });
+
+  app.post('/api/public/rate/:token', async (req, res) => {
+    try {
+      const { token } = req.params;
+      if (!token || token.length < 10) return res.status(400).json({ message: "Token i pavlefshëm" });
+      const job = await storage.getJobByFeedbackToken(token);
+      if (!job) return res.status(404).json({ message: "Puna nuk u gjet" });
+      const ratingSchema = z.object({
+        rating: z.coerce.number().min(1).max(5),
+        comment: z.string().max(500).optional().default(""),
+      });
+      const parsed = ratingSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: "Vlerësimi duhet të jetë 1-5" });
+      }
+      const existingFeedback = await storage.getFeedback(job.id);
+      if (existingFeedback.length > 0) {
+        return res.status(400).json({ message: "Keni dhënë tashmë vlerësimin" });
+      }
+      const fb = await storage.createFeedback({
+        jobId: job.id,
+        clientId: job.clientId || null,
+        rating: parsed.data.rating,
+        comment: parsed.data.comment || null,
+      });
+      res.status(201).json({ id: fb.id, rating: fb.rating });
+    } catch (err) {
+      console.error('Public rate post error:', err);
+      res.status(500).json({ message: "Gabim" });
+    }
+  });
+
+  app.post('/api/jobs/:id/generate-feedback-token', requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "ID e pavlefshme" });
+      const job = await storage.getJob(id);
+      if (!job) return res.status(404).json({ message: "Puna nuk u gjet" });
+      if (job.feedbackToken) {
+        return res.json({ token: job.feedbackToken });
+      }
+      const token = crypto.randomBytes(16).toString('hex');
+      await storage.updateJob(id, { feedbackToken: token } as any);
+      res.json({ token });
+    } catch (err) {
+      console.error('Generate feedback token error:', err);
+      res.status(500).json({ message: "Gabim" });
+    }
   });
 
   // ==================== WARRANTY TRACKING ====================

@@ -22,7 +22,7 @@ import {
   Save, FileDown, ArrowLeft, Loader2, Banknote, Camera, PhoneCall,
   Package, Info, Settings, ShieldAlert, Wrench, CheckCircle2, AlertTriangle, Zap, Phone,
   ChevronDown, ShoppingCart, FileText, Eye, EyeOff, Percent, Hash, Tag,
-  MapPin, Send, FileSignature, CalendarDays, Star, MessageSquare
+  MapPin, Send, FileSignature, CalendarDays, Star, MessageSquare, Link2, Copy, ExternalLink
 } from "lucide-react";
 import { Link } from "wouter";
 import { useCatalog } from "@/hooks/use-catalog";
@@ -348,6 +348,7 @@ function FeedbackSection({ jobId }: { jobId: number }) {
   const { data: feedbackList, isLoading } = useQuery<any[]>({ queryKey: ['/api/feedback', jobId] });
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
+  const [ratingLink, setRatingLink] = useState<string | null>(null);
 
   const submitFeedback = useMutation({
     mutationFn: async () => {
@@ -371,6 +372,26 @@ function FeedbackSection({ jobId }: { jobId: number }) {
     },
   });
 
+  const generateLink = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", `/api/jobs/${jobId}/generate-feedback-token`);
+      return res.json();
+    },
+    onSuccess: (data: { token: string }) => {
+      const link = `${window.location.origin}/rate/${data.token}`;
+      setRatingLink(link);
+      toast({ title: "Linku u gjenerua!" });
+    },
+  });
+
+  const copyLink = () => {
+    if (ratingLink) {
+      navigator.clipboard.writeText(ratingLink).then(() => {
+        toast({ title: "Linku u kopjua!" });
+      });
+    }
+  };
+
   const existingFeedback = feedbackList && feedbackList.length > 0 ? feedbackList[0] : null;
 
   return (
@@ -381,7 +402,7 @@ function FeedbackSection({ jobId }: { jobId: number }) {
           Vlerësimi i Klientit
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
         {existingFeedback ? (
           <div className="space-y-2">
             <div className="flex items-center gap-1">
@@ -417,6 +438,37 @@ function FeedbackSection({ jobId }: { jobId: number }) {
             </Button>
           </div>
         )}
+
+        <div className="border-t pt-3">
+          <p className="text-xs font-medium text-muted-foreground mb-2">Dërgo link klientit për vlerësim</p>
+          {ratingLink ? (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Input value={ratingLink} readOnly className="text-xs" data-testid="input-rating-link" />
+                <Button variant="outline" size="icon" onClick={copyLink} title="Kopjo linkun" data-testid="button-copy-link">
+                  <Copy className="h-4 w-4" />
+                </Button>
+                <a href={ratingLink} target="_blank" rel="noopener noreferrer">
+                  <Button variant="outline" size="icon" title="Hap linkun" data-testid="button-open-link">
+                    <ExternalLink className="h-4 w-4" />
+                  </Button>
+                </a>
+              </div>
+              <p className="text-xs text-muted-foreground">Dërgoni këtë link klientit (WhatsApp, SMS, Email)</p>
+            </div>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => generateLink.mutate()}
+              disabled={generateLink.isPending}
+              data-testid="button-generate-rating-link"
+            >
+              {generateLink.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Link2 className="h-4 w-4 mr-2" />}
+              Gjenero Link Vlerësimi
+            </Button>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
@@ -1405,16 +1457,63 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
                   )} />
                   <FormField control={form.control} name="locationUrl" render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="flex items-center gap-1"><MapPin className="w-3 h-3" /> Plus Code</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          value={field.value || ""}
-                          placeholder="psh. 8GJ2JCW2+G9"
-                          data-testid="input-location-url"
-                        />
-                      </FormControl>
-                      <p className="text-xs text-muted-foreground">Kopjoni Plus Code nga Google Maps dhe vendoseni ketu</p>
+                      <FormLabel className="flex items-center gap-1"><MapPin className="w-3 h-3" /> Plus Code / Lokacioni</FormLabel>
+                      <div className="flex gap-2">
+                        <FormControl>
+                          <Input
+                            {...field}
+                            value={field.value || ""}
+                            placeholder="psh. 8GJ2JCW2+G9"
+                            data-testid="input-location-url"
+                          />
+                        </FormControl>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          title="Merr lokacionin GPS"
+                          data-testid="button-get-gps"
+                          onClick={() => {
+                            if (!navigator.geolocation) {
+                              toast({ title: "GPS nuk mbështetet në këtë pajisje", variant: "destructive" });
+                              return;
+                            }
+                            toast({ title: "Duke marrë lokacionin..." });
+                            navigator.geolocation.getCurrentPosition(
+                              (pos) => {
+                                const lat = pos.coords.latitude;
+                                const lng = pos.coords.longitude;
+                                form.setValue("latitude", lat, { shouldDirty: true });
+                                form.setValue("longitude", lng, { shouldDirty: true });
+                                const mapsUrl = `https://maps.google.com/?q=${lat},${lng}`;
+                                form.setValue("locationUrl", mapsUrl, { shouldDirty: true });
+                                toast({ title: "Lokacioni u regjistrua me sukses!" });
+                              },
+                              (err) => {
+                                toast({ title: "Nuk mund të merret lokacioni: " + err.message, variant: "destructive" });
+                              },
+                              { enableHighAccuracy: true, timeout: 10000 }
+                            );
+                          }}
+                        >
+                          <MapPin className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      {form.watch("latitude") && form.watch("longitude") && (
+                        <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1 mt-1">
+                          <MapPin className="w-3 h-3" />
+                          GPS: {Number(form.watch("latitude")).toFixed(6)}, {Number(form.watch("longitude")).toFixed(6)}
+                          <a
+                            href={`https://maps.google.com/?q=${form.watch("latitude")},${form.watch("longitude")}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="underline ml-1"
+                          >
+                            Shiko në hartë
+                          </a>
+                        </p>
+                      )}
+                      <p className="text-xs text-muted-foreground">Shtypni butonin GPS ose kopjoni Plus Code nga Google Maps</p>
                     </FormItem>
                   )} />
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

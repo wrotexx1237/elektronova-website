@@ -19,6 +19,7 @@ import CalendarPage from "@/pages/calendar";
 import ExpensesPage from "@/pages/expenses";
 import SuppliersPage from "@/pages/suppliers";
 import NotFound from "@/pages/not-found";
+import PublicRatePage from "@/pages/public-rate";
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType<any> }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -42,6 +43,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/login" component={Login} />
+      <Route path="/rate/:token" component={PublicRatePage} />
       <Route path="/">{() => <ProtectedRoute component={Dashboard} />}</Route>
       <Route path="/new">{() => <ProtectedRoute component={CreateJob} />}</Route>
       <Route path="/edit/:id">{() => <ProtectedRoute component={EditJob} />}</Route>

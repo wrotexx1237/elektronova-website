@@ -20,6 +20,7 @@ import { eq, desc, like, or, asc, and, gte, lte, sql } from "drizzle-orm";
 export interface IStorage {
   getJobs(search?: string): Promise<Job[]>;
   getJob(id: number): Promise<Job | undefined>;
+  getJobByFeedbackToken(token: string): Promise<Job | undefined>;
   createJob(job: InsertJob): Promise<Job>;
   updateJob(id: number, job: Partial<InsertJob>): Promise<Job>;
   deleteJob(id: number): Promise<void>;
@@ -98,6 +99,11 @@ export class DatabaseStorage implements IStorage {
 
   async getJob(id: number): Promise<Job | undefined> {
     const [job] = await db.select().from(jobs).where(eq(jobs.id, id));
+    return job;
+  }
+
+  async getJobByFeedbackToken(token: string): Promise<Job | undefined> {
+    const [job] = await db.select().from(jobs).where(eq(jobs.feedbackToken, token));
     return job;
   }
 

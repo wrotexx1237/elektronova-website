@@ -55,6 +55,9 @@ Key features:
 - **Warranty Tracking**: Configurable warranty period per job (default 12 months), auto-calculated expiration, warranty API endpoint
 - **Automatic Reminders**: Server checks on startup for upcoming scheduled work (today/tomorrow) and warranties expiring within 30 days
 - **Contract PDF**: Professional 1-page contract with 8 NENI legal sections in Albanian
+- **GPS Auto-Location**: One-tap GPS capture in job form, stores lat/lng coordinates with Google Maps link
+- **Public Rating Link**: Generate unique rating link for clients to rate completed jobs without login (via WhatsApp/SMS/Email)
+- **PWA Support**: Progressive Web App with service worker, manifest, and offline caching for static assets
 
 ## User Preferences
 
