@@ -28,6 +28,7 @@ Key features:
 - **Notification System**: Bell icon with unread count, stale offer detection, upcoming work reminders, low stock alerts, warranty expiration alerts, monthly summary
 - **Auto-Expense on Job Completion**: Automatically creates material expense linked to supplier when job status changes to completed
 - **Stock Warnings in Job Form**: Collapsible warning section showing items at or below minimum stock level
+- **Auto Tool Suggestions**: Automatically shows required tools (Dana, Hilti, Shafciger, Qekiq, etc.) based on materials added to a job, with keyword and category matching
 - **Calendar with Contact Info**: Client phone numbers displayed in calendar with clickable tel: links
 - **Expenses in Analytics**: Business expenses subtracted from profit, net profit calculation, expense breakdown by category
 - **Auto-Client from Job**: Automatically creates/links client in CRM when creating a job

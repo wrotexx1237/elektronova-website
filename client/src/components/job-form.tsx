@@ -23,7 +23,7 @@ import {
   Package, Info, Settings, ShieldAlert, Wrench, CheckCircle2, AlertTriangle, Zap, Phone,
   ChevronDown, ShoppingCart, FileText, Eye, EyeOff, Percent, Hash, Tag,
   MapPin, Send, FileSignature, CalendarDays, Star, MessageSquare, Link2, Copy, ExternalLink,
-  Award, ClipboardList, FileCheck
+  Award, ClipboardList, FileCheck, Hammer, CircleCheck
 } from "lucide-react";
 import { Link } from "wouter";
 import { useCatalog } from "@/hooks/use-catalog";
@@ -89,6 +89,73 @@ function getChecklistsForCategory(category: JobCategory) {
   }
   sections.push({ title: "Kontroll Final", items: CHECKLIST_FINAL });
   return sections;
+}
+
+const TOOLS_BY_MATERIAL_KEYWORD: Record<string, string[]> = {
+  "priz": ["Shafciger (kaçavida)", "Dana / Trapan", "Nivel", "Metro", "Hilti (nese mur betoni)"],
+  "çeles": ["Shafciger (kaçavida)", "Dana / Trapan", "Nivel", "Metro", "Hilti (nese mur betoni)"],
+  "ndricues": ["Shafciger (kaçavida)", "Dana / Trapan", "Shkalle", "Tester tensioni"],
+  "llamp": ["Shafciger (kaçavida)", "Dana / Trapan", "Shkalle", "Tester tensioni"],
+  "spot": ["Shafciger (kaçavida)", "Dana / Trapan", "Shkalle", "Sharre per gips", "Tester tensioni"],
+  "led": ["Shafciger (kaçavida)", "Dana / Trapan", "Shkalle"],
+  "ventilator": ["Shafciger (kaçavida)", "Dana / Trapan", "Shkalle"],
+  "tablo": ["Shafciger (kaçavida)", "Qekiq", "Tester tensioni", "Shirit izolues", "Multimeter"],
+  "sigures": ["Shafciger (kaçavida)", "Qekiq", "Tester tensioni", "Multimeter"],
+  "kontaktor": ["Shafciger (kaçavida)", "Qekiq", "Tester tensioni", "Multimeter"],
+  "rele": ["Shafciger (kaçavida)", "Qekiq", "Tester tensioni", "Multimeter"],
+  "kabllo": ["Qekiq", "Prerese kabllosh", "Shirit izolues", "Metro", "Dana / Trapan", "Hilti (nese mur betoni)"],
+  "kabell": ["Qekiq", "Prerese kabllosh", "Shirit izolues", "Metro", "Dana / Trapan"],
+  "gyp": ["Dana / Trapan", "Hilti (nese mur betoni)", "Sharre", "Metro", "Nivel"],
+  "kanal": ["Dana / Trapan", "Hilti (nese mur betoni)", "Metro", "Nivel", "Sharre"],
+  "tub": ["Dana / Trapan", "Hilti (nese mur betoni)", "Metro", "Sharre"],
+  "kamera": ["Dana / Trapan", "Hilti (nese mur betoni)", "Shkalle", "Shafciger (kaçavida)", "Laptop (per konfigurim)"],
+  "dvr": ["Shafciger (kaçavida)", "Qekiq", "Prerese kabllosh", "Laptop (per konfigurim)", "Monitor"],
+  "nvr": ["Shafciger (kaçavida)", "Qekiq", "Prerese kabllosh", "Laptop (per konfigurim)", "Monitor"],
+  "switch": ["Shafciger (kaçavida)", "Qekiq", "Prerese kabllosh", "Laptop (per konfigurim)"],
+  "alarm": ["Dana / Trapan", "Hilti (nese mur betoni)", "Shafciger (kaçavida)", "Shkalle", "Laptop (per konfigurim)"],
+  "sensor": ["Dana / Trapan", "Hilti (nese mur betoni)", "Shafciger (kaçavida)", "Shkalle"],
+  "siren": ["Dana / Trapan", "Hilti (nese mur betoni)", "Shafciger (kaçavida)", "Shkalle"],
+  "interfon": ["Dana / Trapan", "Hilti (nese mur betoni)", "Shafciger (kaçavida)", "Shkalle", "Metro"],
+  "panel": ["Dana / Trapan", "Hilti (nese mur betoni)", "Shafciger (kaçavida)", "Nivel"],
+  "monitor": ["Dana / Trapan", "Hilti (nese mur betoni)", "Shafciger (kaçavida)", "Nivel", "Shkalle"],
+  "brav": ["Dana / Trapan", "Hilti (nese mur betoni)", "Shafciger (kaçavida)"],
+  "ups": ["Shafciger (kaçavida)", "Qekiq", "Tester tensioni"],
+  "stabilizator": ["Shafciger (kaçavida)", "Qekiq", "Tester tensioni"],
+  "generator": ["Shafciger (kaçavida)", "Qekiq", "Tester tensioni", "Cel angleze"],
+};
+
+const TOOLS_BY_CATEGORY: Record<string, string[]> = {
+  "Pajisje elektrike": ["Shafciger (kaçavida)", "Dana / Trapan", "Qekiq", "Tester tensioni", "Nivel", "Metro"],
+  "Kabllo & Gypa": ["Qekiq", "Prerese kabllosh", "Dana / Trapan", "Shirit izolues", "Metro"],
+  "Kamera": ["Dana / Trapan", "Hilti (nese mur betoni)", "Shkalle", "Shafciger (kaçavida)", "Laptop (per konfigurim)"],
+  "Interfon": ["Dana / Trapan", "Hilti (nese mur betoni)", "Shkalle", "Shafciger (kaçavida)", "Metro"],
+  "Alarm": ["Dana / Trapan", "Hilti (nese mur betoni)", "Shafciger (kaçavida)", "Shkalle", "Laptop (per konfigurim)"],
+  "Punë/Shërbime": [],
+};
+
+function normalizeName(s: string): string {
+  return s.toLowerCase()
+    .replace(/ë/g, "e").replace(/ç/g, "c").replace(/é/g, "e")
+    .replace(/ü/g, "u").replace(/ö/g, "o").replace(/â/g, "a");
+}
+
+function getRequiredTools(itemsWithQty: { name: string; category?: string }[]): string[] {
+  const toolSet = new Set<string>();
+  itemsWithQty.forEach(item => {
+    const nameNorm = normalizeName(item.name);
+    for (const [keyword, tools] of Object.entries(TOOLS_BY_MATERIAL_KEYWORD)) {
+      if (nameNorm.includes(normalizeName(keyword))) {
+        tools.forEach(t => toolSet.add(t));
+      }
+    }
+    if (item.category && TOOLS_BY_CATEGORY[item.category]) {
+      TOOLS_BY_CATEGORY[item.category].forEach(t => toolSet.add(t));
+    }
+  });
+  if (toolSet.size === 0 && itemsWithQty.length > 0) {
+    ["Shafciger (kaçavida)", "Dana / Trapan", "Qekiq", "Metro"].forEach(t => toolSet.add(t));
+  }
+  return Array.from(toolSet).sort();
 }
 
 function getWorkTypesForCategory(category: JobCategory) {
@@ -1734,6 +1801,7 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
   });
 
   const [stockWarningOpen, setStockWarningOpen] = useState(false);
+  const [toolsOpen, setToolsOpen] = useState(false);
 
   const availableWorkTypes = getWorkTypesForCategory(category);
   const watchedDiscountType = form.watch("discountType");
@@ -1894,6 +1962,60 @@ export function JobForm({ initialData, onSubmit, isPending, title, defaultCatego
                 )}
               </div>
             )}
+
+            {(() => {
+              const t1 = form.watch("table1Data") || {};
+              const t2 = form.watch("table2Data") || {};
+              const cam = form.watch("cameraData") || {};
+              const intc = form.watch("intercomData") || {};
+              const alm = form.watch("alarmData") || {};
+              const srv = form.watch("serviceData") || {};
+              const allActive: { name: string; category?: string }[] = [];
+              const addItems = (items: CatalogItem[], data: Record<string, any>, isRoom?: boolean) => {
+                items.forEach(c => {
+                  const qty = isRoom
+                    ? Object.values(data[c.name] || {}).reduce((a: number, b: any) => a + (Number(b) || 0), 0)
+                    : (data[c.name] || 0);
+                  if (qty > 0) allActive.push({ name: c.name, category: c.category });
+                });
+              };
+              if (tabVis.showPajisje) addItems(pajisjeItems, t1, true);
+              if (tabVis.showMateriale) addItems(materialItems, t2);
+              if (tabVis.showKamera) addItems(cameraItems, cam);
+              if (tabVis.showInterfon) addItems(intercomItems, intc);
+              if (tabVis.showAlarm) addItems(alarmItems, alm);
+              if (tabVis.showSherbime) addItems(serviceItems, srv);
+              const requiredTools = getRequiredTools(allActive);
+              if (requiredTools.length === 0) return null;
+              return (
+                <div className="border border-blue-500/30 rounded-lg bg-blue-500/5 mb-2" data-testid="section-tools">
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-between gap-2 p-3 text-left"
+                    onClick={() => setToolsOpen(!toolsOpen)}
+                    data-testid="button-tools-toggle"
+                  >
+                    <span className="text-sm font-bold text-blue-700 dark:text-blue-400 flex items-center gap-2">
+                      <Hammer className="w-4 h-4" />
+                      Veglat e Nevojshme ({requiredTools.length})
+                    </span>
+                    <ChevronDown className={`w-4 h-4 text-blue-600 transition-transform ${toolsOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {toolsOpen && (
+                    <div className="px-3 pb-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                        {requiredTools.map(tool => (
+                          <div key={tool} className="flex items-center gap-2 text-xs p-2 rounded bg-blue-500/10" data-testid={`tool-${tool}`}>
+                            <CircleCheck className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+                            <span className="font-medium text-blue-800 dark:text-blue-300">{tool}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
             <TabsContent value="info">
               <Card>
