@@ -1657,6 +1657,10 @@ export async function registerRoutes(
     try {
       const { jobId, clientId, rating, comment } = req.body;
       if (!jobId || !rating) return res.status(400).json({ message: "Plotesoni fushat e detyrueshme" });
+      const existing = await storage.getFeedback(jobId);
+      if (existing.length > 0) {
+        return res.status(400).json({ message: "Kjo punë ka tashmë një vlerësim" });
+      }
       const fb = await storage.createFeedback({
         jobId, clientId: clientId || null,
         rating: Math.min(5, Math.max(1, parseInt(rating))),

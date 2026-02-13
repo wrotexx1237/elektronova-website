@@ -413,7 +413,7 @@ function SupplierComparisonField({ form, suppliers, supplierPrices: spData, cata
 
 function FeedbackSection({ jobId }: { jobId: number }) {
   const { toast } = useToast();
-  const { data: feedbackList, isLoading } = useQuery<any[]>({ queryKey: ['/api/feedback', jobId] });
+  const { data: feedbackList, isLoading } = useQuery<any[]>({ queryKey: [`/api/feedback?jobId=${jobId}`] });
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
   const [ratingLink, setRatingLink] = useState<string | null>(null);
@@ -424,7 +424,7 @@ function FeedbackSection({ jobId }: { jobId: number }) {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/feedback', jobId] });
+      queryClient.invalidateQueries({ queryKey: [`/api/feedback?jobId=${jobId}`] });
       setComment("");
       toast({ title: "Vlerësimi u ruajt me sukses!" });
     },
@@ -435,7 +435,7 @@ function FeedbackSection({ jobId }: { jobId: number }) {
       await apiRequest("DELETE", `/api/feedback/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/feedback', jobId] });
+      queryClient.invalidateQueries({ queryKey: [`/api/feedback?jobId=${jobId}`] });
       toast({ title: "Vlerësimi u fshi" });
     },
   });
