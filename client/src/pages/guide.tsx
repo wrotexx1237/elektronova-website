@@ -44,6 +44,7 @@ import {
   ShieldCheck,
   FileBarChart,
   FileCheck,
+  RefreshCw,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -237,6 +238,15 @@ export default function GuidePage() {
           <div className="space-y-4">
             <p className="text-sm">Dashboard-i është faqja e parë që shihni kur hyni në aplikacion. Këtu menaxhoni të gjitha procesverbalet (punët) tuaja.</p>
 
+            <h4 className="font-semibold text-sm">Karta Përmbledhëse</h4>
+            <p className="text-sm text-muted-foreground">Në krye të Dashboard-it shfaqen 4 karta me statistika të shpejta:</p>
+            <div className="space-y-1 text-sm text-muted-foreground">
+              <p>&bull; <strong>Totali Punëve</strong> — Numri i përgjithshëm i punëve</p>
+              <p>&bull; <strong>Në Progres</strong> — Sa punë janë aktualisht në progres</p>
+              <p>&bull; <strong>Të Përfunduara</strong> — Sa punë janë përfunduar</p>
+              <p>&bull; <strong>Pa Paguar</strong> — Sa punë të përfunduara nuk janë paguar ende</p>
+            </div>
+
             <h4 className="font-semibold text-sm">Krijo Punë të Re (Shpejt)</h4>
             <p className="text-sm text-muted-foreground">Në krye të faqjes keni 4 kartela për krijimin e shpejtë sipas kategorisë:</p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -265,7 +275,10 @@ export default function GuidePage() {
               <Step number={3} title="Filtro sipas statusit">
                 <p>Zgjidhni &quot;Ofertë&quot;, &quot;Në Progres&quot; ose &quot;E Përfunduar&quot; për të parë vetëm punët me atë status.</p>
               </Step>
-              <Step number={4} title="Filtro sipas datës">
+              <Step number={4} title="Filtro sipas pagesës">
+                <p>Zgjidhni &quot;Pa Paguar&quot;, &quot;Pjesërisht&quot; ose &quot;Paguar&quot; për të parë vetëm punët me atë status pagese.</p>
+              </Step>
+              <Step number={5} title="Filtro sipas datës">
                 <p>Përdorni fushat &quot;Nga&quot; dhe &quot;Deri&quot; për të filtruar punët brenda një periudhe kohore.</p>
               </Step>
             </div>
@@ -775,6 +788,12 @@ export default function GuidePage() {
               <div className="flex items-center gap-2"><Star className="h-4 w-4 text-yellow-500" /> <span><strong>Kujtesë Vlerësimi</strong> — 3 ditë pas përfundimit, kujton të dërgoni linkun e vlerësimit tek klienti</span></div>
               <div className="flex items-center gap-2"><BarChart3 className="h-4 w-4 text-cyan-500" /> <span><strong>Progresi 100%</strong> — Kur të gjitha dhomët e një pune elektrike janë përfunduar, sugjeron ndryshimin e statusit</span></div>
               <div className="flex items-center gap-2"><FileBarChart className="h-4 w-4 text-indigo-500" /> <span><strong>Përmbledhje Mujore</strong> — Në fillim të çdo muaji, përmbledhje e punëve, të ardhurave dhe shpenzimeve të muajit të kaluar</span></div>
+              <div className="flex items-center gap-2"><PlusCircle className="h-4 w-4 text-blue-500" /> <span><strong>Punë e Re</strong> — Kur krijohet një punë e re, me emrin e klientit dhe kategorinë</span></div>
+              <div className="flex items-center gap-2"><CreditCard className="h-4 w-4 text-purple-500" /> <span><strong>Shpenzim i Ri</strong> — Kur shtohet një shpenzim biznesi, me kategorinë dhe shumën</span></div>
+              <div className="flex items-center gap-2"><Star className="h-4 w-4 text-yellow-500" /> <span><strong>Vlerësim i Ri</strong> — Kur klienti len vlerësim përmes linkut publik ose formës</span></div>
+              <div className="flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-orange-500" /> <span><strong>Punë pa Çmime</strong> — Kur një punë ka materiale por nuk ka çmime të vendosura (kontrollohet çdo javë)</span></div>
+              <div className="flex items-center gap-2"><RefreshCw className="h-4 w-4 text-teal-500" /> <span><strong>Shpenzim Periodik</strong> — Kujtesë kur kanë kaluar 28+ ditë nga shpenzimi i fundit i qirasë</span></div>
+              <div className="flex items-center gap-2"><Zap className="h-4 w-4 text-amber-500" /> <span><strong>Ndryshim Automatik Statusi</strong> — Kur filloni progresin e dhomave, statusi kalon nga &quot;Ofertë&quot; në &quot;Në Progres&quot; automatikisht</span></div>
             </div>
 
             <h4 className="font-semibold text-sm">Si Funksionon</h4>

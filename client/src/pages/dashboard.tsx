@@ -20,7 +20,11 @@ import {
   BookTemplate,
   Clock,
   MapPin,
-  Send
+  Send,
+  CreditCard,
+  TrendingUp,
+  ClipboardList,
+  CheckCircle2
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -101,6 +105,7 @@ export default function Dashboard() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [paymentFilter, setPaymentFilter] = useState<string>("all");
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
   const [mapJob, setMapJob] = useState<Job | null>(null);
@@ -122,10 +127,26 @@ export default function Dashboard() {
       job.clientAddress.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = categoryFilter === "all" || (job.category || "electric") === categoryFilter;
     const matchesStatus = statusFilter === "all" || (job.status || "oferte") === statusFilter;
+    const matchesPayment = paymentFilter === "all" || (job.paymentStatus || "pa_paguar") === paymentFilter;
     const matchesDateFrom = !dateFrom || job.workDate >= dateFrom;
     const matchesDateTo = !dateTo || job.workDate <= dateTo;
-    return matchesSearch && matchesCategory && matchesStatus && matchesDateFrom && matchesDateTo;
+    return matchesSearch && matchesCategory && matchesStatus && matchesPayment && matchesDateFrom && matchesDateTo;
   });
+
+  const stats = useMemo(() => {
+    const all = regularJobs;
+    const totalJobs = all.length;
+    const inProgress = all.filter(j => j.status === "ne_progres").length;
+    const completed = all.filter(j => j.status === "e_perfunduar").length;
+    const offers = all.filter(j => j.status === "oferte").length;
+    const unpaid = all.filter(j => j.status === "e_perfunduar" && j.paymentStatus !== "paguar").length;
+    let totalAmount = 0;
+    for (const job of all) {
+      const prices = (job.prices || {}) as Record<string, number>;
+      for (const v of Object.values(prices)) totalAmount += (v || 0);
+    }
+    return { totalJobs, inProgress, completed, offers, unpaid, totalAmount };
+  }, [regularJobs]);
 
   return (
     <Layout>
@@ -158,8 +179,57 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {!isLoading && regularJobs.length > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+          <Card data-testid="stat-total">
+            <CardContent className="flex items-center gap-3 py-4">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <ClipboardList className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{stats.totalJobs}</p>
+                <p className="text-xs text-muted-foreground">Totali Punëve</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card data-testid="stat-in-progress">
+            <CardContent className="flex items-center gap-3 py-4">
+              <div className="p-2 rounded-lg bg-blue-500/10">
+                <TrendingUp className="h-5 w-5 text-blue-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{stats.inProgress}</p>
+                <p className="text-xs text-muted-foreground">Në Progres</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card data-testid="stat-completed">
+            <CardContent className="flex items-center gap-3 py-4">
+              <div className="p-2 rounded-lg bg-green-500/10">
+                <CheckCircle2 className="h-5 w-5 text-green-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{stats.completed}</p>
+                <p className="text-xs text-muted-foreground">Të Përfunduara</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card data-testid="stat-unpaid">
+            <CardContent className="flex items-center gap-3 py-4">
+              <div className="p-2 rounded-lg bg-red-500/10">
+                <CreditCard className="h-5 w-5 text-red-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{stats.unpaid}</p>
+                <p className="text-xs text-muted-foreground">Pa Paguar</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       <div className="flex flex-col gap-3 mb-8">
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-col sm:flex-row gap-3 flex-wrap">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input 
@@ -190,6 +260,17 @@ export default function Dashboard() {
               <SelectItem value="oferte">Ofertë</SelectItem>
               <SelectItem value="ne_progres">Në Progres</SelectItem>
               <SelectItem value="e_perfunduar">E Përfunduar</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={paymentFilter} onValueChange={setPaymentFilter}>
+            <SelectTrigger className="w-full sm:w-[180px]" data-testid="select-payment-filter">
+              <SelectValue placeholder="Të gjitha pagesat" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Të gjitha pagesat</SelectItem>
+              <SelectItem value="pa_paguar">Pa Paguar</SelectItem>
+              <SelectItem value="pjeserisht">Pjesërisht</SelectItem>
+              <SelectItem value="paguar">Paguar</SelectItem>
             </SelectContent>
           </Select>
         </div>

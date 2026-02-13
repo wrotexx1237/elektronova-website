@@ -397,6 +397,16 @@ export async function registerRoutes(
         });
       }
 
+      await storage.createNotification({
+        type: "new_job",
+        title: "Punë e Re",
+        message: `Punë e re ${job.invoiceNumber || '#' + job.id} u krijua për ${input.clientName} (${({electric:'Elektrike',camera:'Kamera',alarm:'Alarm',intercom:'Interfon'} as Record<string,string>)[input.category || 'electric'] || input.category})`,
+        jobId: job.id,
+        catalogItemId: null,
+        isRead: 0,
+        userId: null,
+      });
+
       res.status(201).json(job);
     } catch (err) {
       if (err instanceof z.ZodError) {
@@ -539,6 +549,22 @@ export async function registerRoutes(
       }
 
       if (input.roomProgressData && existing.category === "electric") {
+        if (existing.status === "oferte") {
+          const rpd = input.roomProgressData as Record<string, Record<string, boolean>>;
+          const hasAnyProgress = Object.values(rpd).some(room => Object.values(room).some(v => v === true));
+          if (hasAnyProgress) {
+            await storage.updateJob(id, { status: "ne_progres" } as any);
+            await storage.createNotification({
+              type: "auto_status_change",
+              title: "Statusi ndryshoi automatikisht",
+              message: `Puna ${existing.invoiceNumber || '#' + id} për ${existing.clientName} kaloi nga "Ofertë" në "Në Progres" sepse progresi filloi.`,
+              jobId: id,
+              catalogItemId: null,
+              isRead: 0,
+              userId: null,
+            });
+          }
+        }
         const rpd = input.roomProgressData as Record<string, Record<string, boolean>>;
         const t1 = (input.table1Data || existing.table1Data || {}) as Record<string, Record<string, number>>;
         const ROOM_GENERAL_TASKS = ["Kabllot e ndertuara", "Gypat e vendosura", "Shtekat e hapura"];
@@ -1155,6 +1181,65 @@ export async function registerRoutes(
         }
       }
 
+      for (const job of allJobs) {
+        if (job.isTemplate === 1 || job.status === "e_perfunduar") continue;
+        const prices = (job.prices || {}) as Record<string, number>;
+        const hasMaterials = Object.keys(job.table1Data || {}).length > 0 ||
+          Object.keys(job.table2Data || {}).length > 0 ||
+          Object.keys(job.cameraData || {}).length > 0 ||
+          Object.keys(job.intercomData || {}).length > 0 ||
+          Object.keys(job.alarmData || {}).length > 0 ||
+          Object.keys(job.serviceData || {}).length > 0;
+        const hasPrices = Object.values(prices).some(v => v > 0);
+        if (hasMaterials && !hasPrices) {
+          const alreadyNotified = existingNotifs.some(
+            n => n.type === "missing_prices" && n.jobId === job.id &&
+              n.createdAt && (now.getTime() - new Date(n.createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000
+          );
+          if (!alreadyNotified) {
+            await storage.createNotification({
+              type: "missing_prices",
+              title: "Punë pa çmime",
+              message: `Puna ${job.invoiceNumber || '#' + job.id} për ${job.clientName} ka materiale por nuk ka çmime të vendosura.`,
+              jobId: job.id,
+              catalogItemId: null,
+              isRead: 0,
+              userId: null,
+            });
+            created++;
+          }
+        }
+      }
+
+      try {
+        const expenses = await storage.getExpenses();
+        const qiraExpenses = expenses.filter(e => e.category === "qira");
+        if (qiraExpenses.length > 0) {
+          const lastQira = qiraExpenses.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+          const daysSince = Math.floor((now.getTime() - new Date(lastQira.date).getTime()) / (1000 * 60 * 60 * 24));
+          if (daysSince >= 28) {
+            const alreadyNotified = existingNotifs.some(
+              n => n.type === "recurring_expense" &&
+                n.createdAt && (now.getTime() - new Date(n.createdAt).getTime()) < 25 * 24 * 60 * 60 * 1000
+            );
+            if (!alreadyNotified) {
+              await storage.createNotification({
+                type: "recurring_expense",
+                title: "Kujtesë - Shpenzim Periodik",
+                message: `Kanë kaluar ${daysSince} ditë nga shpenzimi i fundit i qirasë. Kontrolloni nëse duhet paguar.`,
+                jobId: null,
+                catalogItemId: null,
+                isRead: 0,
+                userId: null,
+              });
+              created++;
+            }
+          }
+        }
+      } catch (recurringErr) {
+        console.error('Recurring expense check error:', recurringErr);
+      }
+
       res.json({ created });
     } catch (err) {
       console.error('Check stale error:', err);
@@ -1621,6 +1706,16 @@ export async function registerRoutes(
         description, amount: parseFloat(amount), category: category || 'tjeter',
         date, jobId: jobId || null, supplierId: supplierId || null,
         notes: notes || null, createdBy: req.session?.fullName || null,
+      });
+      const EXPENSE_CAT_LABELS: Record<string,string> = {karburant:'Karburant',transport:'Transport',vegla:'Vegla',material:'Material',ushqim:'Ushqim',telefon:'Telefon',qira:'Qira',tjeter:'Tjetër'};
+      await storage.createNotification({
+        type: "expense_added",
+        title: "Shpenzim i Ri",
+        message: `${EXPENSE_CAT_LABELS[category] || category}: ${description} - €${parseFloat(amount).toFixed(2)}`,
+        jobId: jobId ? parseInt(jobId) : null,
+        catalogItemId: null,
+        isRead: 0,
+        userId: null,
       });
       res.status(201).json(expense);
     } catch (err) {
