@@ -13,8 +13,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Search, Plus, Phone, MapPin, Mail, FileText, Truck, Trash2, Edit2, Tags,
-  DollarSign, ArrowUpDown, TrendingDown, TrendingUp, BarChart3, ChevronDown, ChevronUp
+  DollarSign, ArrowUpDown, TrendingDown, TrendingUp, BarChart3, ChevronDown, ChevronUp, FileDown
 } from "lucide-react";
+import { createElektronovaPDF, addPDFTable, addAllFooters } from "@/lib/pdf-utils";
 import { useAuth } from "@/hooks/use-auth";
 import type { Supplier, CatalogItem, SupplierPrice, Job } from "@shared/schema";
 import { Wallet, PiggyBank, Receipt, Package } from "lucide-react";
@@ -93,6 +94,24 @@ export default function SuppliersPage() {
     },
   });
 
+  const generateSuppliersPDF = () => {
+    const date = new Date().toISOString().split("T")[0];
+    const { doc, startY } = createElektronovaPDF("LISTA E FURNITOREVE", date);
+    addPDFTable(doc, startY,
+      [["Nr.", "Emri", "Telefoni", "Email", "Adresa", "Kategorite"]],
+      suppliers.map((s, i) => [
+        String(i + 1),
+        s.name,
+        s.phone || "",
+        s.email || "",
+        s.address || "",
+        ((s.categories as string[]) || []).join(", "),
+      ]),
+    );
+    addAllFooters(doc, "Elektronova - Lista e Furnitoreve");
+    doc.save(`Elektronova_Furnitoret_${date}.pdf`);
+  };
+
   const supplierPriceCount = (supplierId: number) =>
     allSupplierPrices.filter(sp => sp.supplierId === supplierId).length;
 
@@ -104,9 +123,14 @@ export default function SuppliersPage() {
             <h1 className="text-2xl font-bold" data-testid="text-suppliers-title">Paneli i Furnitorëve</h1>
             <p className="text-muted-foreground" data-testid="text-suppliers-count">{allSuppliers.length} furnitorë të regjistruar</p>
           </div>
-          <Button onClick={() => setShowAddDialog(true)} data-testid="button-add-supplier">
-            <Plus className="h-4 w-4 mr-2" /> Shto Furnitor
-          </Button>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button variant="outline" onClick={generateSuppliersPDF} data-testid="button-pdf-suppliers">
+              <FileDown className="h-4 w-4 mr-2" /> Shkarko PDF
+            </Button>
+            <Button onClick={() => setShowAddDialog(true)} data-testid="button-add-supplier">
+              <Plus className="h-4 w-4 mr-2" /> Shto Furnitor
+            </Button>
+          </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>

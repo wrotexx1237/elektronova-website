@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Search, Plus, Phone, MapPin, Mail, FileText, Briefcase, Trash2, Edit2 } from "lucide-react";
+import { Search, Plus, Phone, MapPin, Mail, FileText, Briefcase, Trash2, Edit2, FileDown } from "lucide-react";
+import { createElektronovaPDF, addPDFTable, addAllFooters } from "@/lib/pdf-utils";
 import { useAuth } from "@/hooks/use-auth";
 import type { Client, Job } from "@shared/schema";
 import { JOB_STATUS_LABELS, JOB_CATEGORY_LABELS, type JobStatus, type JobCategory } from "@shared/schema";
@@ -81,6 +82,23 @@ export default function ClientsPage() {
     },
   });
 
+  const generateClientsPDF = () => {
+    const date = new Date().toISOString().split("T")[0];
+    const { doc, startY } = createElektronovaPDF("LISTA E KLIENTEVE", date);
+    addPDFTable(doc, startY,
+      [["Nr.", "Emri", "Telefoni", "Adresa", "Email"]],
+      clients.map((client, i) => [
+        String(i + 1),
+        client.name,
+        client.phone || "",
+        client.address || "",
+        client.email || "",
+      ]),
+    );
+    addAllFooters(doc, "Elektronova - Lista e Klienteve");
+    doc.save(`Elektronova_Klientet_${date}.pdf`);
+  };
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -89,9 +107,14 @@ export default function ClientsPage() {
             <h1 className="text-2xl font-bold" data-testid="text-clients-title">Paneli i Klientëve</h1>
             <p className="text-muted-foreground">{allClients.length} klientë të regjistruar</p>
           </div>
-          <Button onClick={() => setShowAddDialog(true)} data-testid="button-add-client">
-            <Plus className="h-4 w-4 mr-2" /> Shto Klient
-          </Button>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button variant="outline" onClick={generateClientsPDF} data-testid="button-pdf-clients">
+              <FileDown className="h-4 w-4 mr-2" /> Shkarko PDF
+            </Button>
+            <Button onClick={() => setShowAddDialog(true)} data-testid="button-add-client">
+              <Plus className="h-4 w-4 mr-2" /> Shto Klient
+            </Button>
+          </div>
         </div>
 
         <div className="relative">

@@ -5,8 +5,9 @@ import { Layout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight, Zap, Camera, ShieldAlert, Phone, Loader2 } from "lucide-react";
-import { JOB_STATUS_LABELS, type Job, type JobCategory } from "@shared/schema";
+import { ChevronLeft, ChevronRight, Zap, Camera, ShieldAlert, Phone, Loader2, FileDown } from "lucide-react";
+import { JOB_CATEGORY_LABELS, JOB_STATUS_LABELS, type Job, type JobCategory, type JobStatus } from "@shared/schema";
+import { createElektronovaPDF, addPDFTable, addAllFooters } from "@/lib/pdf-utils";
 
 function getCategoryStyle(category: string | null | undefined) {
   switch (category) {
@@ -83,6 +84,30 @@ export default function CalendarPage() {
   const today = new Date();
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
+  const generateCalendarPDF = () => {
+    const { doc, startY } = createElektronovaPDF(`KALENDARI - ${MONTH_NAMES_SQ[month]} ${year}`);
+    const monthJobs: Job[] = [];
+    Object.entries(jobsByDate).forEach(([dateStr, dateJobs]) => {
+      const d = new Date(dateStr + "T00:00:00");
+      if (d.getFullYear() === year && d.getMonth() === month) {
+        monthJobs.push(...dateJobs);
+      }
+    });
+    addPDFTable(doc, startY,
+      [["Nr.", "Klienti", "Lloji Punes", "Kategoria", "Statusi", "Data"]],
+      monthJobs.map((job, i) => [
+        String(i + 1),
+        job.clientName,
+        job.workType || "",
+        JOB_CATEGORY_LABELS[job.category as JobCategory] || job.category || "",
+        JOB_STATUS_LABELS[job.status as JobStatus] || job.status || "",
+        job.scheduledDate || job.workDate || "",
+      ]),
+    );
+    addAllFooters(doc, "Elektronova - Kalendari i Puneve");
+    doc.save(`Elektronova_Kalendari_${MONTH_NAMES_SQ[month]}_${year}.pdf`);
+  };
+
   return (
     <Layout>
       <div className="flex flex-col gap-6">
@@ -91,7 +116,12 @@ export default function CalendarPage() {
             <h1 className="text-3xl md:text-4xl font-bold text-foreground" data-testid="text-calendar-title">Kalendari i Punëve</h1>
             <p className="text-muted-foreground mt-1">Shiko punët e planifikuara sipas datës</p>
           </div>
-          <Button variant="outline" onClick={goToToday} data-testid="button-today">Sot</Button>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button variant="outline" onClick={generateCalendarPDF} data-testid="button-pdf-calendar">
+              <FileDown className="h-4 w-4 mr-2" /> Shkarko PDF
+            </Button>
+            <Button variant="outline" onClick={goToToday} data-testid="button-today">Sot</Button>
+          </div>
         </div>
 
         <Card>

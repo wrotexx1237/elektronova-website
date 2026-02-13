@@ -10,7 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Package, AlertTriangle, Plus, Minus, ArrowUpDown, Search, TrendingDown, History } from "lucide-react";
+import { Package, AlertTriangle, Plus, Minus, ArrowUpDown, Search, TrendingDown, History, FileDown } from "lucide-react";
+import { createElektronovaPDF, addPDFTable, addPDFSummaryBox, addAllFooters } from "@/lib/pdf-utils";
 import { useAuth } from "@/hooks/use-auth";
 import type { CatalogItem, StockEntry } from "@shared/schema";
 import { CATEGORIES } from "@shared/schema";
@@ -65,6 +66,34 @@ export default function InventoryPage() {
   const itemsWithStock = catalog.filter(i => (i.currentStock || 0) > 0).length;
   const lowCount = lowStockItems.length;
 
+  const generateStockPDF = () => {
+    const date = new Date().toISOString().split("T")[0];
+    const { doc, startY } = createElektronovaPDF("RAPORTI I STOKUT", date);
+    const noStock = totalItems - itemsWithStock;
+    let y = addPDFSummaryBox(doc, startY, [
+      `Totali i artikujve: ${totalItems}`,
+      `Artikuj me stok: ${itemsWithStock}`,
+      `Stok i ulët: ${lowCount}`,
+      `Pa stok: ${noStock}`,
+    ]);
+    addPDFTable(doc, y,
+      [["Nr.", "Artikulli", "Kategoria", "Njësia", "Stoku Aktual", "Min. Stok", "Statusi"]],
+      filteredCatalog.map((item, i) => {
+        const stock = item.currentStock || 0;
+        const min = item.minStockLevel || 0;
+        let status = "OK";
+        if (stock <= 0) status = "Pa Stok";
+        else if (min > 0 && stock <= min) status = "I Ulët";
+        return [
+          String(i + 1), item.name, item.category, item.unit,
+          String(stock), String(min), status,
+        ];
+      }),
+    );
+    addAllFooters(doc, "Elektronova - Raporti i Stokut");
+    doc.save(`Elektronova_Stoku_${date}.pdf`);
+  };
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -73,6 +102,9 @@ export default function InventoryPage() {
             <h1 className="text-2xl font-bold" data-testid="text-inventory-title">Menaxhimi i Stokut</h1>
             <p className="text-muted-foreground">{totalItems} artikuj në katalog</p>
           </div>
+          <Button variant="outline" onClick={generateStockPDF} data-testid="button-pdf-stock">
+            <FileDown className="h-4 w-4 mr-2" /> Shkarko PDF
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

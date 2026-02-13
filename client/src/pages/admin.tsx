@@ -17,7 +17,8 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger
 } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Trash2, Edit, Loader2, Package, Save, Lock, TrendingUp, Users, DollarSign, ShoppingCart, BarChart3, RefreshCw, Eye, ChevronDown, ChevronUp, CalendarDays, Award, History } from "lucide-react";
+import { Plus, Trash2, Edit, Loader2, Package, Save, Lock, TrendingUp, Users, DollarSign, ShoppingCart, BarChart3, RefreshCw, Eye, ChevronDown, ChevronUp, CalendarDays, Award, History, FileDown } from "lucide-react";
+import { createElektronovaPDF, addPDFTable, addAllFooters } from "@/lib/pdf-utils";
 import { useState, useMemo } from "react";
 import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -1070,6 +1071,43 @@ export default function AdminPage() {
     return acc;
   }, {} as Record<string, CatalogItem[]>);
 
+  const generateCatalogPDF = () => {
+    const date = new Date().toISOString().split("T")[0];
+    const { doc, startY } = createElektronovaPDF("KATALOGU I ARTIKUJVE", date);
+    let y = startY;
+    const categories = Object.keys(grouped);
+    categories.forEach((cat) => {
+      const items = grouped[cat] || [];
+      if (items.length === 0) return;
+      doc.setFontSize(11);
+      doc.setTextColor(41, 128, 185);
+      doc.setFont("helvetica", "bold");
+      doc.text(cat, 14, y);
+      y += 6;
+      if (isAdmin) {
+        y = addPDFTable(doc, y,
+          [["Nr.", "Artikulli", "Njësia", "Cmimi Blerje (EUR)", "Cmimi Shitje (EUR)"]],
+          items.map((item, i) => [
+            String(i + 1), item.name, item.unit,
+            item.purchasePrice ? item.purchasePrice.toFixed(2) : "-",
+            item.salePrice ? item.salePrice.toFixed(2) : "-",
+          ]),
+        );
+      } else {
+        y = addPDFTable(doc, y,
+          [["Nr.", "Artikulli", "Njësia", "Cmimi Shitje (EUR)"]],
+          items.map((item, i) => [
+            String(i + 1), item.name, item.unit,
+            item.salePrice ? item.salePrice.toFixed(2) : "-",
+          ]),
+        );
+      }
+      y += 5;
+    });
+    addAllFooters(doc, "Elektronova - Katalogu");
+    doc.save(`Elektronova_Katalogu_${date}.pdf`);
+  };
+
   return (
     <Layout>
       <div className="max-w-5xl mx-auto">
@@ -1081,6 +1119,9 @@ export default function AdminPage() {
             </p>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
+            <Button variant="outline" onClick={generateCatalogPDF} data-testid="button-pdf-catalog">
+              <FileDown className="h-4 w-4 mr-2" /> Shkarko PDF
+            </Button>
             {isAdmin && (
               <div className="flex rounded-lg border overflow-hidden">
                 <button

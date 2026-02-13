@@ -7,8 +7,7 @@ import { TrendingUp, DollarSign, BarChart3, Calendar, Sun, Snowflake, Leaf, Clou
 import { JOB_CATEGORY_LABELS, type JobCategory } from "@shared/schema";
 import { useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import { createElektronovaPDF, addPDFTable, addPDFSummaryBox, addAllFooters } from "@/lib/pdf-utils";
 
 interface AnalyticsData {
   trend: Array<{ month: string; revenue: number; cost: number; profit: number; jobCount: number; expenses?: number }>;
@@ -47,64 +46,52 @@ export default function AnalyticsPage() {
       const res = await apiRequest('GET', `/api/reports/monthly?month=${month}&year=${year}`);
       const data = await res.json();
 
-      const doc = new jsPDF();
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(18);
-      doc.text("Elektronova - Raport Mujor", 14, 20);
-      doc.setFontSize(12);
-      doc.setFont("helvetica", "normal");
-      doc.text(`${MONTH_NAMES[month - 1]} ${year}`, 14, 28);
+      const { doc, startY } = createElektronovaPDF("RAPORT MUJOR");
       doc.setFontSize(10);
-      doc.text(`Periudha: ${data.startDate} - ${data.endDate}`, 14, 35);
+      doc.setTextColor(100);
+      doc.setFont("helvetica", "normal");
+      doc.text(`${MONTH_NAMES[month - 1]} ${year} | Periudha: ${data.startDate} - ${data.endDate}`, doc.internal.pageSize.width / 2, startY, { align: "center" });
 
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(13);
-      doc.text("Permbledhje Financiare", 14, 47);
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(10);
-      doc.text(`Pune te perfunduara: ${data.completedJobsCount}`, 14, 55);
-      doc.text(`Te ardhura: ${data.totalRevenue.toFixed(2)} EUR`, 14, 62);
-      doc.text(`Kosto materialesh: ${data.totalCost.toFixed(2)} EUR`, 14, 69);
-      doc.text(`Fitimi bruto: ${data.totalProfit.toFixed(2)} EUR`, 14, 76);
-      doc.text(`Shpenzime: ${data.totalExpenses.toFixed(2)} EUR`, 14, 83);
-      doc.setFont("helvetica", "bold");
-      doc.text(`Fitimi neto: ${data.netProfit.toFixed(2)} EUR`, 14, 90);
+      let y = addPDFSummaryBox(doc, startY + 5, [
+        `Pune te perfunduara: ${data.completedJobsCount}`,
+        `Te ardhura: ${data.totalRevenue.toFixed(2)} EUR`,
+        `Kosto materialesh: ${data.totalCost.toFixed(2)} EUR`,
+        `Fitimi bruto: ${data.totalProfit.toFixed(2)} EUR`,
+        `Shpenzime: ${data.totalExpenses.toFixed(2)} EUR`,
+        `Fitimi neto: ${data.netProfit.toFixed(2)} EUR`,
+      ]);
 
       if (data.jobs && data.jobs.length > 0) {
+        doc.setFontSize(11);
+        doc.setTextColor(41, 128, 185);
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(13);
-        doc.text("Lista e Puneve", 14, 103);
-        autoTable(doc, {
-          startY: 108,
-          head: [["Nr.", "Klienti", "Lloji", "Te Ardhura", "Kosto", "Fitimi"]],
-          body: data.jobs.map((j: any) => [
+        doc.text("Lista e Puneve", 14, y);
+        y = addPDFTable(doc, y + 3,
+          [["Nr.", "Klienti", "Lloji", "Te Ardhura", "Kosto", "Fitimi"]],
+          data.jobs.map((j: any) => [
             j.invoiceNumber || `#${j.id}`,
             j.clientName,
             j.workType,
-            `${j.revenue.toFixed(2)}`,
-            `${j.cost.toFixed(2)}`,
-            `${j.profit.toFixed(2)}`,
+            j.revenue.toFixed(2),
+            j.cost.toFixed(2),
+            j.profit.toFixed(2),
           ]),
-          styles: { fontSize: 8 },
-          headStyles: { fillColor: [41, 128, 185] },
-        });
+        );
+        y += 5;
       }
 
-      let finalY = (doc as any).lastAutoTable?.finalY || 115;
-      if (Object.keys(data.expensesByCategory).length > 0) {
-        finalY += 10;
+      if (data.expensesByCategory && Object.keys(data.expensesByCategory).length > 0) {
+        doc.setFontSize(11);
+        doc.setTextColor(41, 128, 185);
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(13);
-        doc.text("Shpenzimet sipas Kategorise", 14, finalY);
-        autoTable(doc, {
-          startY: finalY + 5,
-          head: [["Kategoria", "Shuma (EUR)"]],
-          body: Object.entries(data.expensesByCategory).map(([cat, amt]) => [cat, (amt as number).toFixed(2)]),
-          styles: { fontSize: 8 },
-          headStyles: { fillColor: [192, 57, 43] },
-        });
+        doc.text("Shpenzimet sipas Kategorise", 14, y);
+        addPDFTable(doc, y + 3,
+          [["Kategoria", "Shuma (EUR)"]],
+          Object.entries(data.expensesByCategory).map(([cat, amt]) => [cat, (amt as number).toFixed(2)]),
+        );
       }
 
+      addAllFooters(doc, "Elektronova - Raport Mujor");
       doc.save(`Elektronova_Raport_${MONTH_NAMES[month - 1]}_${year}.pdf`);
     } catch {
       // silent fail

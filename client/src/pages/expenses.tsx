@@ -10,7 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Trash2, Edit2, Receipt, TrendingUp, CalendarDays, Tag } from "lucide-react";
+import { Search, Plus, Trash2, Edit2, Receipt, TrendingUp, CalendarDays, Tag, FileDown } from "lucide-react";
+import { createElektronovaPDF, addPDFTable, addPDFSummaryBox, addAllFooters } from "@/lib/pdf-utils";
 import type { Expense, Job, Supplier } from "@shared/schema";
 import { EXPENSE_CATEGORIES, EXPENSE_CATEGORY_LABELS, type ExpenseCategory } from "@shared/schema";
 
@@ -99,6 +100,28 @@ export default function ExpensesPage() {
     },
   });
 
+  const generateExpensesPDF = () => {
+    const date = new Date().toISOString().split("T")[0];
+    const { doc, startY } = createElektronovaPDF("RAPORTI I SHPENZIMEVE", date);
+    let y = addPDFSummaryBox(doc, startY, [
+      `Totali i shpenzimeve: €${totalExpenses.toFixed(2)}`,
+      `Shpenzimet e muajit: €${monthlyExpenses.toFixed(2)}`,
+      `Kategoria kryesore: ${topCategory.category ? (EXPENSE_CATEGORY_LABELS[topCategory.category as ExpenseCategory] || topCategory.category) : "-"} (€${topCategory.total.toFixed(2)})`,
+    ]);
+    addPDFTable(doc, y,
+      [["Nr.", "Pershkrimi", "Kategoria", "Shuma (EUR)", "Data"]],
+      expenses.map((e, i) => [
+        String(i + 1),
+        e.description,
+        EXPENSE_CATEGORY_LABELS[e.category as ExpenseCategory] || e.category,
+        (e.amount || 0).toFixed(2),
+        e.date || "",
+      ]),
+    );
+    addAllFooters(doc, "Elektronova - Raporti i Shpenzimeve");
+    doc.save(`Elektronova_Shpenzime_${date}.pdf`);
+  };
+
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
       await apiRequest("DELETE", `/api/expenses/${id}`);
@@ -120,9 +143,14 @@ export default function ExpensesPage() {
             <h1 className="text-2xl font-bold" data-testid="text-expenses-title">Paneli i Shpenzimeve</h1>
             <p className="text-muted-foreground">{allExpenses.length} shpenzime të regjistruara</p>
           </div>
-          <Button onClick={() => setShowAddDialog(true)} data-testid="button-add-expense">
-            <Plus className="h-4 w-4 mr-2" /> Shto Shpenzim
-          </Button>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button variant="outline" onClick={generateExpensesPDF} data-testid="button-pdf-expenses">
+              <FileDown className="h-4 w-4 mr-2" /> Shkarko PDF
+            </Button>
+            <Button onClick={() => setShowAddDialog(true)} data-testid="button-add-expense">
+              <Plus className="h-4 w-4 mr-2" /> Shto Shpenzim
+            </Button>
+          </div>
         </div>
 
         <div className="grid sm:grid-cols-3 gap-4">
