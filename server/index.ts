@@ -89,12 +89,15 @@ app.use((req, res, next) => {
     
   log(`Migrations folder: ${migrationsFolder}`);
     
+  /* 
   try {
     await migrate(db, { migrationsFolder });
     log("Migrations complete.");
   } catch (err: any) {
     console.error("Migration failed:", err);
   }
+  */
+  log("Skipping automatic migrations (managed manually).");
 
   await registerRoutes(httpServer, app);
   
@@ -165,10 +168,10 @@ app.use((req, res, next) => {
   httpServer.listen(
     {
       port,
-      host: "127.0.0.1",
+      host: "0.0.0.0",
     },
     () => {
-      log(`--- ELEKTRONOVA V2 STARTING ON PORT ${port} ---`);
+      log(`--- ELEKTRONOVA V2 STARTING ON PORT ${port} (0.0.0.0) ---`);
     },
   );
 })();
