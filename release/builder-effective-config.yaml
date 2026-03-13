@@ -1,0 +1,23 @@
+directories:
+  output: release
+  buildResources: build
+appId: com.elektronova.assetmanager
+productName: Elektronova Asset Manager
+asar: true
+asarUnpack:
+  - node_modules/**/*
+  - migrations/**/*
+  - dist/**/*
+files:
+  - filter:
+      - dist/**/*
+      - server/main.cjs
+      - package.json
+      - migrations/**/*
+      - node_modules/**/*
+win:
+  target: nsis
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+electronVersion: 41.0.0

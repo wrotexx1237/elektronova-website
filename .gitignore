@@ -1,0 +1,32 @@
+node_modules
+dist
+.DS_Store
+server/public
+vite.config.ts.*
+*.tar.gz
+
+# Database and Persistence
+elektronova_db*
+.local/
+vaza-db/
+test-db/
+
+# Secrets and Config
+.env
+.env.*
+
+# Logs and Diagnostics
+*.log
+*.txt
+*.utf8.log
+dev_log.txt
+server.log
+
+# Temporary Scripts
+test_*.ts
+test_*.js
+fix_*.ts
+diag_*.ts
+check_*.ts
+raw_pg_check.ts
+verify_login_fix.ts

@@ -1,0 +1,166 @@
+# Elektronova - Electrical Work Material Calculator & Job Reports
+
+## Overview
+
+This is a full-stack web application for **Elektronova**, an electrical services company. It allows field technicians to create, manage, and export professional job reports (procesverbal) for electrical installations on-site. The app handles client data entry, material calculations organized by room, automatic totals, and PDF generation with a professional format.
+
+The application is built in Albanian language and is designed to be mobile-responsive for use in the field (on phones at client sites).
+
+Key features:
+- **Dashboard**: List, search, edit, and delete saved jobs + Quick Create by Category cards
+- **Advanced Search**: Filter by text, category, status, and date range simultaneously
+- **Job Categories**: 4 work categories (Rrymë/Elektrike, Kamera, Alarm, Interfon) with category-specific UI filtering
+- **Job Status Tracking**: 3 statuses (Ofertë, Në Progres, E Përfunduar) with visual badges
+- **Auto Invoice Numbers**: Category-prefixed invoice numbers (ELK-001, KAM-002, ALM-003, INT-004)
+- **Job Duplication**: Clone any job as a template with "(Kopje)" suffix
+- **Job Templates**: Save jobs as reusable templates, create new jobs from templates via dashboard
+- **Change History**: Created/Updated timestamps displayed on job cards
+- **Discount System**: Percentage or fixed-amount discounts with breakdown in PDFs and profit analytics
+- **Category-based Form**: Job form shows only relevant tabs/sections for the selected category
+- **Job Form**: Client details + material tables organized by rooms (11 room columns + totals)
+- **6 Material Categories**: Pajisje elektrike, Kabllo & Gypa, Kamera, Interfon, Alarm, Punë/Shërbime
+- **Dynamic Catalog System**: Admin-managed catalog of items with units, dual pricing (purchase/sale) per category
+- **Dual Pricing**: Each catalog item has purchase price (cost) and sale price (client price), with price snapshots saved per job
+- **Multi-User Authentication**: Session-based auth with bcrypt, role-based access (admin/technician), login/register pages
+- **Client Management (CRM)**: Client CRUD, job history per client, search, auto-suggest
+- **Inventory/Stock Management**: Stock in/out/adjustment tracking, low stock warnings, per-item history
+- **Advanced Analytics**: Seasonal analysis, trend predictions, category breakdown, monthly/yearly filtering
+- **Notification System**: Bell icon with unread count, stale offer detection, upcoming work reminders, low stock alerts, warranty expiration alerts, payment overdue reminders (7/14/30 days), feedback follow-up reminders (3 days after completion), progress 100% alerts, monthly summary
+- **Payment Overdue Notifications**: Auto-alerts at 7, 14, and 30 days when completed jobs remain unpaid
+- **Feedback Follow-up Reminders**: Auto-reminder 3 days after job completion to send rating link to client
+- **Scheduling Conflict Warning**: Shows warning in job form when selected date has other jobs already scheduled
+- **Auto-Expense on Job Completion**: Automatically creates material expense linked to supplier when job status changes to completed
+- **Stock Warnings in Job Form**: Collapsible warning section showing items at or below minimum stock level
+- **Auto Tool Suggestions**: Automatically shows required tools (Dana, Hilti, Shafciger, Qekiq, etc.) based on materials added to a job, with keyword and category matching
+- **Calendar with Contact Info**: Client phone numbers displayed in calendar with clickable tel: links
+- **Expenses in Analytics**: Business expenses subtracted from profit, net profit calculation, expense breakdown by category
+- **Auto-Client from Job**: Automatically creates/links client in CRM when creating a job
+- **Best Supplier Price**: Auto-apply cheapest supplier price to job materials with one click
+- **Auto-Price Update**: Catalog price changes automatically update all open/pending jobs
+- **Monthly PDF Report**: Downloadable monthly summary report with jobs, financials, and expenses
+- **Visual Price History**: Price change timeline graph in catalog admin page
+- **Zero Stock Blocking**: Items with zero stock are disabled in job form with "Pa Stok" badge
+- **Catalog Price History**: Tracks all price changes over time per catalog item
+- **Quote vs Actual Comparison**: Job snapshots saved when status changes for comparison
+- **Admin Mode**: Role-based admin access — reveals purchase costs, profit margins, and cost analysis in job form
+- **Admin Profit Dashboard**: Date filtering (month/year/custom), category-level profit breakdown, monthly trend chart, top products ranking
+- **Intelligent Checklists**: Category-specific checklists (Elektrike, Kamera, Alarm, Interfon, Final)
+- **Auto-calculation**: Row totals computed automatically from room quantities, with sale/purchase/profit totals
+- **PDF Generation (2 variants)**: Client PDF (Faturë/Ofertë with sale prices) and Purchase PDF (Lista e Blerjes with purchase prices)
+- **Pricing support**: Per-item dual pricing with grand total calculation (scoped to category)
+- **Warnings system**: Final control warnings for incomplete checklist items
+- **Category Filter**: Dashboard filter by category with badge display on job cards
+- **TVSH/VAT System**: Configurable VAT rate per job (default 0%), automatic VAT calculation in PDFs
+- **Payment Tracking**: 3-tier payment status (Pa Paguar/Pjeserisht/Paguar), tracks paid amount, date, method (Cash/Bank/Other)
+- **Business Expenses**: Full CRUD with 8 categories (Karburant, Transport, Vegla, Material, Ushqim, Telefon, Qira, Tjeter), filtering by date/category
+- **Supplier Management**: Full CRUD for material suppliers with contact info, categories, search
+- **Supplier Price Comparison**: Per-supplier pricing for catalog items, side-by-side price comparison across suppliers with difference indicators, cheapest supplier highlighting
+- **Client Feedback**: 1-5 star rating with optional comments per completed job
+- **Warranty Tracking**: Configurable warranty period per job (default 12 months), auto-calculated expiration, warranty API endpoint
+- **Automatic Reminders**: Server checks on startup for upcoming scheduled work (today/tomorrow) and warranties expiring within 30 days
+- **Contract PDF**: Professional 1-page contract with 8 NENI legal sections in Albanian
+- **GPS Auto-Location**: One-tap GPS capture in job form, stores lat/lng coordinates with Google Maps link
+- **Public Rating Link**: Generate unique rating link for clients to rate completed jobs without login (via WhatsApp/SMS/Email)
+- **PWA Support**: Progressive Web App with service worker, manifest, and offline caching for static assets
+
+## User Preferences
+
+Preferred communication style: Simple, everyday language.
+
+## System Architecture
+
+### Frontend
+- **React 18** with TypeScript, built with **Vite**
+- **Wouter** for client-side routing (lightweight alternative to React Router)
+- Routes: `/` (Dashboard), `/new` (Create Job), `/edit/:id` (Edit Job), `/admin` (Catalog Management)
+- **Shadcn/UI** component library (new-york style) with Radix UI primitives
+- **Tailwind CSS** for styling with CSS variables for theming
+- **React Hook Form** with **Zod** resolver for form validation
+- **TanStack React Query** for server state management and data fetching
+- **jsPDF + jspdf-autotable** for client-side PDF generation
+- Path aliases: `@/` → `client/src/`, `@shared/` → `shared/`
+
+### Backend
+- **Express 5** (Node.js) with TypeScript, run via `tsx`
+- RESTful API under `/api/` prefix
+- Routes defined in `server/routes.ts` with typed route definitions from `shared/routes.ts`
+- Vite dev server middleware in development; static file serving in production
+- HTTP server created manually (supports WebSocket upgrade if needed)
+
+### Shared Code (`shared/`)
+- **`schema.ts`**: Drizzle ORM table definitions, Zod validation schemas, domain constants (room names, checklist templates, categories, units in Albanian)
+- **`routes.ts`**: API route definitions with Zod input/output schemas — acts as a typed API contract between frontend and backend
+
+### Database
+- **PostgreSQL** via `DATABASE_URL` environment variable
+- **Drizzle ORM** for schema definition and queries (`drizzle-orm/node-postgres`)
+- **Drizzle Kit** for migrations (`drizzle-kit push` to sync schema)
+- Main tables:
+  - `jobs` - stores client info, work metadata, material data as JSONB, payment/VAT/warranty fields
+  - `catalog_items` - dynamic catalog of items per category with units and prices
+  - `suppliers` - material supplier contacts and categories
+  - `supplier_prices` - per-supplier pricing for catalog items with unique constraint on (supplier_id, catalog_item_id)
+  - `expenses` - business expense tracking with 8 categories
+  - `feedback` - client ratings and comments per job
+- Storage layer abstracted via `IStorage` interface in `server/storage.ts` (currently `DatabaseStorage` implementation)
+
+### Data Model
+
+**`catalog_items` table:**
+- id, category, name, unit, purchasePrice, salePrice, notes, sortOrder, createdAt
+
+**`jobs` table:**
+- Client fields: clientName, clientPhone, clientAddress, workDate, workType, notes
+- Material data as JSONB: table1Data (equipment by room), table2Data (cables), cameraData, intercomData, alarmData, serviceData
+- prices (per-item sale pricing as JSONB)
+- purchasePrices (per-item purchase pricing as JSONB)
+- checklistData (checklist completion as JSONB)
+- Timestamps: createdAt, updatedAt
+
+### API Routes
+- Jobs CRUD: GET/POST /api/jobs, GET/PUT/DELETE /api/jobs/:id
+- Catalog CRUD: GET/POST /api/catalog, PUT/DELETE /api/catalog/:id
+- Job Actions: POST /api/jobs/:id/duplicate, POST /api/jobs/:id/save-template
+- Templates: GET /api/templates, POST /api/templates/:id/use
+
+### Build System
+- Development: `tsx server/index.ts` with Vite middleware for HMR
+- Production build: Vite builds client to `dist/public/`, esbuild bundles server to `dist/index.cjs`
+- Build script in `script/build.ts` uses allowlist approach for bundling server dependencies
+
+### Key Design Decisions
+
+1. **JSONB for material data**: Rather than normalizing material quantities into separate tables, all room-by-item quantities are stored as JSON objects. This simplifies the schema and makes the flexible grid data easy to save/load without complex joins.
+
+2. **Dynamic catalog from database**: Items are managed through the admin catalog page (`/admin`) instead of being hardcoded constants. This allows admins to add/edit/remove items, change prices, and organize by category without code changes.
+
+3. **Client-side PDF generation**: PDF is generated in the browser using jsPDF rather than server-side. This keeps the server simple and works offline-capable for field use.
+
+4. **Checklist templates as constants**: Checklist items are defined in schema.ts as constants (CHECKLIST_ELEKTRIKE, CHECKLIST_KAMERA, etc.) and shown based on the selected work type. Completion status is stored in the job's checklistData JSONB field.
+
+5. **Shared route contracts**: The `shared/routes.ts` file defines API routes with Zod schemas used by both client and server, ensuring type safety across the stack.
+
+6. **Shadcn/UI components**: Pre-built accessible components that are copied into the project (not imported from npm), allowing full customization. Located in `client/src/components/ui/`.
+
+## External Dependencies
+
+### Database
+- **PostgreSQL**: Required. Connection via `DATABASE_URL` environment variable. Used with `node-postgres` (pg) driver and Drizzle ORM.
+
+### Key NPM Packages
+- **drizzle-orm** + **drizzle-kit**: ORM and migration tooling for PostgreSQL
+- **express**: HTTP server framework (v5)
+- **@tanstack/react-query**: Server state management
+- **jspdf** + **jspdf-autotable**: Client-side PDF generation
+- **zod** + **drizzle-zod**: Schema validation
+- **react-hook-form**: Form state management
+- **wouter**: Client-side routing
+- **date-fns**: Date formatting
+
+### Replit-Specific
+- **@replit/vite-plugin-runtime-error-modal**: Error overlay in development
+- **@replit/vite-plugin-cartographer**: Dev tooling
+- **@replit/vite-plugin-dev-banner**: Dev environment banner
+
+### Fonts (External CDN)
+- Google Fonts: Outfit, Plus Jakarta Sans (used as display and body fonts)

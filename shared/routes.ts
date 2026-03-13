@@ -1,0 +1,125 @@
+import { z } from 'zod';
+import { insertJobSchema, insertCatalogItemSchema, insertWorkerSchema, jobs, catalogItems, workers } from './schema';
+
+export const errorSchemas = {
+  validation: z.object({ message: z.string(), field: z.string().optional() }),
+  notFound: z.object({ message: z.string() }),
+};
+
+export const api = {
+  jobs: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/jobs' as const,
+      input: z.object({ search: z.string().optional() }).optional(),
+      responses: { 200: z.array(z.custom<typeof jobs.$inferSelect>()) },
+    },
+    get: {
+      method: 'GET' as const,
+      path: '/api/jobs/:id' as const,
+      responses: { 200: z.custom<typeof jobs.$inferSelect>(), 404: errorSchemas.notFound },
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/jobs' as const,
+      input: insertJobSchema,
+      responses: { 201: z.custom<typeof jobs.$inferSelect>(), 400: errorSchemas.validation },
+    },
+    update: {
+      method: 'PUT' as const,
+      path: '/api/jobs/:id' as const,
+      input: insertJobSchema.partial(),
+      responses: { 200: z.custom<typeof jobs.$inferSelect>(), 400: errorSchemas.validation, 404: errorSchemas.notFound },
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/jobs/:id' as const,
+      responses: { 204: z.void(), 404: errorSchemas.notFound },
+    },
+  },
+  catalog: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/catalog' as const,
+      responses: { 200: z.array(z.custom<typeof catalogItems.$inferSelect>()) },
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/catalog' as const,
+      input: insertCatalogItemSchema,
+      responses: { 201: z.custom<typeof catalogItems.$inferSelect>(), 400: errorSchemas.validation },
+    },
+    update: {
+      method: 'PUT' as const,
+      path: '/api/catalog/:id' as const,
+      input: insertCatalogItemSchema.partial(),
+      responses: { 200: z.custom<typeof catalogItems.$inferSelect>(), 404: errorSchemas.notFound },
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/catalog/:id' as const,
+      responses: { 204: z.void(), 404: errorSchemas.notFound },
+    },
+  },
+  workers: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/workers' as const,
+      responses: { 200: z.array(z.custom<typeof workers.$inferSelect>()) },
+    },
+    get: {
+      method: 'GET' as const,
+      path: '/api/workers/:id' as const,
+      responses: { 200: z.custom<typeof workers.$inferSelect>(), 404: errorSchemas.notFound },
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/workers' as const,
+      input: insertWorkerSchema,
+      responses: { 201: z.custom<typeof workers.$inferSelect>(), 400: errorSchemas.validation },
+    },
+    update: {
+      method: 'PUT' as const,
+      path: '/api/workers/:id' as const,
+      input: insertWorkerSchema.partial(),
+      responses: { 200: z.custom<typeof workers.$inferSelect>(), 400: errorSchemas.validation, 404: errorSchemas.notFound },
+    },
+    delete: {
+      method: 'DELETE' as const,
+      path: '/api/workers/:id' as const,
+      responses: { 204: z.void(), 404: errorSchemas.notFound },
+    },
+  },
+  templates: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/templates' as const,
+      responses: { 200: z.array(z.custom<typeof jobs.$inferSelect>()) },
+    },
+    saveAsTemplate: {
+      method: 'POST' as const,
+      path: '/api/jobs/:id/save-template' as const,
+      responses: { 200: z.custom<typeof jobs.$inferSelect>(), 404: errorSchemas.notFound },
+    },
+    useTemplate: {
+      method: 'POST' as const,
+      path: '/api/templates/:id/use' as const,
+      responses: { 200: z.custom<typeof jobs.$inferSelect>(), 404: errorSchemas.notFound },
+    },
+  },
+};
+
+export function buildUrl(path: string, params?: Record<string, string | number>): string {
+  let url = path;
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (url.includes(`:${key}`)) {
+        url = url.replace(`:${key}`, String(value));
+      }
+    });
+  }
+  return url;
+}
+
+export type CreateJobRequest = z.infer<typeof api.jobs.create.input>;
+export type UpdateJobRequest = z.infer<typeof api.jobs.update.input>;
