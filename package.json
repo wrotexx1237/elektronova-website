@@ -9,7 +9,7 @@
     "build:client": "vite build",
     "build:server": "node scripts/build-server.js",
     "build": "npm run build:client && npm run build:server",
-    "start": "cross-env NODE_ENV=production node --env-file=.env dist/index.js"
+    "start": "cross-env NODE_ENV=production node dist/index.js"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.3.16",
