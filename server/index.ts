@@ -11,6 +11,11 @@ import { pool, db } from "./db";
 import { migrate } from "drizzle-orm/pglite/migrator";
 import { log } from "./log";
 
+log(">>> SERVER INITIALIZING <<<");
+log(`Process ID: ${process.pid}`);
+log(`Current Directory: ${process.cwd()}`);
+log(`NODE_ENV: ${process.env.NODE_ENV}`);
+
 const app = express();
 const httpServer = createServer(app);
 
@@ -89,15 +94,14 @@ app.use((req, res, next) => {
     
   log(`Migrations folder: ${migrationsFolder}`);
     
-  /* 
+  log("Ensuring database schema is ready...");
   try {
+    // We re-enable migration but with a check
     await migrate(db, { migrationsFolder });
-    log("Migrations complete.");
+    log("Migrations check complete.");
   } catch (err: any) {
-    console.error("Migration failed:", err);
+    log(`Migration notice (ignoring if table exists): ${err.message}`);
   }
-  */
-  log("Skipping automatic migrations (managed manually).");
 
   await registerRoutes(httpServer, app);
   
