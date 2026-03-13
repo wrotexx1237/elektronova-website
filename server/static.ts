@@ -7,17 +7,22 @@ export function serveStatic(app: Express) {
   
   let distPath;
   if (isProd) {
-    // Try multiple possible locations in the packaged app
     const possiblePaths = [
       path.resolve(process.cwd(), "dist/public"),
-      path.resolve(process.cwd(), "resources/app/dist/public"),
-      path.resolve((process as any).resourcesPath || "", "app/dist/public"),
-      path.resolve(import.meta.dirname, "public")
+      path.resolve(process.cwd(), "public"), // Fallback for some VPS setups
+      path.resolve(path.dirname(fileURLToPath(import.meta.url)), "public"),
+      path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "dist", "public")
     ];
     
     distPath = possiblePaths.find(p => fs.existsSync(p)) || possiblePaths[0];
   } else {
-    distPath = path.resolve(import.meta.dirname, "public");
+    distPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "public");
+  }
+
+  // Double check if we are in VPS and dist/public exists relative to project root
+  const vpsPath = "/var/www/elektronova-asset-manager/dist/public";
+  if (fs.existsSync(vpsPath)) {
+    distPath = vpsPath;
   }
 
   console.log(`Serving static files from: ${distPath}`);
