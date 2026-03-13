@@ -151,9 +151,14 @@ app.use((req, res, next) => {
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
-  if (process.env.NODE_ENV === "production") {
+  const isDev = process.env.NODE_ENV === "development";
+  log(`Detected environment: ${isDev ? "DEVELOPMENT" : "PRODUCTION"}`);
+
+  if (!isDev) {
+    log("Serving static files...");
     serveStatic(app);
   } else {
+    log("Setting up Vite development server...");
     const { setupVite } = await import("./vite");
     await setupVite(httpServer, app);
   }
@@ -179,10 +184,10 @@ app.use((req, res, next) => {
   httpServer.listen(
     {
       port,
-      host: "127.0.0.1",
+      host: "0.0.0.0",
     },
     () => {
-      log(`--- ELEKTRONOVA V2 STARTING ON PORT ${port} ---`);
+      log(`--- ELEKTRONOVA V2 STARTING ON PORT ${port} (0.0.0.0) ---`);
     },
   );
 })();
