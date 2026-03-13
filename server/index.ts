@@ -182,7 +182,7 @@ app.use((req, res, next) => {
       host: "127.0.0.1",
     },
     () => {
-      log(`serving on port ${port}`);
+      log(`--- ELEKTRONOVA V2 STARTING ON PORT ${port} ---`);
     },
   );
 })();
