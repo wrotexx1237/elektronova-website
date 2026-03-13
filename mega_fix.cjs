@@ -97,13 +97,28 @@ async function megaFix() {
             await db.query(`ALTER TABLE jobs ADD COLUMN ${col.name} ${col.type}`);
             console.log(` - Added column: ${col.name}`);
         } catch (e) {
-            // Already exists, ignore
+            if (e.message.includes("already exists")) {
+                // Silently skip if column exists
+            } else {
+                console.log(` - Column ${col.name} already exists or error: ${e.message}`);
+            }
         }
     }
 
+    console.log("3. Ensuring 'user_sessions' for session storage...");
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS user_sessions (
+        sid TEXT PRIMARY KEY,
+        sess JSONB NOT NULL,
+        expire TIMESTAMP(6) NOT NULL
+      )
+    `);
+
     console.log("\n✅ MEGA REPAIR COMPLETE!");
-    console.log("Databaza tani ka të gjitha kolonat që mungonin.");
-    console.log("Ju lutem rinisni PM2 tani.");
+    console.log("Databaza tani ka të gjitha kolonat dhe tabelat që mungonin.");
+    console.log("Ju lutem ekzekutoni këto në Putty:");
+    console.log(" 1. pm2 delete elektronova");
+    console.log(" 2. pm2 start dist/index.js --name 'elektronova'");
 
   } catch (err) {
     console.error("❌ ERROR:", err);
