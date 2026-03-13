@@ -117,6 +117,10 @@ app.use((req, res, next) => {
 
   await registerRoutes(httpServer, app);
   
+  app.get("/health", (req, res) => {
+    res.json({ status: "ok", time: new Date().toISOString() });
+  });
+  
   // Seed admin user and ensure password is correct
   (async () => {
     try {
