@@ -85,26 +85,7 @@ app.use((req, res, next) => {
 
 (async () => {
   log("Running migrations...");
-  const isProd = process.env.NODE_ENV === "production";
-  
-  let migrationsFolder;
-  if (isProd) {
-    // In Electron production, migrations are in resources/app/migrations
-    // process.cwd() might be different, so we use __dirname (or similar)
-    // Since we are bundled, we can try relative to current file or process.resourcesPath if available
-    const possiblePaths = [
-      path.resolve(process.cwd(), "migrations"),
-      path.resolve((process as any).resourcesPath || "", "app/migrations"),
-      path.resolve(path.dirname(process.execPath), "resources/app/migrations"),
-      path.resolve(process.cwd(), "resources/app/migrations")
-    ];
-    
-    migrationsFolder = possiblePaths.find(p => {
-        try { return fs.existsSync(p); } catch { return false; }
-    }) || possiblePaths[3];
-  } else {
-    migrationsFolder = path.resolve(process.cwd(), "migrations");
-  }
+  const migrationsFolder = path.resolve(process.cwd(), "migrations");
     
   log(`Migrations folder: ${migrationsFolder}`);
     
@@ -184,10 +165,10 @@ app.use((req, res, next) => {
   httpServer.listen(
     {
       port,
-      host: "0.0.0.0",
+      host: "127.0.0.1",
     },
     () => {
-      log(`--- ELEKTRONOVA V2 STARTING ON PORT ${port} (0.0.0.0) ---`);
+      log(`--- ELEKTRONOVA V2 STARTING ON PORT ${port} ---`);
     },
   );
 })();
