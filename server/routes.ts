@@ -445,16 +445,16 @@ export async function registerRoutes(
         await storage.createJobSnapshot({
           jobId: job.id,
           snapshotType: "quote",
-          materialData: {
+          materialData: ({
             table1Data: input.table1Data,
             table2Data: input.table2Data,
             cameraData: input.cameraData,
             intercomData: input.intercomData,
             alarmData: input.alarmData,
             serviceData: input.serviceData,
-          },
-          prices: input.prices || {},
-          purchasePrices: input.purchasePrices || {},
+          }) as any,
+          prices: (input.prices || {}) as any,
+          purchasePrices: (input.purchasePrices || {}) as any,
           totalSale: 0,
           totalPurchase: 0,
         });
@@ -509,16 +509,16 @@ export async function registerRoutes(
           await storage.createJobSnapshot({
             jobId: id,
             snapshotType: "quote",
-            materialData: {
+            materialData: ({
               table1Data: existing.table1Data,
               table2Data: existing.table2Data,
               cameraData: existing.cameraData,
               intercomData: existing.intercomData,
               alarmData: existing.alarmData,
               serviceData: existing.serviceData,
-            },
-            prices: (existing.prices as Record<string, number>) || {},
-            purchasePrices: (existing.purchasePrices as Record<string, number>) || {},
+            }) as any,
+            prices: (existing.prices as any) || {},
+            purchasePrices: (existing.purchasePrices as any) || {},
             totalSale: 0,
             totalPurchase: 0,
           });
@@ -533,16 +533,16 @@ export async function registerRoutes(
         await storage.createJobSnapshot({
           jobId: id,
           snapshotType: "actual",
-          materialData: {
+          materialData: ({
             table1Data: finalData.table1Data,
             table2Data: finalData.table2Data,
             cameraData: finalData.cameraData,
             intercomData: finalData.intercomData,
             alarmData: finalData.alarmData,
             serviceData: finalData.serviceData,
-          },
-          prices: (finalData.prices as Record<string, number>) || {},
-          purchasePrices: (finalData.purchasePrices as Record<string, number>) || {},
+          }) as any,
+          prices: (finalData.prices as any) || {},
+          purchasePrices: (finalData.purchasePrices as any) || {},
           totalSale: 0,
           totalPurchase: 0,
         });
@@ -923,8 +923,8 @@ export async function registerRoutes(
             const jobPrices = { ...(job.prices as Record<string, number> || {}) };
             const jobPurchase = { ...(job.purchasePrices as Record<string, number> || {}) };
 
-            if (input.salePrice !== undefined) jobPrices[existing.name] = input.salePrice;
-            if (input.purchasePrice !== undefined) jobPurchase[existing.name] = input.purchasePrice;
+            if (input.salePrice !== undefined) jobPrices[existing.name] = input.salePrice as number;
+            if (input.purchasePrice !== undefined) jobPurchase[existing.name] = input.purchasePrice as number;
 
             await storage.updateJob(job.id, { prices: jobPrices, purchasePrices: jobPurchase });
             autoUpdated++;
@@ -2065,7 +2065,7 @@ export async function registerRoutes(
   });
 
   app.get('/api/supplier-prices/by-item/:catalogItemId', requireAuth, async (req, res) => {
-    const catalogItemId = parseInt(req.params.catalogItemId);
+    const catalogItemId = parseInt(req.params.catalogItemId as string);
     if (isNaN(catalogItemId)) return res.status(400).json({ message: "ID e pavlefshme" });
     const list = await storage.getSupplierPricesByItem(catalogItemId);
     res.json(list);
