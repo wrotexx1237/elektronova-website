@@ -122,32 +122,30 @@ app.use((req, res, next) => {
   });
   
   // Seed admin user and ensure password is correct
-  (async () => {
-    try {
-      const { storage } = await import("./storage");
-      const { default: bcrypt } = await import("bcryptjs");
-      const admin = await storage.getUserByUsername("admin");
-      const passwordHash = await bcrypt.hash("Endrit123$", 10);
-      
-      if (!admin) {
-        await storage.createUser({
-          username: "admin",
-          passwordHash,
-          fullName: "Administrator",
-          role: "admin",
-          isActive: 1,
-          assignedCategories: []
-        });
-        log("Fresh DB: Default admin user seeded.");
-      } else {
-        // Force reset password to match provided credentials
-        await storage.updateUser(admin.id, { passwordHash, isActive: 1 });
-        log("Existing DB: Admin user synchronized.");
-      }
-    } catch (e) {
-      console.error("Seed failed:", e);
+  try {
+    const { storage } = await import("./storage");
+    const { default: bcrypt } = await import("bcryptjs");
+    const admin = await storage.getUserByUsername("admin");
+    const passwordHash = await bcrypt.hash("Endrit123$", 10);
+    
+    if (!admin) {
+      await storage.createUser({
+        username: "admin",
+        passwordHash,
+        fullName: "Administrator",
+        role: "admin",
+        isActive: 1,
+        assignedCategories: []
+      });
+      log("Fresh DB: Default admin user seeded.");
+    } else {
+      // Force reset password to match provided credentials
+      await storage.updateUser(admin.id, { passwordHash, isActive: 1 });
+      log("Existing DB: Admin user synchronized.");
     }
-  })();
+  } catch (e) {
+    console.error("Seed failed:", e);
+  }
 
   startAutomations(); // Re-enabled automations
   // importantly only setup vite in development and after
