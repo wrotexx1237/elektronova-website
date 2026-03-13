@@ -1,6 +1,7 @@
 import express, { type Express } from "express";
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 
 export function serveStatic(app: Express) {
   const isProd = process.env.NODE_ENV === "production";
@@ -9,7 +10,7 @@ export function serveStatic(app: Express) {
   if (isProd) {
     const possiblePaths = [
       path.resolve(process.cwd(), "dist/public"),
-      path.resolve(process.cwd(), "public"), // Fallback for some VPS setups
+      path.resolve(process.cwd(), "public"),
       path.resolve(path.dirname(fileURLToPath(import.meta.url)), "public"),
       path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "dist", "public")
     ];
@@ -19,9 +20,9 @@ export function serveStatic(app: Express) {
     distPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "public");
   }
 
-  // Double check if we are in VPS and dist/public exists relative to project root
+  // Final check for VPS specific directory
   const vpsPath = "/var/www/elektronova-asset-manager/dist/public";
-  if (fs.existsSync(vpsPath)) {
+  if (!fs.existsSync(distPath) && fs.existsSync(vpsPath)) {
     distPath = vpsPath;
   }
 
