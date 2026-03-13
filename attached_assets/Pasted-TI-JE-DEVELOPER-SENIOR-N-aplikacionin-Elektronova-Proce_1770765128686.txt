@@ -1,0 +1,73 @@
+TI JE DEVELOPER SENIOR. Në aplikacionin “Elektronova – Procesverbalet” dua të implementosh menaxhimin e çmimeve me 2 nivele (blerje/shitje) dhe gjenerim të PDF-ve profesionale në 2 variante: (A) dokument për klientin dhe (B) listë blerjeje për mua.
+
+1) DB / MODEL:
+- Çdo item në katalog të ketë këto fusha të reja:
+  purchase_price (NUMERIC)  // çmimi i blerjes (kosto)
+  sale_price (NUMERIC)      // çmimi i shitjes (për klient)
+  unit (ENUM: piece | meter | set | hour)
+  category (electric/camera/alarm/intercom)
+  subtype (material/service/device)
+- Ruaj backward compatibility: nëse ekziston “price” i vjetër, migroje në sale_price dhe vendos purchase_price = 0.
+
+2) ADMIN ONLY:
+- Vetëm admin të ketë të drejtë të:
+  - krijojë/ndryshojë item
+  - ndryshojë purchase_price dhe sale_price
+  - aktivizojë/deaktivizojë item
+- User normal vetëm zgjedh sasi, nuk sheh purchase_price.
+
+3) LLOGARITJE NË PROCESVERBAL:
+- Në çdo procesverbal, për çdo item të zgjedhur ruaj:
+  quantity
+  unit
+  purchase_price_snapshot (kosto në moment) (opsionale)
+  sale_price_snapshot (shitje në moment)
+- Llogarit:
+  total_sale = Σ (quantity * sale_price_snapshot)
+  total_purchase = Σ (quantity * purchase_price_snapshot)
+  profit = total_sale - total_purchase
+- Në UI, default shfaq total_sale, por admin mund të shohë edhe total_purchase + profit.
+
+4) DY MODALITETE PDF:
+Shto buton dropdown pranë “PDF”:
+  - “PDF për Klient (Faturë/Ofertë)”
+  - “PDF për Blerje (Lista ime)”
+  - (opsionale admin) “PDF i Plotë (me kosto + profit)”
+
+A) PDF PËR KLIENT (FATURË/OFERTE):
+- Shfaq vetëm:
+  Emri i klientit, adresa, data, lloji i punës, nr i procesverbalit/fatures
+  Tabela me: Përshkrimi | Njësia | Sasia | Çmimi (shitje) | Totali
+  Totali final + (opsionale TVSH) + nënshkrime
+- MOS shfaq purchase_price/kosto/profit.
+
+B) PDF PËR BLERJE (LISTA IME):
+- Qëllimi: “Çka duhet me ble”.
+- Shfaq vetëm:
+  Lista e artikujve me: Artikulli | Njësia | Sasia | Çmimi blerjes | Totali kosto
+  Totali i kostos
+  Seksion “Shënime për furnizim” (bosh)
+- Asnjë çmim shitje në këtë PDF.
+
+5) PDF PROFESIONAL:
+- Header me logo Elektronova (nëse ka), emri “Elektronova”, kontaktet (tel, web/email).
+- Dizajn clean: tabela me header me ngjyrë, rreshta zebra, font i lexueshëm.
+- Footer me: “Punime elektrike – Procesverbal materiali”, numër faqesh.
+- Në fund: Nënshkrimi i klientit / Punëkryerësit (inline).
+- Gjenerimi i PDF të jetë i qëndrueshëm (A4, margin, 2 faqe nëse duhet).
+
+6) UI / KATALOGU:
+- Në “Katalogu” shto kolona:
+  - Çmimi blerjes
+  - Çmimi shitjes
+  - Njësia
+- Në formën e procesverbalit:
+  - shfaq vetëm çmimin e shitjes për user normal
+  - admin ka toggle “Shfaq koston” (purchase) + profit.
+
+DELIVERABLES:
+- Migrimi DB + update model
+- UI update për Katalogun (admin edit)
+- Llogaritjet e totals
+- PDF generator me 2 templates (Client vs Purchase)
+- Sigurohu që ruajtja dhe PDF funksionojnë pa prishur pjesët ekzistuese.

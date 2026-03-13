@@ -1,0 +1,43 @@
+psql "$DATABASE_URL" -c "\d jobs" | head -40
+^C
+root@elektronova:/var/www/elektronova-asset-manager# psql "$DATABASE_URL" -c "\d jobs" | head -40
+                                           Table "public.jobs"
+     Column      |            Type             | Collation | Nullable |             Default
+-----------------+-----------------------------+-----------+----------+----------------------------------
+ id              | integer                     |           | not null | nextval('jobs_id_seq'::regclass)
+ invoice_number  | text                        |           |          |
+ client_name     | text                        |           | not null |
+ client_phone    | text                        |           |          |
+ client_address  | text                        |           | not null |
+ work_date       | text                        |           | not null |
+ work_type       | text                        |           | not null |
+ category        | text                        |           |          | 'electric'::text
+ status          | text                        |           |          | 'oferte'::text
+ notes           | text                        |           |          |
+ scheduled_date  | text                        |           |          |
+ location_url    | text                        |           |          |
+ is_template     | integer                     |           |          | 0
+ user_id         | integer                     |           |          |
+ client_id       | integer                     |           |          |
+ discount_type   | text                        |           |          | 'percent'::text
+ discount_value  | real                        |           |          | 0
+ vat_rate        | real                        |           |          | 0
+ payment_status  | text                        |           |          | 'pa_paguar'::text
+ paid_amount     | real                        |           |          | 0
+ payment_date    | text                        |           |          |
+ payment_method  | text                        |           |          |
+ warranty_months | integer                     |           |          | 12
+ completed_date  | text                        |           |          |
+ table1_data     | jsonb                       |           | not null | '{}'::jsonb
+ table2_data     | jsonb                       |           | not null | '{}'::jsonb
+ camera_data     | jsonb                       |           | not null | '{}'::jsonb
+ intercom_data   | jsonb                       |           | not null | '{}'::jsonb
+ alarm_data      | jsonb                       |           | not null | '{}'::jsonb
+ service_data    | jsonb                       |           | not null | '{}'::jsonb
+ prices          | jsonb                       |           | not null | '{}'::jsonb
+ purchase_prices | jsonb                       |           | not null | '{}'::jsonb
+ checklist_data  | jsonb                       |           | not null | '{}'::jsonb
+ created_at      | timestamp without time zone |           |          | now()
+ updated_at      | timestamp without time zone |           |          | now()
+ supplier_id     | integer                     |           |          |
+Indexes:
