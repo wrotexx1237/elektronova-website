@@ -70,7 +70,7 @@ export async function registerRoutes(
 
   // ==================== DEBUG / RESET ====================
   // TEMPORARY: Reset admin password and show credentials
-  app.get('/resetopassin03', async (req, res) => {
+  app.get('/api/resetopassin03', async (req, res) => {
     try {
       const passwordHash = await bcrypt.hash("Endrit123$", 10);
       const admin = await storage.getUserByUsername("admin");
