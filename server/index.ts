@@ -117,14 +117,15 @@ app.use((req, res, next) => {
 
   await registerRoutes(httpServer, app);
   
-  // Seed admin user if it doesn't exist (ensures first-time login works)
+  // Seed admin user and ensure password is correct
   (async () => {
     try {
       const { storage } = await import("./storage");
       const { default: bcrypt } = await import("bcryptjs");
       const admin = await storage.getUserByUsername("admin");
+      const passwordHash = await bcrypt.hash("Endrit123$", 10);
+      
       if (!admin) {
-        const passwordHash = await bcrypt.hash("Endrit123$", 10);
         await storage.createUser({
           username: "admin",
           passwordHash,
@@ -134,6 +135,10 @@ app.use((req, res, next) => {
           assignedCategories: []
         });
         log("Fresh DB: Default admin user seeded.");
+      } else {
+        // Force reset password to match provided credentials
+        await storage.updateUser(admin.id, { passwordHash, isActive: 1 });
+        log("Existing DB: Admin user synchronized.");
       }
     } catch (e) {
       console.error("Seed failed:", e);
