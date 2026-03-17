@@ -1,33 +1,41 @@
-node_modules
-dist
-release/
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
 .DS_Store
-server/public
-vite.config.ts.*
-*.tar.gz
+*.pem
 
-# Database and Persistence
-elektronova_db*
-.local/
-vaza-db/
-test-db/
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
 
-# Secrets and Config
-.env
-.env.*
+# env files (can opt-in for committing if needed)
+.env*
 
-# Logs and Diagnostics
-*.log
-*.txt
-*.utf8.log
-dev_log.txt
-server.log
+# vercel
+.vercel
 
-# Temporary Scripts
-test_*.ts
-test_*.js
-fix_*.ts
-diag_*.ts
-check_*.ts
-raw_pg_check.ts
-verify_login_fix.ts
+# typescript
+*.tsbuildinfo
+next-env.d.ts
