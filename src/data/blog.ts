@@ -33,7 +33,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
           <p>Në vitin 2025, ne po shohim integrimin e teknologjisë <strong>Stacked CMOS</strong> në kamerat e sigurisë, e cila lejon përpunimin e imazhit direkt në senzor, duke reduktuar vonesat (latency) dhe duke rritur gamën dinamike (WDR - Wide Dynamic Range) deri në 140dB. Kjo është kritike për vendet ku ka dritë të fortë mbrapa (p.sh. hyrjet e dyqaneve me xham).</p>
         </section>
 
-        <img src="/blog/hero-cameras.png" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Premium Security Setup" />
+        <img src="/blog/ptz.png" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Premium Security Setup" />
 
         <section class="space-y-8">
           <h2 class="text-4xl font-bold text-white italic tracking-tighter">2. Optika dhe Thjerrëzat: Syu i Sistemit Tuaj</h2>
@@ -197,7 +197,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
           </div>
         </section>
       </div>`,
-      mainImage: '/blog/hero-cameras.png',
+      mainImage: '/blog/ptz.png',
       date: '10 Mars 2025',
       category: 'Këshilla Sigurie',
       author: 'Ekipi i ElektroNova',
@@ -225,7 +225,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
           </div>
         </section>
 
-        <img src="/blog/hero-security-2026.png" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Kamera Sigurie Kosovë 2026" />
+        <img src="/blog/installation-2026.png" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Kamera Sigurie Kosovë 2026" />
 
         <section class="space-y-8">
           <h2 class="text-4xl font-bold text-white italic tracking-tighter">2. Teknologjia 4K dhe Fizika e Senzorëve</h2>
@@ -405,7 +405,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
           </div>
         </section>
       </div>`,
-      mainImage: '/blog/hero-security-2026.png',
+      mainImage: '/blog/installation-2026.png',
       date: '16 Mars 2026',
       category: 'Udhëzues',
       author: 'Eksperti i ElektroNova',
@@ -1575,7 +1575,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
           </div>
         </section>
       </div>`,
-      mainImage: 'https://images.unsplash.com/photo-1565814636199-ae8133055c1c?auto=format&fit=crop&q=80&w=1200',
+      mainImage: '/images/stock/stock-39.webp',
       date: '21 Mars 2026',
       category: 'Dizajn & Stil',
       author: 'Eksperti i Ndriçimit',
@@ -1735,7 +1735,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
           </div>
         </section>
       </div>`,
-      mainImage: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=1200',
+      mainImage: '/images/stock/stock-18.webp',
       date: '23 Mars 2026',
       category: 'Biznes',
       author: 'Ekipi i ElektroNova',
@@ -1802,7 +1802,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
           </div>
         </section>
       </div>`,
-      mainImage: 'https://images.unsplash.com/photo-1527613426441-4da17471b66d?auto=format&fit=crop&q=80&w=1200',
+      mainImage: '/images/stock/stock-20.webp',
       date: '24 Mars 2026',
       category: 'Këshilla Sigurie',
       author: 'Ekipi i ElektroNova',
@@ -1828,7 +1828,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
           </div>
         </section>
 
-        <img src="/blog/solar-panels-kosovo.png" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Panele Solare në Kosovë" />
+        <img src="/images/stock/stock-21.webp" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Panele Solare në Kosovë" />
 
         <section class="space-y-8">
           <h2 class="text-4xl font-bold text-white italic tracking-tighter">2. Sa kushton dhe për sa kohë kthehet investimi?</h2>
@@ -1868,7 +1868,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
           </div>
         </section>
       </div>`,
-      mainImage: 'https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?auto=format&fit=crop&q=80&w=1200',
+      mainImage: '/images/stock/stock-21.webp',
       date: '25 Mars 2026',
       category: 'Eko-Energji',
       author: 'Ekipi i ElektroNova',
@@ -1904,7 +1904,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
           </ul>
         </section>
 
-        <img src="/blog/emergency-electrician.png" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Elektricist Urgjent 24/7" />
+        <img src="/blog/ptz.png" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Elektricist Urgjent 24/7" />
 
         <section class="space-y-8">
           <h2 class="text-4xl font-bold text-white italic tracking-tighter text-right">2. Çka të bëni deri sa të vijë elektricisti?</h2>
@@ -1941,7 +1941,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
           </div>
         </section>
       </div>`,
-      mainImage: 'https://images.unsplash.com/photo-1621905231787-058a5e9a680e?auto=format&fit=crop&q=80&w=1200',
+      mainImage: '/blog/ptz.png',
       date: '26 Mars 2026',
       category: 'Urgjenca',
       author: 'Ekipi i ElektroNova',
@@ -1977,7 +1977,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
           </div>
         </section>
 
-        <img src="/blog/smart-home-automation.png" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Smart Home Automation në Kosovë" />
+        <img src="/blog/app-interface.png" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Smart Home Automation në Kosovë" />
 
         <section class="space-y-8">
           <h2 class="text-4xl font-bold text-white italic tracking-tighter text-right italic">2. Kursimi i Energjisë</h2>
@@ -2016,7 +2016,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
           </div>
         </section>
       </div>`,
-      mainImage: 'https://images.unsplash.com/photo-1558002038-103792e17734?auto=format&fit=crop&q=80&w=1200',
+      mainImage: '/images/stock/stock-18.webp',
       date: '27 Mars 2026',
       category: 'Inovacion',
       author: 'Ekipi i ElektroNova',
@@ -2045,7 +2045,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
           <p>In 2025, we are seeing the integration of <strong>Stacked CMOS</strong> technology in security cameras, which allows image processing directly on the sensor, reducing latency and increasing Dynamic Range (WDR - Wide Dynamic Range) up to 140dB. This is critical for locations with strong backlighting (e.g., glass shop entrances).</p>
         </section>
 
-        <img src="/blog/hero-cameras.png" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Premium Security Setup" />
+        <img src="/images/stock/stock-42.webp" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Premium Security Setup" />
 
         <section class="space-y-8">
           <h2 class="text-4xl font-bold text-white italic tracking-tighter">2. Optics and Lenses: The Eye of Your System</h2>
@@ -2064,7 +2064,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
               <p class="text-sm">Enable control of zoom and movement directly from your phone. With optical zoom up to 45x, you can see license plates hundreds of meters away.</p>
             </div>
           </div>
-          <img src="/blog/ptz.png" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="PTZ Camera Detail" />
+          <img src="/images/stock/stock-42.webp" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="PTZ Camera Detail" />
         </section>
 
         <section class="space-y-8">
@@ -2075,7 +2075,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
           
           <h4 class="text-2xl font-bold text-white mt-10">4G/Solar: Security Without Limits</h4>
           <p>For mountain houses, farms, or objects under construction where there is neither power nor internet, we have the perfect solution: 4G cameras with solar panels. These systems are 100% autonomous and allow you to see your property wherever there is a phone signal.</p>
-          <img src="/blog/solar.png" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Solar Powered Security" />
+          <img src="/images/stock/stock-21.webp" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Solar Powered Security" />
         </section>
 
         <section class="space-y-8">
@@ -2109,7 +2109,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
         <section class="space-y-8">
           <h2 class="text-4xl font-bold text-white italic tracking-tighter">5. Night Vision: The Fight Against Darkness</h2>
           <p>Previously, we only saw blurry shadows at night. <strong>Night-Color</strong> technology has changed everything. By using hybrid illuminators (IR and white light), the camera remains discrete, but as soon as it detects a suspicious person, it turns on a soft white light to capture the image in color and serve as a deterrent.</p>
-          <img src="/blog/night-vision.png" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Full Color Night Vision" />
+          <img src="/blog/ptz.png" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Full Color Night Vision" />
         </section>
 
         <section class="space-y-8">
@@ -2206,11 +2206,11 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
                    <a href="tel:+38349771673" class="px-8 py-3 rounded-xl border border-white/10 hover:bg-white/5 font-bold">Call: +383 49 771 673</a>
                 </div>
              </div>
-             <img src="/blog/technician.png" class="w-64 rounded-full border-4 border-primary shadow-2xl" alt="ElektroNova Expert" />
+             <img src="/images/stock/stock-18.webp" class="w-64 rounded-full border-4 border-primary shadow-2xl" alt="ElektroNova Expert" />
           </div>
         </section>
       </div>`,
-      mainImage: '/blog/hero-cameras.png',
+      mainImage: '/blog/ptz.png',
       date: 'March 10, 2025',
       category: 'Security Tips',
       author: 'ElektroNova Team',
@@ -2294,7 +2294,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
     </div>
   </section>
 
-  <img src="/blog/vs-battle.png" class="w-full rounded-[40px] border border-white/10 shadow-2xl my-20" alt="Technical Battle: Dahua vs Hikvision" />
+  <img src="/blog/ptz.png" class="w-full rounded-[40px] border border-white/10 shadow-2xl my-20" alt="Technical Battle: Dahua vs Hikvision" />
 
   <section class="space-y-10">
     <h2 class="text-5xl font-bold text-white italic tracking-tighter text-accent">3. Software and User Experience</h2>
@@ -2364,7 +2364,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
     </div>
   </section>
 </div>`,
-      mainImage: '/blog/hero-vs.png',
+      mainImage: '/blog/ptz.png',
       date: 'March 12, 2025',
       category: 'Technology',
       author: 'ElektroNova Team',
@@ -2410,7 +2410,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
     </div>
   </section>
 
-  <img src="https://images.unsplash.com/photo-1558002038-103792e17734?auto=format&fit=crop&q=80&w=1200" class="w-full rounded-[60px] shadow-2xl border border-white/10 my-16" alt="Ajax Hub 2 Plus - The Brain of Wireless Security" />
+  <img src="/images/stock/stock-21.webp" class="w-full rounded-[60px] shadow-2xl border border-white/10 my-16" alt="Ajax Hub 2 Plus - The Brain of Wireless Security" />
 
   <section class="space-y-12">
     <h2 class="text-5xl font-bold text-white italic tracking-tighter text-primary">2. Visual Verification: Wings and the End of False Alarms</h2>
@@ -2440,7 +2440,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
     </div>
   </section>
 
-  <img src="https://images.unsplash.com/photo-1557597774-9d2739f85a76?auto=format&fit=crop&q=80&w=1200" class="w-full rounded-[60px] shadow-2xl border border-white/10 my-16" alt="Ajax MotionCam - Seeing is Believing" />
+  <img src="/images/stock/stock-41.webp" class="w-full rounded-[60px] shadow-2xl border border-white/10 my-16" alt="Ajax MotionCam - Seeing is Believing" />
 
   <section class="space-y-12">
     <h2 class="text-5xl font-bold text-white italic tracking-tighter text-primary">3. Beyond Intrusion: The All-In-One Survival System</h2>
@@ -2490,7 +2490,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
     </div>
   </section>
 
-  <img src="https://images.unsplash.com/photo-1512486130939-2c4f79935e4f?auto=format&fit=crop&q=80&w=1200" class="w-full rounded-[60px] shadow-2xl border border-white/10 my-16" alt="Smart Home Automation via Ajax" />
+  <img src="/images/stock/stock-41.webp" class="w-full rounded-[60px] shadow-2xl border border-white/10 my-16" alt="Smart Home Automation via Ajax" />
 
   <section class="space-y-12">
     <h2 class="text-5xl font-bold text-white italic tracking-tighter text-primary">5. Comparison: Wired vs. Wireless in 2025</h2>
@@ -2631,7 +2631,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
           </div>
         </section>
 
-        <img src="https://images.unsplash.com/photo-1551709076-89f2499d383b?auto=format&fit=crop&q=80&w=1200" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Security Cameras Kosovo 2026" />
+        <img src="/images/stock/stock-42.webp" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Security Cameras Kosovo 2026" />
 
         <section class="space-y-8">
           <h2 class="text-4xl font-bold text-white italic tracking-tighter">2. 4K Technology and Advanced Sensors</h2>
@@ -2666,7 +2666,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
         <section class="space-y-8">
           <h2 class="text-4xl font-bold text-white italic tracking-tighter">5. "Full-Color" Night Vision: Seeing in the Dark</h2>
           <p>The era of grainy black-and-white night footage is over. With <strong>Full-Color</strong> technology and F1.0 large-aperture lenses, our cameras can capture vivid colors even at 3:00 AM with zero street lighting.</p>
-          <img src="https://images.unsplash.com/photo-1558002038-103792e17734?auto=format&fit=crop&q=80&w=1200" class="max-w-2xl mx-auto rounded-[40px] shadow-2xl my-10" alt="Full Color Night Vision Technology" />
+          <img src="/blog/ptz.png" class="max-w-2xl mx-auto rounded-[40px] shadow-2xl my-10" alt="Full Color Night Vision Technology" />
         </section>
 
         <section class="space-y-8">
@@ -2688,7 +2688,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
               </div>
             </li>
           </ul>
-          <img src="https://images.unsplash.com/photo-1621905231787-058a5e9a680e?auto=format&fit=crop&q=80&w=1200" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Professional Camera Installation" />
+          <img src="/blog/ptz.png" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Professional Camera Installation" />
         </section>
 
         <section class="space-y-8 bg-white/5 p-12 rounded-[40px] border border-white/10">
@@ -2725,7 +2725,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
           </div>
         </section>
       </div>`,
-      mainImage: '/blog/hero-security-2026.png',
+      mainImage: '/blog/ptz.png',
       date: 'March 16, 2026',
       category: 'Guide',
       author: 'ElektroNova Expert',
@@ -2769,7 +2769,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
     <p>When talking about **instalim kamera sigurie cmimi**, we must understand that we are investing in visual "insurance." If the system fails the moment a thief enters your property, then the entire initial investment was in vain.</p>
   </section>
 
-  <img src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=1200" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="ElektroNova technician during professional installation" />
+  <img src="/images/stock/stock-18.webp" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="ElektroNova technician during professional installation" />
 
   <section class="space-y-8">
     <h2 class="text-4xl font-bold text-white italic tracking-tighter">2. Technical Variables Defining the Price</h2>
@@ -2791,7 +2791,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
           <p class="italic opacity-80">At ElektroNova, we always recommend 4K for main entry points, as this allows you to see license plates and fine details that a standard camera would miss.</p>
        </div>
 
-       <img src="https://images.unsplash.com/photo-1557597774-9d2739f85a76?auto=format&fit=crop&q=80&w=1200" class="max-w-3xl mx-auto rounded-[40px] shadow-2xl my-10" alt="Types of security cameras" />
+       <img src="/blog/camera-types.png" class="max-w-3xl mx-auto rounded-[40px] shadow-2xl my-10" alt="Types of security cameras" />
 
        <div class="bg-white/5 p-10 rounded-[40px] border border-white/10">
           <h3 class="text-2xl font-bold text-primary mb-6 italic">C. Recording Space (Hard Drive)</h3>
@@ -2884,7 +2884,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
        <div class="space-y-6">
           <h4 class="text-2xl font-bold text-white italic">Surge and Lightning Protection</h4>
           <p>In Kosovo, power fluctuations are frequent. An unprotected modem or NVR can burn with the first power surge. We always propose surge protectors and UPS devices that cost about €80-€150 extra, but save your entire investment.</p>
-          <img src="/blog/pricing-hardware.png" class="rounded-[40px] border border-white/10 shadow-xl" alt="Electrical protection equipment" />
+          <img src="/images/stock/stock-20.webp" class="rounded-[40px] border border-white/10 shadow-xl" alt="Electrical protection equipment" />
        </div>
        <div class="space-y-6">
           <h4 class="text-2xl font-bold text-white italic">Annual Maintenance</h4>
@@ -2937,7 +2937,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
     </div>
   </section>
 
-  <img src="/blog/pricing-app.png" class="max-w-xl mx-auto rounded-[40px] shadow-2xl my-10" alt="Monitoring costs from the application" />
+  <img src="/blog/app-interface.png" class="max-w-xl mx-auto rounded-[40px] shadow-2xl my-10" alt="Monitoring costs from the application" />
 
   <section class="space-y-8">
     <h2 class="text-4xl font-bold text-white italic tracking-tighter">Conclusion</h2>
@@ -2955,7 +2955,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
     </div>
   </section>
 </div>`,
-      mainImage: '/blog/hero-pricing.png',
+      mainImage: '/images/stock/stock-18.webp',
       date: 'March 16, 2026',
       category: 'Pricing',
       author: 'ElektroNova Expert',
@@ -2981,7 +2981,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
        <div class="space-y-6">
           <h4 class="text-2xl font-bold text-white italic">The "Hat" Problem</h4>
           <p>When a camera is placed too high (above 4 meters), it mainly captures the top of a person\'s head. If a thief is wearing a hat or a "hoodie", his face remains completely hidden. This is one of those **security camera mistakes** that makes your recordings worthless to the police.</p>
-          <img src="/blog/bad-positioning.png" class="rounded-[40px] border border-white/10 shadow-xl" alt="Example of bad camera positioning" />
+          <img src="/blog/ptz.png" class="rounded-[40px] border border-white/10 shadow-xl" alt="Example of bad camera positioning" />
        </div>
        <div class="space-y-6">
           <h4 class="text-2xl font-bold text-white italic">The Professional Solution</h4>
@@ -2994,7 +2994,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
     </div>
   </section>
 
-  <img src="/blog/hero-mistakes.png" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Hero image showing installation failures" />
+  <img src="/blog/ptz.png" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Hero image showing installation failures" />
 
   <section class="space-y-8">
     <h2 class="text-4xl font-bold text-white italic tracking-tighter">2. Cheap Body, Expensive Soul: The Hardware Mistake</h2>
@@ -3031,7 +3031,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
        <h4 class="text-2xl font-bold text-white mb-6 italic">The Storage Crisis: RAID 1 vs RAID 5</h4>
        <p>A single hard drive is a single point of failure. If that disk dies, your entire security history vanishes. For residential villas, we recommend RAID 1 (Mirroring), where data is written to two disks simultaneously. For enterprises, RAID 5 or RAID 6 provides maximum uptime even during multiple disk failures.</p>
     </div>
-    <img src="/blog/cabling-mess.png" class="w-full rounded-[40px] shadow-2xl my-16" alt="Clean vs messy cabling comparison" />
+    <img src="/images/stock/stock-20.webp" class="w-full rounded-[40px] shadow-2xl my-16" alt="Clean vs messy cabling comparison" />
   </section>
 
   <section class="space-y-12">
@@ -3046,7 +3046,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
           <p>A critical mistake is putting cameras on the same network as your computers and guest Wi-Fi. If a camera is compromised, the hacker has access to your entire network. ElektroNova recommends creating an isolated VLAN (Virtual Local Area Network) just for the security system, blocking unwanted traffic between devices.</p>
        </div>
     </div>
-    <img src="/blog/cyber-security.png" class="max-w-2xl mx-auto rounded-[40px] shadow-2xl my-10" alt="Cybersecurity warning on security app" />
+    <img src="/blog/app-interface.png" class="max-w-2xl mx-auto rounded-[40px] shadow-2xl my-10" alt="Cybersecurity warning on security app" />
   </section>
 
   <section class="space-y-12 bg-white/5 p-10 rounded-[40px]">
@@ -3223,7 +3223,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
   ]
 }
 </script>`,
-      mainImage: '/blog/hero-mistakes.png',
+      mainImage: '/blog/ptz.png',
       date: 'March 17, 2026',
       category: 'Security',
       author: 'ElektroNova Expert',
@@ -3249,7 +3249,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
           </div>
         </section>
 
-        <img src="/blog/breaker-tripping.png" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Electrical breaker tripping" />
+        <img src="/images/stock/stock-20.webp" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Electrical breaker tripping" />
 
         <section class="space-y-8">
           <h2 class="text-4xl font-bold text-white italic tracking-tighter">2. Short Circuits</h2>
@@ -3275,7 +3275,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
           </div>
         </section>
       </div>`,
-      mainImage: '/blog/circuit-overload.png',
+      mainImage: '/images/stock/stock-20.webp',
       date: 'March 18, 2026',
       category: 'Tips',
       author: 'ElektroNova Team',
@@ -3307,7 +3307,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
           </div>
         </section>
 
-        <img src="/blog/pricing-guide-2026.png" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Electrical installation cost guide" />
+        <img src="/images/stock/stock-18.webp" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Electrical installation cost guide" />
 
         <section class="space-y-8">
           <h2 class="text-4xl font-bold text-white italic tracking-tighter">2. The Electrical Panel (Fuse Box)</h2>
@@ -3352,7 +3352,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
           <p>If you smell burning plastic near an outlet or see sparks when you plug something in, stop immediately. This indicates damaged insulation or loose connections that are creating extreme heat.</p>
         </section>
 
-        <img src="/blog/old-wiring.png" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Damaged electrical wiring" />
+        <img src="/blog/old-wiring-signs.png" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Damaged electrical wiring" />
 
         <section class="space-y-8">
           <h2 class="text-4xl font-bold text-white italic tracking-tighter">2. Flickering Lights</h2>
@@ -3432,7 +3432,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
           </div>
         </section>
       </div>`,
-      mainImage: 'https://images.unsplash.com/photo-1565814636199-ae8133055c1c?auto=format&fit=crop&q=80&w=1200',
+      mainImage: '/images/stock/stock-39.webp',
       date: 'March 21, 2026',
       category: 'Design',
       author: 'Design Expert',
@@ -3454,7 +3454,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
           <p>Old-style fuses work by melting when there is an overload. They are slow and can be easily bypassed with a "copper wire" (a common but fatal mistake in Kosovo). Modern Breakers (MCBs) react in milliseconds and can be reset with a simple switch.</p>
         </section>
 
-        <img src="/blog/electrical-panel.png" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Modern electrical panel" />
+        <img src="/blog/modern-electrical-panel.png" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Modern electrical panel" />
 
         <section class="space-y-8">
           <h2 class="text-4xl font-bold text-white italic tracking-tighter">2. Surge Protection (SPD)</h2>
@@ -3540,7 +3540,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
           </div>
         </section>
       </div>`,
-      mainImage: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=1200',
+      mainImage: '/images/stock/stock-18.webp',
       date: 'March 23, 2026',
       category: 'Business',
       author: 'ElektroNova Team',
@@ -3578,7 +3578,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
           </div>
         </section>
       </div>`,
-      mainImage: 'https://images.unsplash.com/photo-1527613426441-4da17471b66d?auto=format&fit=crop&q=80&w=1200',
+      mainImage: '/images/stock/stock-20.webp',
       date: 'March 24, 2026',
       category: 'Safety',
       author: 'ElektroNova Team',
@@ -3595,7 +3595,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
           <p>At ElektroNova, we believe energy independence is no longer a distant dream. With rising energy costs, solar panels are the most profitable investment for homes and businesses in Kosovo.</p>
         </section>
 
-        <img src="/blog/solar-panels-kosovo.png" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Solar Panels in Kosovo" />
+        <img src="/blog/solar.png" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Solar Panels in Kosovo" />
         
         <section class="space-y-8">
           <h2 class="text-4xl font-bold text-white italic tracking-tighter">1. On-Grid vs Off-Grid Systems</h2>
@@ -3615,7 +3615,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
           </div>
         </section>
       </div>`,
-      mainImage: 'https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?auto=format&fit=crop&q=80&w=1200',
+      mainImage: '/images/stock/stock-21.webp',
       date: 'March 25, 2026',
       category: 'Eco-Energy',
       author: 'ElektroNova Team',
@@ -3646,7 +3646,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
           </ul>
         </section>
 
-        <img src="/blog/emergency-electrician.png" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Emergency Electrician 24/7" />
+        <img src="/images/stock/stock-18.webp" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Emergency Electrician 24/7" />
 
         <section class="space-y-8">
           <h2 class="text-4xl font-bold text-white italic tracking-tighter text-center">Electrical Emergency? Call Now.</h2>
@@ -3657,7 +3657,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
           </div>
         </section>
       </div>`,
-      mainImage: 'https://images.unsplash.com/photo-1621905231787-058a5e9a680e?auto=format&fit=crop&q=80&w=1200',
+      mainImage: '/blog/ptz.png',
       date: 'March 26, 2026',
       category: 'Emergency',
       author: 'ElektroNova Team',
@@ -3674,7 +3674,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
           <p>Smart homes are no longer a part of science-fiction films. At ElektroNova, we are transforming traditional homes in Kosovo into intelligent ecosystems that save you time and money.</p>
         </section>
 
-        <img src="/blog/smart-home-automation.png" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Smart Home Automation in Kosovo" />
+        <img src="/blog/app-interface.png" class="w-full rounded-[40px] shadow-2xl border border-white/10 my-16" alt="Smart Home Automation in Kosovo" />
 
         <section class="space-y-8">
           <h2 class="text-4xl font-bold text-white italic tracking-tighter">1. Energy Savings</h2>
@@ -3692,7 +3692,7 @@ export const blogData: Record<string, Record<string, ArticleContent>> = {
           </div>
         </section>
       </div>`,
-      mainImage: 'https://images.unsplash.com/photo-1558002038-103792e17734?auto=format&fit=crop&q=80&w=1200',
+      mainImage: '/images/stock/stock-18.webp',
       date: 'March 27, 2026',
       category: 'Innovation',
       author: 'ElektroNova Team',

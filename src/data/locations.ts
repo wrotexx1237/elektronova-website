@@ -47,12 +47,12 @@ export const locations: {
         {
           title: 'Instalim në Rezidencë',
           description: 'Sistem i plotë i ndriçimit dhe rrjetit elektrik në një shtëpi moderne në Pejë.',
-          image: 'https://images.unsplash.com/photo-1600585154340-be61ead7a710?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-18.webp'
         },
         {
           title: 'Sistem Sigurie për Biznes',
           description: 'Monitorim 24/7 me kamera 4K për një qendër tregtare.',
-          image: 'https://images.unsplash.com/photo-1541888941297-dc96e62451bc?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-21.webp'
         }
       ],
       servicesOffered: ['Instalime Elektrike', 'Kamera Sigurie', 'Alarme', 'Smart Home', 'Mirëmbajtje'],
@@ -79,7 +79,7 @@ export const locations: {
         {
           title: 'Penthouse në Lakrishtë',
           description: 'Sistem i avancuar i automatizimit dhe ndriçimit LED.',
-          image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-3.webp'
         }
       ],
       servicesOffered: ['Instalime Industriale', 'Smart Home', 'Mirëmbajtje Banesash', 'Kamera Sigurie', 'Alarme'],
@@ -102,7 +102,7 @@ export const locations: {
         {
           title: 'Hotel në Qendër',
           description: 'Instalimi i rrjetit elektrik dhe kamerave për një hotel tradicional.',
-          image: 'https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-4.webp'
         }
       ],
       servicesOffered: ['Instalime Elektrike', 'Kamera Sigurie', 'Alarme', 'Ndriçim Dekorativ', 'Mirëmbajtje'],
@@ -125,7 +125,7 @@ export const locations: {
         {
           title: 'Shtëpi Familjare',
           description: 'Instalimi i plotë elektrik dhe sistemet e sigurisë.',
-          image: 'https://images.unsplash.com/photo-1480074568708-e7b720bb3f09?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-5.webp'
         }
       ],
       servicesOffered: ['Instalime Elektrike', 'Kamera Sigurie', 'Alarme', 'Riparime Urgjente', 'Smart Home'],
@@ -148,7 +148,7 @@ export const locations: {
         {
           title: 'Biznes Lokal',
           description: 'Instalimi i panelesh elektrike dhe ndriçimit LED.',
-          image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-6.webp'
         }
       ],
       servicesOffered: ['Instalime Elektrike', 'Riparime', 'Kamera Sigurie', 'Alarme', 'Mirëmbajtje'],
@@ -171,7 +171,7 @@ export const locations: {
         {
           title: 'Fabrikë në Zonën Industriale',
           description: 'Projektimi dhe ekzekutimi i rrjetit elektrik treshfazor.',
-          image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-7.webp'
         }
       ],
       servicesOffered: ['Instalime Industriale', 'Panele Elektrike', 'Kamera Sigurie', 'Alarme', 'Mirëmbajtje'],
@@ -194,7 +194,7 @@ export const locations: {
         {
           title: 'Monitorim Rezidencial',
           description: 'Sistem i plotë i kamerave dhe alarmeve wireless.',
-          image: 'https://images.unsplash.com/photo-1599809278771-030007cd8df4?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-10.webp'
         }
       ],
       servicesOffered: ['Instalime Elektrike', 'Kamera Sigurie', 'Alarme', 'Riparime', 'Mirëmbajtje'],
@@ -217,7 +217,7 @@ export const locations: {
         {
           title: 'Shtëpi Tradicionale',
           description: 'Ndërrimi i plotë i instalimit elektrik dhe sigurimi me kamera.',
-          image: 'https://images.unsplash.com/photo-1560185127-6ed189bf02f4?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-9.webp'
         }
       ],
       servicesOffered: ['Instalime Elektrike', 'Riparime Urgjente', 'Kamera Sigurie', 'Alarme', 'Smart Home'],
@@ -240,7 +240,7 @@ export const locations: {
         {
           title: 'Vilë në Periferi',
           description: 'Instalimi i rrjetit elektrik dhe sigurisë për një vilë moderne.',
-          image: 'https://images.unsplash.com/photo-1502672023488-70e25813eb80?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-10.webp'
         }
       ],
       servicesOffered: ['Instalime Elektrike', 'Riparime', 'Kamera Sigurie', 'Alarme', 'Mirëmbajtje'],
@@ -263,7 +263,7 @@ export const locations: {
         {
           title: 'Objekt Afarist',
           description: 'Sistem i plotë i monitorimit dhe rrjetit elektrik.',
-          image: 'https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-11.webp'
         }
       ],
       servicesOffered: ['Instalime Elektrike', 'Kamera Sigurie', 'Alarme', 'Smart Home', 'Mirëmbajtje'],
@@ -286,7 +286,7 @@ export const locations: {
         {
           title: 'Bodrum i Verës',
           description: 'Instalimi i ndriçimit industrial dhe rrjetit elektrik.',
-          image: 'https://images.unsplash.com/photo-1533090161767-e6ffed986c88?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-12.webp'
         }
       ],
       servicesOffered: ['Instalime Elektrike', 'Kamera Sigurie', 'Alarme', 'Riparime', 'Mirëmbajtje'],
@@ -309,7 +309,7 @@ export const locations: {
         {
           title: 'Shtëpi Moderne',
           description: 'Sistem i plotë elektrik dhe alarme sigurie.',
-          image: 'https://images.unsplash.com/photo-1512915922686-57c11db9b6f9?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-16.webp'
         }
       ],
       servicesOffered: ['Instalime Elektrike', 'Riparime Urgjente', 'Kamera Sigurie', 'Alarme', 'Smart Home'],
@@ -332,7 +332,7 @@ export const locations: {
         {
           title: 'Biznes Lokal',
           description: 'Instalimi i sistemit të kamerave dhe alarmeve.',
-          image: 'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-14.webp'
         }
       ],
       servicesOffered: ['Instalime Elektrike', 'Kamera Sigurie', 'Alarme', 'Riparime', 'Smart Home'],
@@ -355,7 +355,7 @@ export const locations: {
         {
           title: 'Vilë në Grykë të Deçanit',
           description: 'Sistem i plotë i ndriçimit dhe sigurisë.',
-          image: 'https://images.unsplash.com/photo-1449156001437-331006ad9fde?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-20.webp'
         }
       ],
       servicesOffered: ['Instalime Elektrike', 'Kamera Sigurie', 'Alarme', 'Smart Home', 'Mirëmbajtje'],
@@ -378,7 +378,7 @@ export const locations: {
         {
           title: 'Shtëpi Moderne',
           description: 'Sistem i plotë i monitorimit dhe rrjetit elektrik.',
-          image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-16.webp'
         }
       ],
       servicesOffered: ['Instalime Elektrike', 'Kamera Sigurie', 'Alarme', 'Riparime Urgjente', 'Smart Home'],
@@ -401,7 +401,7 @@ export const locations: {
         {
           title: 'Shtëpi Familjare',
           description: 'Instalimi i rrjetit elektrik dhe kamerave të sigurisë.',
-          image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-3.webp'
         }
       ],
       servicesOffered: ['Instalime Elektrike', 'Kamera Sigurie', 'Alarme', 'Smart Home', 'Mirëmbajtje'],
@@ -424,7 +424,7 @@ export const locations: {
         {
           title: 'Shtëpi Profesionale',
           description: 'Sistem i plotë elektrik dhe vëzhgim 24/7.',
-          image: 'https://images.unsplash.com/photo-1558002038-103792e17734?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-9.webp'
         }
       ],
       servicesOffered: ['Instalime Elektrike', 'Kamera Sigurie', 'Alarme', 'Riparime Urgjente', 'Mirëmbajtje'],
@@ -447,7 +447,7 @@ export const locations: {
         {
           title: 'Objekt Afarist',
           description: 'Instalimi i panelsh elektrike dhe rrjetit të sigurisë.',
-          image: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-18.webp'
         }
       ],
       servicesOffered: ['Instalime Elektrike', 'Kamera Sigurie', 'Alarme', 'Riparime', 'Smart Home'],
@@ -470,7 +470,7 @@ export const locations: {
         {
           title: 'Pikë Karburanti',
           description: 'Punimi i instalimit elektrik dhe kamerave të sigurisë.',
-          image: 'https://images.unsplash.com/photo-1621905231787-058a5e9a680e?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-14.webp'
         }
       ],
       servicesOffered: ['Instalime Elektrike', 'Riparime Urgjente', 'Kamera Sigurie', 'Alarme', 'Smart Home'],
@@ -493,7 +493,7 @@ export const locations: {
         {
           title: 'Shtëpi Familjare',
           description: 'Instalimi i rrjetit elektrik dhe kamerave.',
-          image: 'https://images.unsplash.com/photo-1527613426441-4da17471b66d?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-20.webp'
         }
       ],
       servicesOffered: ['Instalime Elektrike', 'Riparime', 'Kamera Sigurie', 'Alarme', 'Mirëmbajtje'],
@@ -516,7 +516,7 @@ export const locations: {
         {
           title: 'Shtëpi Familjare',
           description: 'Instalimi i plotë elektrik dhe kamerat e sigurisë.',
-          image: 'https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-21.webp'
         }
       ],
       servicesOffered: ['Instalime Elektrike', 'Kamera Sigurie', 'Alarme', 'Riparime', 'Smart Home'],
@@ -539,7 +539,7 @@ export const locations: {
         {
           title: 'Qendër Tregtare',
           description: 'Sistem i plotë i monitorimit dhe rrjetit elektrik.',
-          image: 'https://images.unsplash.com/photo-1541888941297-dc96e62451bc?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-21.webp'
         }
       ],
       servicesOffered: ['Instalime Elektrike', 'Kamera Sigurie', 'Alarme', 'Mirëmbajtje', 'Ndriçim'],
@@ -562,7 +562,7 @@ export const locations: {
         {
           title: 'Bllok Banesor',
           description: 'Instalimi i rrjetit elektrik dhe kamerave.',
-          image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-3.webp'
         }
       ],
       servicesOffered: ['Instalime Elektrike', 'Kamera Sigurie', 'Alarme', 'Smart Home', 'Mirëmbajtje'],
@@ -585,7 +585,7 @@ export const locations: {
         {
           title: 'Kulla Turistike',
           description: 'Instalimi i rrjetit elektrik dhe ndriçimit dekorativ.',
-          image: 'https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-4.webp'
         }
       ],
       servicesOffered: ['Instalime Elektrike', 'Kamera Sigurie', 'Alarme', 'Smart Home', 'Mirëmbajtje'],
@@ -608,7 +608,7 @@ export const locations: {
         {
           title: 'Depo Industriale',
           description: 'Instalimi i rrjetit elektrik dhe kamerave të sigurisë.',
-          image: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-18.webp'
         }
       ],
       servicesOffered: ['Instalime Elektrike', 'Kamera Sigurie', 'Alarme', 'Riparime', 'Mirëmbajtje'],
@@ -637,12 +637,12 @@ export const locations: {
         {
           title: 'Residential Installation',
           description: 'Complete lighting and electrical network system in a modern house in Peja.',
-          image: 'https://images.unsplash.com/photo-1600585154340-be61ead7a710?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-18.webp'
         },
         {
           title: 'Business Security System',
           description: '24/7 monitoring with 4K cameras for a commercial center.',
-          image: 'https://images.unsplash.com/photo-1541888941297-dc96e62451bc?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-21.webp'
         }
       ],
       servicesOffered: ['Electrical Installations', 'Security Cameras', 'Alarms', 'Smart Home', 'Maintenance'],
@@ -669,7 +669,7 @@ export const locations: {
         {
           title: 'Penthouse in Lakrishte',
           description: 'Advanced automation system and LED lighting.',
-          image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-3.webp'
         }
       ],
       servicesOffered: ['Industrial Installations', 'Smart Home', 'Apartment Maintenance', 'Security Cameras', 'Alarms'],
@@ -692,7 +692,7 @@ export const locations: {
         {
           title: 'Center Hotel',
           description: 'Electrical network and camera installation for a traditional hotel.',
-          image: 'https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-4.webp'
         }
       ],
       servicesOffered: ['Electrical Installations', 'Security Cameras', 'Alarms', 'Decorative Lighting', 'Maintenance'],
@@ -715,7 +715,7 @@ export const locations: {
         {
           title: 'Family Home',
           description: 'Full electrical installation and security systems.',
-          image: 'https://images.unsplash.com/photo-1480074568708-e7b720bb3f09?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-5.webp'
         }
       ],
       servicesOffered: ['Electrical Installations', 'Security Cameras', 'Alarms', 'Emergency Repairs', 'Smart Home'],
@@ -738,7 +738,7 @@ export const locations: {
         {
           title: 'Local Business',
           description: 'Electrical panel and LED lighting installation.',
-          image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-6.webp'
         }
       ],
       servicesOffered: ['Electrical Installations', 'Repairs', 'Security Cameras', 'Alarms', 'Maintenance'],
@@ -761,7 +761,7 @@ export const locations: {
         {
           title: 'Factory in Industrial Zone',
           description: 'Design and execution of a three-phase electrical network.',
-          image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-7.webp'
         }
       ],
       servicesOffered: ['Industrial Installations', 'Electrical Panels', 'Security Cameras', 'Alarms', 'Maintenance'],
@@ -784,7 +784,7 @@ export const locations: {
         {
           title: 'Residential Monitoring',
           description: 'Full camera and wireless alarm system.',
-          image: 'https://images.unsplash.com/photo-1599809278771-030007cd8df4?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-10.webp'
         }
       ],
       servicesOffered: ['Electrical Installations', 'Security Cameras', 'Alarms', 'Repairs', 'Maintenance'],
@@ -807,7 +807,7 @@ export const locations: {
         {
           title: 'Traditional House',
           description: 'Full electrical installation replacement and camera security.',
-          image: 'https://images.unsplash.com/photo-1560185127-6ed189bf02f4?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-9.webp'
         }
       ],
       servicesOffered: ['Electrical Installations', 'Emergency Repairs', 'Security Cameras', 'Alarms', 'Smart Home'],
@@ -830,7 +830,7 @@ export const locations: {
         {
           title: 'Suburban Villa',
           description: 'Electrical network and security installation for a modern villa.',
-          image: 'https://images.unsplash.com/photo-1502672023488-70e25813eb80?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-10.webp'
         }
       ],
       servicesOffered: ['Electrical Installations', 'Repairs', 'Security Cameras', 'Alarms', 'Maintenance'],
@@ -853,7 +853,7 @@ export const locations: {
         {
           title: 'Commercial Object',
           description: 'Full monitoring and electrical network system.',
-          image: 'https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-11.webp'
         }
       ],
       servicesOffered: ['Electrical Installations', 'Security Cameras', 'Alarms', 'Smart Home', 'Maintenance'],
@@ -876,7 +876,7 @@ export const locations: {
         {
           title: 'Wine Cellar',
           description: 'Industrial lighting and electrical network installation.',
-          image: 'https://images.unsplash.com/photo-1533090161767-e6ffed986c88?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-12.webp'
         }
       ],
       servicesOffered: ['Electrical Installations', 'Security Cameras', 'Alarms', 'Repairs', 'Maintenance'],
@@ -899,7 +899,7 @@ export const locations: {
         {
           title: 'Modern House',
           description: 'Full electrical system and security alarms.',
-          image: 'https://images.unsplash.com/photo-1512915922686-57c11db9b6f9?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-16.webp'
         }
       ],
       servicesOffered: ['Electrical Installations', 'Emergency Repairs', 'Security Cameras', 'Alarms', 'Smart Home'],
@@ -922,7 +922,7 @@ export const locations: {
         {
           title: 'Local Business',
           description: 'Camera and alarm system installation.',
-          image: 'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-14.webp'
         }
       ],
       servicesOffered: ['Electrical Installations', 'Security Cameras', 'Alarms', 'Repairs', 'Smart Home'],
@@ -945,7 +945,7 @@ export const locations: {
         {
           title: 'Decan Gorge Villa',
           description: 'Complete lighting and security system.',
-          image: 'https://images.unsplash.com/photo-1449156001437-331006ad9fde?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-20.webp'
         }
       ],
       servicesOffered: ['Electrical Installations', 'Security Cameras', 'Alarms', 'Smart Home', 'Maintenance'],
@@ -968,7 +968,7 @@ export const locations: {
         {
           title: 'Modern House',
           description: 'Full monitoring and electrical network system.',
-          image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-16.webp'
         }
       ],
       servicesOffered: ['Electrical Installations', 'Security Cameras', 'Alarms', 'Emergency Repairs', 'Smart Home'],
@@ -991,7 +991,7 @@ export const locations: {
         {
           title: 'Family Home',
           description: 'Electrical network and security camera installation.',
-          image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-3.webp'
         }
       ],
       servicesOffered: ['Electrical Installations', 'Security Cameras', 'Alarms', 'Smart Home', 'Maintenance'],
@@ -1014,7 +1014,7 @@ export const locations: {
         {
           title: 'Professional Home',
           description: 'Full electrical system and 24/7 monitoring.',
-          image: 'https://images.unsplash.com/photo-1558002038-103792e17734?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-9.webp'
         }
       ],
       servicesOffered: ['Electrical Installations', 'Security Cameras', 'Alarms', 'Emergency Repairs', 'Maintenance'],
@@ -1037,7 +1037,7 @@ export const locations: {
         {
           title: 'Commercial Building',
           description: 'Electrical panel and security network installation.',
-          image: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-18.webp'
         }
       ],
       servicesOffered: ['Electrical Installations', 'Security Cameras', 'Alarms', 'Repairs', 'Smart Home'],
@@ -1060,7 +1060,7 @@ export const locations: {
         {
           title: 'Gas Station',
           description: 'Electrical installation and security camera work.',
-          image: 'https://images.unsplash.com/photo-1621905231787-058a5e9a680e?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-14.webp'
         }
       ],
       servicesOffered: ['Electrical Installations', 'Emergency Repairs', 'Security Cameras', 'Alarms', 'Smart Home'],
@@ -1083,7 +1083,7 @@ export const locations: {
         {
           title: 'Family Home',
           description: 'Electrical network and camera installation.',
-          image: 'https://images.unsplash.com/photo-1527613426441-4da17471b66d?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-20.webp'
         }
       ],
       servicesOffered: ['Electrical Installations', 'Repairs', 'Security Cameras', 'Alarms', 'Maintenance'],
@@ -1106,7 +1106,7 @@ export const locations: {
         {
           title: 'Family House',
           description: 'Full electrical installation and security cameras.',
-          image: 'https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-21.webp'
         }
       ],
       servicesOffered: ['Electrical Installations', 'Security Cameras', 'Alarms', 'Repairs', 'Smart Home'],
@@ -1129,7 +1129,7 @@ export const locations: {
         {
           title: 'Commercial Center',
           description: 'Full monitoring and electrical network system.',
-          image: 'https://images.unsplash.com/photo-1541888941297-dc96e62451bc?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-21.webp'
         }
       ],
       servicesOffered: ['Electrical Installations', 'Security Cameras', 'Alarms', 'Maintenance', 'Lighting'],
@@ -1152,7 +1152,7 @@ export const locations: {
         {
           title: 'Building Block',
           description: 'Electrical network and camera installation.',
-          image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-3.webp'
         }
       ],
       servicesOffered: ['Electrical Installations', 'Security Cameras', 'Alarms', 'Smart Home', 'Maintenance'],
@@ -1175,7 +1175,7 @@ export const locations: {
         {
           title: 'Tourist Kulla',
           description: 'Electrical network and decorative lighting installation.',
-          image: 'https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-4.webp'
         }
       ],
       servicesOffered: ['Electrical Installations', 'Security Cameras', 'Alarms', 'Smart Home', 'Maintenance'],
@@ -1198,7 +1198,7 @@ export const locations: {
         {
           title: 'Industrial Warehouse',
           description: 'Electrical network and security camera installation.',
-          image: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=1200'
+          image: '/images/stock/stock-18.webp'
         }
       ],
       servicesOffered: ['Electrical Installations', 'Security Cameras', 'Alarms', 'Repairs', 'Maintenance'],

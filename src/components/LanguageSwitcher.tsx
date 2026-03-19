@@ -58,6 +58,7 @@ export default function LanguageSwitcher() {
           )}
           disabled={isPending}
           onClick={() => onLocaleChange(cur)}
+          aria-label={cur === 'sq' ? 'Kalo në Shqip' : 'Switch to English'}
         >
           {cur}
         </button>

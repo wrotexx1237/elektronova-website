@@ -68,21 +68,25 @@ export default function LeadForm() {
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-400 mb-2">{t('name')}</label>
+          <label htmlFor="name-input" className="block text-sm font-medium text-gray-300 mb-2">{t('name')}</label>
           <input 
+            id="name-input"
             name="name"
             type="text" 
             required 
+            aria-required="true"
             placeholder="Filan Fisteku"
             className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:border-primary outline-none transition-all text-white"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-400 mb-2">{t('phone')}</label>
+          <label htmlFor="phone-input" className="block text-sm font-medium text-gray-300 mb-2">{t('phone')}</label>
           <input 
+            id="phone-input"
             name="phone"
             type="tel" 
             required 
+            aria-required="true"
             placeholder="+383 -- --- ---"
             className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:border-primary outline-none transition-all text-white"
           />
@@ -90,11 +94,13 @@ export default function LeadForm() {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-400 mb-2">{t('email')}</label>
+        <label htmlFor="email-input" className="block text-sm font-medium text-gray-300 mb-2">{t('email')}</label>
         <input 
+          id="email-input"
           name="email"
           type="email" 
           required 
+          aria-required="true"
           placeholder="shembull@email.com"
           className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:border-primary outline-none transition-all text-white"
         />
@@ -102,8 +108,8 @@ export default function LeadForm() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-400 mb-2">Qyteti</label>
-          <select name="city" required className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:border-primary outline-none transition-all appearance-none cursor-pointer text-white">
+          <label htmlFor="city-select" className="block text-sm font-medium text-gray-300 mb-2">Qyteti</label>
+          <select id="city-select" name="city" required aria-required="true" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:border-primary outline-none transition-all appearance-none cursor-pointer text-white">
             <option value="" className="bg-background">Zgjidhni qytetin...</option>
             <option value="Pejë" className="bg-background">Pejë</option>
             <option value="Prishtinë" className="bg-background">Prishtinë</option>
@@ -118,8 +124,8 @@ export default function LeadForm() {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-400 mb-2">Shërbimi Interesuar</label>
-          <select name="service" required className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:border-primary outline-none transition-all appearance-none cursor-pointer text-white">
+          <label htmlFor="service-select" className="block text-sm font-medium text-gray-300 mb-2">Shërbimi Interesuar</label>
+          <select id="service-select" name="service" required aria-required="true" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:border-primary outline-none transition-all appearance-none cursor-pointer text-white">
             <option value="" className="bg-background">Zgjidhni shërbimin...</option>
             <option value="Instalimi i Kamerave" className="bg-background">Instalimi i Kamerave</option>
             <option value="Sistemet e Alarmit" className="bg-background">Sistemet e Alarmit</option>
@@ -131,11 +137,13 @@ export default function LeadForm() {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-400 mb-2">{t('message')}</label>
+        <label htmlFor="message-textarea" className="block text-sm font-medium text-gray-300 mb-2">{t('message')}</label>
         <textarea 
+          id="message-textarea"
           name="message"
           rows={4}
           required
+          aria-required="true"
           placeholder="Përshkruani kërkesën tuaj këtu..."
           className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:border-primary outline-none transition-all resize-none text-white"
         ></textarea>
@@ -148,7 +156,7 @@ export default function LeadForm() {
           required
           className="mt-1 w-4 h-4 rounded border-white/10 bg-white/5 text-primary focus:ring-primary focus:ring-offset-background cursor-pointer"
         />
-        <label htmlFor="privacy-consent" className="text-xs text-gray-400 leading-relaxed cursor-pointer hover:text-gray-300 transition-colors">
+        <label htmlFor="privacy-consent" className="text-xs text-gray-300 leading-relaxed cursor-pointer hover:text-gray-200 transition-colors">
           {tCompliance('form_notice').split('[privacy_policy]')[0]}
           <Link href="/privacy-policy" className="text-primary hover:underline font-bold">
             {tCompliance('privacy_title')}

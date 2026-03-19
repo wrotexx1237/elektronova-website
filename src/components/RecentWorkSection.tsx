@@ -149,7 +149,7 @@ function ProjectStrip({ project, idx }: { project: Project; idx: number }) {
           {/* CTA */}
           <div className="flex items-center gap-5 mt-10">
             <div className="flex-1 h-[1px] bg-gradient-to-r from-white/5 to-transparent" />
-            <span className="flex items-center gap-3 text-sm font-bold text-white/30 group-hover:text-white transition-colors duration-500 cursor-pointer">
+            <span className="flex items-center gap-3 text-sm font-bold text-white/30 group-hover:text-white transition-colors duration-500 cursor-pointer" aria-label={`Shih projektin: ${project.title}`}>
               <span className="uppercase tracking-widest group-hover:text-primary transition-colors">Shih Projektin</span>
               <span className="w-8 h-8 rounded-full border border-white/10 group-hover:border-primary/60 group-hover:bg-primary/10 flex items-center justify-center transition-all duration-300">
                 <FaArrowRight size={10} className="-rotate-45 group-hover:text-primary" />

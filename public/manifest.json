@@ -1,0 +1,17 @@
+{
+  "name": "ElektroNova",
+  "short_name": "ElektroNova",
+  "description": "Shërbime profesionale elektrike dhe sisteme të sigurisë.",
+  "start_url": "/sq",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#007BFF",
+  "icons": [
+    {
+      "src": "/apple-touch-icon.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}

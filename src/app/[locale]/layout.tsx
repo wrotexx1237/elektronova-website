@@ -123,6 +123,11 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale} className={`${inter.variable} ${outfit.variable}`}>
+      <head>
+        <meta name="theme-color" content="#050505" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.jpg" />
+        <link rel="manifest" href="/manifest.json" />
+      </head>
       <body className="antialiased bg-background text-foreground scroll-smooth">
         <NextIntlClientProvider locale={locale} messages={messages}>
           <div className="flex flex-col min-h-screen">

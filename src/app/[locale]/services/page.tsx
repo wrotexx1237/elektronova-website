@@ -15,21 +15,21 @@ export async function generateMetadata({params}: {params: Promise<{locale: strin
 const categoryMeta = [
   {
     key: 'cctv',
-    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1400&q=80&fit=crop',
+    image: '/images/stock/stock-22.jpg',
     accent: '#007BFF',
     badge: 'CCTV & Video',
     stat: '500+ Sisteme',
   },
   {
     key: 'security',
-    image: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=1400&q=80&fit=crop',
+    image: '/images/stock/stock-23.jpg',
     accent: '#22c55e',
     badge: 'Siguri & Alarm',
     stat: '300+ Klientë',
   },
   {
     key: 'electrical',
-    image: 'https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=1400&q=80&fit=crop',
+    image: '/images/stock/stock-24.jpg',
     accent: '#f97316',
     badge: 'Instalime Elektrike',
     stat: '10+ Vite Eksperiencë',
@@ -38,20 +38,20 @@ const categoryMeta = [
 
 // Per-service Unsplash thumbnails
 const serviceImages: Record<string, string> = {
-  'instalimi-kamerave-sigurise':    'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?w=600&q=75&fit=crop',
-  'sistemet-dahua-cctv':            'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=600&q=75&fit=crop',
-  'kamerap-ip':                     'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=600&q=75&fit=crop',
-  'sistemet-nvr-dvr':               'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=75&fit=crop',
-  'mirembajtja-cctv':               'https://images.unsplash.com/photo-1581092795360-fd1ca04f0952?w=600&q=75&fit=crop',
-  'sistemet-alarmit':               'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=600&q=75&fit=crop',
-  'siguria-shtepise-mençur':        'https://images.unsplash.com/photo-1558002038-1055907df827?w=600&q=75&fit=crop',
-  'kontrolli-hyrjes':               'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=600&q=75&fit=crop',
-  'sistemet-interfonit':            'https://images.unsplash.com/photo-1555774698-0b77e0d5fac6?w=600&q=75&fit=crop',
-  'interfoni-video':                'https://images.unsplash.com/photo-1601436579264-7a34ad8f86e2?w=600&q=75&fit=crop',
-  'instalime-elektrike':            'https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=600&q=75&fit=crop',
-  'riparime-elektrike':             'https://images.unsplash.com/photo-1609940164022-edfbdf621571?w=600&q=75&fit=crop',
-  'instalimi-rrjetit-internetit':   'https://images.unsplash.com/photo-1558618066-fcd25c85cd64?w=600&q=75&fit=crop',
-  'instalimi-fibres-optike':        'https://images.unsplash.com/photo-1563203369-26f2e4a5ccf7?w=600&q=75&fit=crop',
+  'instalimi-kamerave-sigurise':    '/images/stock/stock-25.jpg',
+  'sistemet-dahua-cctv':            '/images/stock/stock-26.jpg',
+  'kamerap-ip':                     '/images/stock/stock-27.jpg',
+  'sistemet-nvr-dvr':               '/images/stock/stock-28.jpg',
+  'mirembajtja-cctv':               '/images/stock/stock-29.jpg',
+  'sistemet-alarmit':               '/images/stock/stock-30.jpg',
+  'siguria-shtepise-menqur':        '/images/stock/stock-31.jpg',
+  'kontrolli-hyrjes':               '/images/stock/stock-23.jpg',
+  'sistemet-interfonit':            '/images/stock/stock-33.jpg',
+  'interfoni-video':                '/images/stock/stock-22.jpg',
+  'instalime-elektrike':            '/images/stock/stock-35.jpg',
+  'riparime-elektrike':             '/images/stock/stock-24.jpg',
+  'instalimi-rrjetit-internetit':   '/images/stock/stock-41.webp',
+  'instalimi-fibres-optike':        '/images/stock/stock-38.jpg',
 };
 
 export default function ServicesPage() {
@@ -74,7 +74,7 @@ export default function ServicesPage() {
       meta: categoryMeta[1],
       services: [
         { title: 'Sistemet e Alarmit',    iconName: 'shield', href: '/services/sistemet-alarmit' },
-        { title: 'Smart Home Security',   iconName: 'home',   href: '/services/siguria-shtepise-mençur' },
+        { title: 'Smart Home Security',   iconName: 'home',   href: '/services/siguria-shtepise-menqur' },
         { title: 'Kontrolli i Hyrjes',    iconName: 'lock',   href: '/services/kontrolli-hyrjes' },
         { title: 'Sistemet e Interfonit', iconName: 'door',   href: '/services/sistemet-interfonit' },
         { title: 'Video Interfoni',       iconName: 'tv',     href: '/services/interfoni-video' },

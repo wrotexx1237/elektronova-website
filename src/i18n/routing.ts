@@ -4,6 +4,7 @@ import {createNavigation} from 'next-intl/navigation';
 export const routing = defineRouting({
   locales: ['sq', 'en'],
   defaultLocale: 'sq',
+  localeDetection: false,
   pathnames: {
     '/': '/',
     '/about': {
@@ -53,35 +54,6 @@ export const routing = defineRouting({
     '/cookie-policy': {
       sq: '/politika-kukis',
       en: '/cookie-policy'
-    },
-    // New Electrical Services
-    '/services/electrical-installations': {
-      sq: '/sherbimet/instalime-elektrike',
-      en: '/services/electrical-installations'
-    },
-    '/services/electrical-repairs': {
-      sq: '/sherbimet/riparime-elektrike',
-      en: '/services/electrical-repairs'
-    },
-    '/services/electrical-rewiring': {
-      sq: '/sherbimet/nderrim-instalimi-elektrik',
-      en: '/services/electrical-rewiring'
-    },
-    '/services/lighting-installation': {
-      sq: '/sherbimet/instalim-ndricimi',
-      en: '/services/lighting-installation'
-    },
-    '/services/electrical-panels': {
-      sq: '/sherbimet/panele-elektrike',
-      en: '/services/electrical-panels'
-    },
-    '/services/electrical-maintenance': {
-      sq: '/sherbimet/mirembajtje-elektrike-biznes',
-      en: '/services/electrical-maintenance'
-    },
-    '/services/emergency-electrician': {
-      sq: '/sherbimet/elektricist-urgjent',
-      en: '/services/emergency-electrician'
     },
   }
 });

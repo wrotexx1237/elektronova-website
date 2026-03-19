@@ -1,0 +1,800 @@
+{
+  "total": 112,
+  "working": 105,
+  "broken_count": 7,
+  "broken_links": [
+    "https://elektronova.online/sq/sherbimet/instalime-elektrike",
+    "https://elektronova.online/sq/sherbimet/riparime-elektrike",
+    "https://elektronova.online/sq/sherbimet/nderrim-instalimi-elektrik",
+    "https://elektronova.online/sq/sherbimet/instalim-ndricimi",
+    "https://elektronova.online/sq/sherbimet/panele-elektrike",
+    "https://elektronova.online/sq/sherbimet/mirembajtje-elektrike-biznes",
+    "https://elektronova.online/sq/sherbimet/elektricist-urgjent"
+  ],
+  "all_results": [
+    {
+      "path": "/",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/sherbimet",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/services",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/blogu",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/blog",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/kontakt",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/contact",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/sherbimet/instalimi-kamerave-sigurise",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/sherbimet/sistemet-dahua-cctv",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/sherbimet/sistemet-alarmit",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/sherbimet/instalime-elektrike",
+      "status": 404,
+      "hasContent": true,
+      "message": "",
+      "ok": false
+    },
+    {
+      "path": "/sq/sherbimet/riparime-elektrike",
+      "status": 404,
+      "hasContent": true,
+      "message": "",
+      "ok": false
+    },
+    {
+      "path": "/sq/sherbimet/nderrim-instalimi-elektrik",
+      "status": 404,
+      "hasContent": true,
+      "message": "",
+      "ok": false
+    },
+    {
+      "path": "/sq/sherbimet/instalim-ndricimi",
+      "status": 404,
+      "hasContent": true,
+      "message": "",
+      "ok": false
+    },
+    {
+      "path": "/sq/sherbimet/panele-elektrike",
+      "status": 404,
+      "hasContent": true,
+      "message": "",
+      "ok": false
+    },
+    {
+      "path": "/sq/sherbimet/mirembajtje-elektrike-biznes",
+      "status": 404,
+      "hasContent": true,
+      "message": "",
+      "ok": false
+    },
+    {
+      "path": "/sq/sherbimet/elektricist-urgjent",
+      "status": 404,
+      "hasContent": true,
+      "message": "",
+      "ok": false
+    },
+    {
+      "path": "/sq/sherbimet/smart-home-automatizimi",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/services/security-camera-installation",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/services/dahua-cctv-systems",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/services/alarm-systems",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/services/electrical-installations",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/services/electrical-repairs",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/services/electrical-rewiring",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/services/lighting-installation",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/services/electrical-panels",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/services/electrical-maintenance-business",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/services/emergency-electrician-24h",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/services/smart-home-automation",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/elektricist-peje",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/elektricist-prishtine",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/elektricist-prizren",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/elektricist-gjakove",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/elektricist-gjilan",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/elektricist-ferizaj",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/elektricist-mitrovice",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/elektricist-vushtrri",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/elektricist-podujeve",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/elektricist-suhareke",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/elektricist-rahovec",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/elektricist-lipjan",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/elektricist-kamenice",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/elektricist-decan",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/elektricist-istog",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/elektricist-malisheve",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/elektricist-skenderaj",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/elektricist-gracanice",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/elektricist-kline",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/elektricist-shtime",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/elektricist-obiliq",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/elektricist-drenas",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/elektricist-fushe-kosove",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/elektricist-junik",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/elektricist-hani-i-elezit",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/electrician-peje",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/electrician-prishtine",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/electrician-prizren",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/electrician-gjakove",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/electrician-gjilan",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/electrician-ferizaj",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/electrician-mitrovice",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/electrician-vushtrri",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/electrician-podujeve",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/electrician-suhareke",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/electrician-rahovec",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/electrician-lipjan",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/electrician-kamenice",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/electrician-decan",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/electrician-istog",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/electrician-malisheve",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/electrician-skenderaj",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/electrician-gracanice",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/electrician-kline",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/electrician-shtime",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/electrician-obiliq",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/electrician-drenas",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/electrician-fushe-kosove",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/electrician-junik",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/electrician-hani-i-elezit",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/blogu/kamerat-me-te-mira-per-shtepi",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/blogu/kamera-sigurie-kosove-udhezues-2026",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/blogu/dahua-vs-hikvision",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/blogu/rendesia-e-alarmit-wireless",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/blogu/sa-kushton-instalimi-i-kamerave-te-sigurise-ne-kosove",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/blogu/5-gabime-kamera-sigurie",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/blogu/pse-ndalet-rryma",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/blogu/sa-kushton-instalimi-elektrik-ne-kosove",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/blogu/5-shenja-nderrim-instalimi-elektrik",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/blogu/instalimi-i-ndricimit-estetika-dhe-eficienca",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/blogu/panelet-elektrike-modernizimi",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/blogu/mirembajtja-elektrike-per-biznese",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/blogu/siguria-elektrike-per-femije",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/blogu/energjia-solare-elektrike",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/blogu/elektricist-urgjent",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/sq/blogu/smart-home-kosove",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/blog/best-home-security-cameras-2025",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/blog/dahua-vs-hikvision",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/blog/importance-of-wireless-alarms",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/blog/security-cameras-kosovo-guide-2026",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/blog/security-camera-installation-cost-kosovo",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/blog/5-common-security-camera-mistakes",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/blog/why-does-the-power-trip",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/blog/electrical-installation-cost-kosovo",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/blog/5-signs-house-needs-rewiring",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/blog/lighting-installation-guide",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/blog/electrical-panels-modernization",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/blog/business-electrical-maintenance",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/blog/child-electrical-safety",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/blog/solar-energy-kosovo-guide",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/blog/emergency-electrician-guide",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    },
+    {
+      "path": "/en/blog/smart-home-kosovo-guide",
+      "status": 200,
+      "hasContent": true,
+      "message": "",
+      "ok": true
+    }
+  ]
+}

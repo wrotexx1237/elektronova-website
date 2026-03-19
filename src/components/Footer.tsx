@@ -20,8 +20,8 @@ export default function Footer() {
               {t('footer_desc')}
             </p>
             <div className="flex gap-4">
-              <a href="https://www.facebook.com/profile.php?id=61578235817414" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary transition-all"><FaFacebook /></a>
-              <a href="https://www.instagram.com/elektronova_" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary transition-all"><FaInstagram /></a>
+              <a href="https://www.facebook.com/profile.php?id=61578235817414" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary transition-all" aria-label="Facebook"><FaFacebook /></a>
+              <a href="https://www.instagram.com/elektronova_" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-primary transition-all" aria-label="Instagram"><FaInstagram /></a>
             </div>
           </div>
 
@@ -67,7 +67,7 @@ export default function Footer() {
                 <span>+383 49 771 673</span>
               </li>
               <li className="flex items-center gap-3">
-                <FaEnvelope className="text-primary" />
+                <FaEnvelope className="text-primary" aria-hidden="true" />
                 <span>endritsmajlib@gmail.com</span>
               </li>
             </ul>

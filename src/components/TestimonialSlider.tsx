@@ -314,12 +314,14 @@ export default function TestimonialSlider() {
                         <button 
                             onClick={prev}
                             className="w-16 h-16 rounded-full bg-white/5 border border-white/10 backdrop-blur-3xl flex items-center justify-center text-white/40 hover:text-primary hover:bg-primary/10 hover:border-primary/30 transition-all pointer-events-auto active:scale-90"
+                            aria-label="Previous testimonial"
                         >
                             <FaChevronLeft size={24} />
                         </button>
                         <button 
                             onClick={next}
                             className="w-16 h-16 rounded-full bg-white/5 border border-white/10 backdrop-blur-3xl flex items-center justify-center text-white/40 hover:text-primary hover:bg-primary/10 hover:border-primary/30 transition-all pointer-events-auto active:scale-90"
+                            aria-label="Next testimonial"
                         >
                             <FaChevronRight size={24} />
                         </button>
@@ -338,6 +340,7 @@ export default function TestimonialSlider() {
                             className={`h-2 rounded-full transition-all duration-500 ${
                                 current === i ? "bg-primary w-12" : "bg-white/10 w-4 hover:bg-white/20"
                             }`}
+                            aria-label={`Go to testimonial ${i + 1}`}
                         />
                     ))}
                 </div>

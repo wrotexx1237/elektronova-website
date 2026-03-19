@@ -51,7 +51,7 @@ const Hero = () => {
         />
 
         {/* Noise Texture Overlay */}
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] brightness-100 contrast-150"></div>
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('/noise.svg')] brightness-100 contrast-150"></div>
 
         {/* Moving Particles/Glows */}
         <motion.div 
