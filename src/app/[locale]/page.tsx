@@ -88,7 +88,7 @@ export default function IndexPage() {
                 {/* Image side */}
                 <div className="relative overflow-hidden order-2 lg:order-1 h-64 lg:h-auto">
                   <Image
-                    src="/blog/camera-types.png"
+                    src="/blog/.webp"
                     alt="Sisteme Kamerash"
                     fill
                     sizes="(max-width: 768px) 100vw, 33vw"
@@ -157,7 +157,7 @@ export default function IndexPage() {
 
                 {/* Background image */}
                 <div className="absolute inset-0">
-                  <Image src="/blog/lifestyle-alarm.png" alt="Systemet e Alarmit" fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover opacity-15 group-hover:opacity-25 transition-opacity duration-700 scale-110 group-hover:scale-100 transition-transform duration-[2s]" />
+                  <Image src="/blog/.webp" alt="Systemet e Alarmit" fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover opacity-15 group-hover:opacity-25 transition-opacity duration-700 scale-110 group-hover:scale-100 transition-transform duration-[2s]" />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#09060a] via-[#09060a]/80 to-[#09060a]/50" />
                 </div>
 
@@ -208,7 +208,7 @@ export default function IndexPage() {
 
                 {/* Background image */}
                 <div className="absolute inset-0">
-                  <Image src="/blog/modern-electrical-panel.png" alt="Instalime Elektrike" fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover opacity-15 group-hover:opacity-25 transition-opacity duration-700 scale-110 group-hover:scale-100 transition-transform duration-[2s]" />
+                  <Image src="/blog/.webp" alt="Instalime Elektrike" fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover opacity-15 group-hover:opacity-25 transition-opacity duration-700 scale-110 group-hover:scale-100 transition-transform duration-[2s]" />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0a0900] via-[#0a0900]/80 to-[#0a0900]/50" />
                 </div>
 
