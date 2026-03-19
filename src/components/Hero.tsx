@@ -29,7 +29,7 @@ const Hero = () => {
         <link rel="preload" href="/noise.svg" as="image" fetchPriority="high" />
         {/* Animated Glow Following Mouse */}
         <motion.div 
-          className="absolute w-[800px] h-[800px] bg-primary/20 rounded-full blur-[150px] opacity-30"
+          className="absolute w-[800px] h-[800px] bg-primary/20 rounded-full blur-[150px] opacity-30 hidden md:block"
           animate={{
             x: mousePosition.x - 400,
             y: mousePosition.y - 400,
@@ -78,11 +78,8 @@ const Hero = () => {
         </motion.div>
 
         {/* Heading */}
-        <motion.h1 
+        <h1 
           className="text-5xl md:text-7xl lg:text-8xl font-heading font-bold mb-10 leading-[1.05] tracking-tight"
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
         >
           {t.rich('hero_h1', {
             gradient: (chunks) => (
@@ -92,17 +89,14 @@ const Hero = () => {
             ),
             br: () => <br className="hidden md:block" />
           })}
-        </motion.h1>
+        </h1>
 
         {/* Subtext */}
-        <motion.p 
+        <p 
           className="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto mb-16 leading-relaxed font-medium"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1.2, delay: 0.6 }}
         >
           {t('hero_p')}
-        </motion.p>
+        </p>
 
         {/* Actions */}
         <motion.div 

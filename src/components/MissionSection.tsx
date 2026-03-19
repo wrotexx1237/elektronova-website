@@ -3,6 +3,7 @@
 import { motion, useScroll, useTransform, useSpring, useMotionValue, useInView } from 'framer-motion';
 import { useRef, useEffect, useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
+import Image from 'next/image';
 
 const Counter = ({ value, duration = 2 }: { value: string, duration?: number }) => {
     const ref = useRef(null);
@@ -101,10 +102,12 @@ export default function MissionSection() {
             className="order-2 lg:order-1 relative perspective-1000"
           >
             <div className="relative aspect-[4/5] rounded-[4rem] overflow-hidden border border-white/10 shadow-[0_80px_150px_rgba(0,0,0,0.9)] group">
-                <motion.img 
+                <Image 
                     src="https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=800&q=80&fit=crop" 
                     alt="Professional electrician at work" 
-                    className="w-full h-full object-cover scale-110 group-hover:scale-125 transition-transform duration-[3s] ease-out"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    className="object-cover scale-110 group-hover:scale-125 transition-transform duration-[3s] ease-out"
                 />
                 
                 {/* HUD Overlay Effects */}

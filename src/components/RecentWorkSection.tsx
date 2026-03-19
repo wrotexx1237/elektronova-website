@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/routing';
 import { useRef, MouseEvent } from 'react';
 import { FaArrowRight, FaExpand } from 'react-icons/fa';
+import Image from 'next/image';
 
 type Project = {
   image: string;
@@ -81,7 +82,7 @@ function ProjectStrip({ project, idx }: { project: Project; idx: number }) {
     >
       {/* Mouse-following glow per row */}
       <motion.div
-        className="absolute inset-0 rounded-3xl pointer-events-none z-0"
+        className="absolute inset-0 rounded-3xl pointer-events-none z-0 hidden md:block"
         style={{ background: cardGlow }}
       />
 
@@ -90,12 +91,18 @@ function ProjectStrip({ project, idx }: { project: Project; idx: number }) {
         {/* ─── IMAGE HALF ─── */}
         <div className={`relative overflow-hidden h-72 md:h-96 ${isEven ? 'md:order-1' : 'md:order-2'}`}>
           {/* Parallax image */}
-          <motion.img
-            src={project.image}
-            alt={project.title}
-            className="absolute inset-0 w-full h-full object-cover scale-110 group-hover:scale-125 transition-transform duration-[1.4s] ease-out"
+          <motion.div
+            className="absolute inset-0 w-full h-full scale-110 group-hover:scale-125 transition-transform duration-[1.4s] ease-out"
             style={{ x: smoothImgX }}
-          />
+          >
+            <Image
+              src={project.image}
+              alt={project.title}
+              fill
+              sizes="(max-width: 768px) 100vw, 50vw"
+              className="object-cover"
+            />
+          </motion.div>
           {/* Colour wash overlay */}
           <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-700 mix-blend-multiply" />
           {/* Dark vignette */}

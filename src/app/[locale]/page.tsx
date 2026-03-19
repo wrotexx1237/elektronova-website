@@ -1,6 +1,7 @@
 import {useTranslations} from 'next-intl';
 import {getTranslations} from 'next-intl/server';
 import {Link} from '@/i18n/routing';
+import Image from 'next/image';
 import Hero from '@/components/Hero';
 import ServiceCard from '@/components/ServiceCard';
 import LeadForm from '@/components/LeadForm';
@@ -86,10 +87,12 @@ export default function IndexPage() {
               <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[380px]">
                 {/* Image side */}
                 <div className="relative overflow-hidden order-2 lg:order-1 h-64 lg:h-auto">
-                  <img
+                  <Image
                     src="/blog/camera-types.png"
                     alt="Sisteme Kamerash"
-                    className="absolute inset-0 w-full h-full object-cover scale-110 group-hover:scale-105 transition-transform duration-[2s] ease-out opacity-60 group-hover:opacity-80"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="object-cover scale-110 group-hover:scale-105 transition-transform duration-[2s] ease-out opacity-60 group-hover:opacity-80"
                   />
                   <div className="absolute inset-0 bg-gradient-to-r from-[#06090f] via-transparent to-transparent lg:via-[#06090f]/30 lg:to-transparent" />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#06090f] to-transparent lg:bg-none" />
@@ -154,7 +157,7 @@ export default function IndexPage() {
 
                 {/* Background image */}
                 <div className="absolute inset-0">
-                  <img src="/blog/lifestyle-alarm.png" alt="Systemet e Alarmit" className="w-full h-full object-cover opacity-15 group-hover:opacity-25 transition-opacity duration-700 scale-110 group-hover:scale-100 transition-transform duration-[2s]" />
+                  <Image src="/blog/lifestyle-alarm.png" alt="Systemet e Alarmit" fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover opacity-15 group-hover:opacity-25 transition-opacity duration-700 scale-110 group-hover:scale-100 transition-transform duration-[2s]" />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#09060a] via-[#09060a]/80 to-[#09060a]/50" />
                 </div>
 
@@ -205,7 +208,7 @@ export default function IndexPage() {
 
                 {/* Background image */}
                 <div className="absolute inset-0">
-                  <img src="/blog/modern-electrical-panel.png" alt="Instalime Elektrike" className="w-full h-full object-cover opacity-15 group-hover:opacity-25 transition-opacity duration-700 scale-110 group-hover:scale-100 transition-transform duration-[2s]" />
+                  <Image src="/blog/modern-electrical-panel.png" alt="Instalime Elektrike" fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover opacity-15 group-hover:opacity-25 transition-opacity duration-700 scale-110 group-hover:scale-100 transition-transform duration-[2s]" />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0a0900] via-[#0a0900]/80 to-[#0a0900]/50" />
                 </div>
 
