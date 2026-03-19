@@ -219,9 +219,9 @@ const TestimonialCard = ({ review, direction }: { review: any, direction: number
                 {/* Author */}
                 <div className="flex items-center justify-between mt-auto pt-8 border-t border-white/5">
                     <div>
-                        <h4 className="text-2xl font-heading font-black text-white group-hover:text-primary transition-all underline decoration-primary/0 group-hover:decoration-primary/50 underline-offset-8">
+                        <h3 className="text-2xl font-heading font-black text-white group-hover:text-primary transition-all underline decoration-primary/0 group-hover:decoration-primary/50 underline-offset-8">
                             {review.name}
-                        </h4>
+                        </h3>
                         <p className="text-primary/60 text-xs uppercase tracking-[0.3em] font-bold mt-2 flex items-center gap-2">
                             <span>Google Verified</span>
                             <span className="w-1 h-1 rounded-full bg-primary/30" />
@@ -316,14 +316,16 @@ export default function TestimonialSlider() {
                             className="w-16 h-16 rounded-full bg-white/5 border border-white/10 backdrop-blur-3xl flex items-center justify-center text-white/40 hover:text-primary hover:bg-primary/10 hover:border-primary/30 transition-all pointer-events-auto active:scale-90"
                             aria-label="Previous testimonial"
                         >
-                            <FaChevronLeft size={24} />
+                            <span className="sr-only">Previous testimonial</span>
+                            <FaChevronLeft size={24} aria-hidden="true" />
                         </button>
                         <button 
                             onClick={next}
                             className="w-16 h-16 rounded-full bg-white/5 border border-white/10 backdrop-blur-3xl flex items-center justify-center text-white/40 hover:text-primary hover:bg-primary/10 hover:border-primary/30 transition-all pointer-events-auto active:scale-90"
                             aria-label="Next testimonial"
                         >
-                            <FaChevronRight size={24} />
+                            <span className="sr-only">Next testimonial</span>
+                            <FaChevronRight size={24} aria-hidden="true" />
                         </button>
                     </div>
                 </div>
@@ -340,8 +342,9 @@ export default function TestimonialSlider() {
                             className={`h-2 rounded-full transition-all duration-500 ${
                                 current === i ? "bg-primary w-12" : "bg-white/10 w-4 hover:bg-white/20"
                             }`}
-                            aria-label={`Go to testimonial ${i + 1}`}
-                        />
+                        >
+                            <span className="sr-only">Go to testimonial {i + 1}</span>
+                        </button>
                     ))}
                 </div>
             </div>

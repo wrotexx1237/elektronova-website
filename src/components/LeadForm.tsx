@@ -109,7 +109,7 @@ export default function LeadForm() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label htmlFor="city-select" className="block text-sm font-medium text-gray-300 mb-2">Qyteti</label>
-          <select id="city-select" name="city" required aria-required="true" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:border-primary outline-none transition-all appearance-none cursor-pointer text-white">
+          <select id="city-select" name="city" required aria-required="true" aria-label="Qyteti" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:border-primary outline-none transition-all appearance-none cursor-pointer text-white">
             <option value="" className="bg-background">Zgjidhni qytetin...</option>
             <option value="Pejë" className="bg-background">Pejë</option>
             <option value="Prishtinë" className="bg-background">Prishtinë</option>
@@ -125,7 +125,7 @@ export default function LeadForm() {
         </div>
         <div>
           <label htmlFor="service-select" className="block text-sm font-medium text-gray-300 mb-2">Shërbimi Interesuar</label>
-          <select id="service-select" name="service" required aria-required="true" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:border-primary outline-none transition-all appearance-none cursor-pointer text-white">
+          <select id="service-select" name="service" required aria-required="true" aria-label="Shërbimi Interesuar" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 focus:border-primary outline-none transition-all appearance-none cursor-pointer text-white">
             <option value="" className="bg-background">Zgjidhni shërbimin...</option>
             <option value="Instalimi i Kamerave" className="bg-background">Instalimi i Kamerave</option>
             <option value="Sistemet e Alarmit" className="bg-background">Sistemet e Alarmit</option>

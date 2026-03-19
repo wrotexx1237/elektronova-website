@@ -17,7 +17,7 @@ type Project = {
 
 const projects: Project[] = [
   {
-    image: "/projects/project-1.jpg",
+    image: "/images/stock/stock-22.jpg",
     title: "Sistemi Inteligjent CCTV",
     location: "Pejë",
     tags: ["Dahua", "AI", "4K"],
@@ -25,7 +25,7 @@ const projects: Project[] = [
     category: "Surveillance"
   },
   {
-    image: "/projects/project-2.jpg",
+    image: "/images/stock/stock-23.jpg",
     title: "Siguria Perimetrike",
     location: "Prishtinë",
     tags: ["PTZ", "Radar"],
@@ -33,7 +33,7 @@ const projects: Project[] = [
     category: "Perimeter"
   },
   {
-    image: "/projects/project-3.jpg",
+    image: "/images/stock/stock-24.jpg",
     title: "Qendra e Monitorimit",
     location: "Prizren",
     tags: ["NVR", "Video Wall"],
@@ -41,7 +41,7 @@ const projects: Project[] = [
     category: "Control Room"
   },
   {
-    image: "/projects/project-5.jpg",
+    image: "/images/stock/stock-25.jpg",
     title: "Instalim Industrial",
     location: "Gjakovë",
     tags: ["Fiber", "Access Control"],

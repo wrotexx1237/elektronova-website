@@ -29,7 +29,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "CCTV",
       location: locale === 'sq' ? "Pejë" : "Peja",
       icon: FaCamera,
-      image: "/projects/project-1.jpg",
+      image: "/images/stock/stock-22.jpg",
       description: locale === 'sq' ? "Instalimi i Kamerave të Sigurisë në Pejë, duke përdorur teknologjitë e fundit për siguri maksimale." : "Security Camera Installation in Peja, using the latest technologies for maximum security."
     },
     {
@@ -37,7 +37,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "Retail",
       location: locale === 'sq' ? "Prizren" : "Prizren",
       icon: FaShoppingCart,
-      image: "/projects/project-10.jpg",
+      image: "/images/stock/stock-23.jpg",
       description: locale === 'sq' ? "Monitorimi i Dyqaneve me Rezolucion të Lartë në Prizren, duke përdorur teknologjitë e fundit për siguri maksimale." : "High-Resolution Shop Monitoring in Prizren, using the latest technologies for maximum security."
     },
     {
@@ -45,7 +45,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "Strategic",
       location: locale === 'sq' ? "Kosovë" : "Kosovo",
       icon: FaBuilding,
-      image: "/projects/project-11.jpg",
+      image: "/images/stock/stock-24.jpg",
       description: locale === 'sq' ? "Siguria e Infrastrukturës Kritike në Kosovë, duke përdorur teknologjitë e fundit për siguri maksimale." : "Critical Infrastructure Security in Kosovo, using the latest technologies for maximum security."
     },
     {
@@ -53,7 +53,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "IT",
       location: locale === 'sq' ? "Prishtinë" : "Prishtina",
       icon: FaServer,
-      image: "/projects/project-12.jpg",
+      image: "/images/stock/stock-25.jpg",
       description: locale === 'sq' ? "Instalimi i Serverëve të Sigurisë në Prishtinë, duke përdorur teknologjitë e fundit për siguri maksimale." : "Security Server Installation in Prishtina, using the latest technologies for maximum security."
     },
     {
@@ -61,7 +61,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "Verification",
       location: locale === 'sq' ? "Pejë" : "Peja",
       icon: FaCheckCircle,
-      image: "/projects/project-13.jpg",
+      image: "/images/stock/stock-26.jpg",
       description: locale === 'sq' ? "Sistemi i Verifikimit Vizual në Pejë, duke përdorur teknologjitë e fundit për siguri maksimale." : "Visual Verification System in Peja, using the latest technologies for maximum security."
     },
     {
@@ -69,7 +69,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "Protection",
       location: locale === 'sq' ? "Kosovë" : "Kosovo",
       icon: FaLock,
-      image: "/projects/project-14.jpg",
+      image: "/images/stock/stock-27.jpg",
       description: locale === 'sq' ? "Mbrojtja e Pasurisë Private në Kosovë, duke përdorur teknologjitë e fundit për siguri maksimale." : "Private Property Protection in Kosovo, using the latest technologies for maximum security."
     },
     {
@@ -77,7 +77,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "CCTV",
       location: locale === 'sq' ? "Mitrovicë" : "Mitrovica",
       icon: FaArrowUp,
-      image: "/projects/project-15.jpg",
+      image: "/images/stock/stock-28.jpg",
       description: locale === 'sq' ? "Instalimi i Kamerave në Lartësi në Mitrovicë, duke përdorur teknologjitë e fundit për siguri maksimale." : "High-Altitude Camera Installation in Mitrovica, using the latest technologies for maximum security."
     },
     {
@@ -85,7 +85,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "Networking",
       location: locale === 'sq' ? "Ferizaj" : "Ferizaj",
       icon: FaProjectDiagram,
-      image: "/projects/project-16.jpg",
+      image: "/images/stock/stock-29.jpg",
       description: locale === 'sq' ? "Sistemi i Avancuar i Rrjetit në Ferizaj, duke përdorur teknologjitë e fundit për siguri maksimale." : "Advanced Network System in Ferizaj, using the latest technologies for maximum security."
     },
     {
@@ -93,7 +93,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "Security",
       location: locale === 'sq' ? "Pejë" : "Peja",
       icon: FaShieldAlt,
-      image: "/projects/project-17.jpg",
+      image: "/images/stock/stock-30.jpg",
       description: locale === 'sq' ? "Zgjidhja Finale e Sigurisë në Pejë, duke përdorur teknologjitë e fundit për siguri maksimale." : "Final Security Solution in Peja, using the latest technologies for maximum security."
     },
     {
@@ -101,7 +101,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "Services",
       location: locale === 'sq' ? "Kosovë" : "Kosovo",
       icon: FaTools,
-      image: "/projects/project-2.jpg",
+      image: "/images/stock/stock-31.jpg",
       description: locale === 'sq' ? "Kamera të Jashtme për Monitorim në Kosovë, duke përdorur teknologjitë e fundit për siguri maksimale." : "Outdoor Monitoring Cameras in Kosovo, using the latest technologies for maximum security."
     },
     {
@@ -109,7 +109,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "CCTV",
       location: locale === 'sq' ? "Pejë" : "Peja",
       icon: FaEye,
-      image: "/projects/project-20.jpg",
+      image: "/images/stock/stock-35.jpg",
       description: locale === 'sq' ? "Monitorimi i Perimetrit të Jashtëm në Pejë, duke përdorur teknologjitë e fundit për siguri maksimale." : "Outdoor Perimeter Monitoring in Peja, using the latest technologies for maximum security."
     },
     {
@@ -117,7 +117,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "Intercom",
       location: locale === 'sq' ? "Gjakovë" : "Gjakova",
       icon: FaIdCard,
-      image: "/projects/project-21.jpg",
+      image: "/images/stock/stock-3.webp",
       description: locale === 'sq' ? "Instalimi i Interfonave Smart në Gjakovë, duke përdorur teknologjitë e fundit për siguri maksimale." : "Smart Intercom Installation in Gjakova, using the latest technologies for maximum security."
     },
     {
@@ -125,7 +125,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "Networking",
       location: locale === 'sq' ? "Prizren" : "Prizren",
       icon: FaWifi,
-      image: "/projects/project-22.jpg",
+      image: "/images/stock/stock-4.webp",
       description: locale === 'sq' ? "Rrjeti WiFi për Biznes në Prizren, duke përdorur teknologjitë e fundit për siguri maksimale." : "WiFi Network for Business in Prizren, using the latest technologies for maximum security."
     },
     {
@@ -133,7 +133,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "Safety",
       location: locale === 'sq' ? "Kosovë" : "Kosovo",
       icon: FaFire,
-      image: "/projects/project-23.jpg",
+      image: "/images/stock/stock-5.webp",
       description: locale === 'sq' ? "Sistemi i Detektimit të Zjarrit në Kosovë, duke përdorur teknologjitë e fundit për siguri maksimale." : "Fire Detection System in Kosovo, using the latest technologies for maximum security."
     },
     {
@@ -141,7 +141,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "Automation",
       location: locale === 'sq' ? "Prishtinë" : "Prishtina",
       icon: FaLightbulb,
-      image: "/projects/project-24.jpg",
+      image: "/images/stock/stock-6.webp",
       description: locale === 'sq' ? "Automimi i Ndriçimit në Prishtinë, duke përdorur teknologjitë e fundit për siguri maksimale." : "Lighting Automation in Prishtina, using the latest technologies for maximum security."
     },
     {
@@ -149,7 +149,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "Security",
       location: locale === 'sq' ? "Vushtrri" : "Vushtrri",
       icon: FaWarehouse,
-      image: "/projects/project-25.jpg",
+      image: "/images/stock/stock-11.webp",
       description: locale === 'sq' ? "Mbrojtja e Depove Industriale në Vushtrri, duke përdorur teknologjitë e fundit për siguri maksimale." : "Industrial Warehouse Protection in Vushtrri, using the latest technologies for maximum security."
     },
     {
@@ -157,7 +157,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "Public",
       location: locale === 'sq' ? "Pejë" : "Peja",
       icon: FaCity,
-      image: "/projects/project-26.jpg",
+      image: "/images/stock/stock-22.jpg",
       description: locale === 'sq' ? "Kamera për Mbikëqyrjen e Qytetit në Pejë, duke përdorur teknologjitë e fundit për siguri maksimale." : "City Surveillance Cameras in Peja, using the latest technologies for maximum security."
     },
     {
@@ -165,7 +165,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "Integrated",
       location: locale === 'sq' ? "Klinë" : "Klina",
       icon: FaObjectGroup,
-      image: "/projects/project-27.jpg",
+      image: "/images/stock/stock-23.jpg",
       description: locale === 'sq' ? "Zgjidhje e Integruar e Sigurisë në Klinë, duke përdorur teknologjitë e fundit për siguri maksimale." : "Integrated Security Solution in Klina, using the latest technologies for maximum security."
     },
     {
@@ -173,7 +173,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "Energy",
       location: locale === 'sq' ? "Deçan" : "Decan",
       icon: FaBatteryFull,
-      image: "/projects/project-28.jpg",
+      image: "/images/stock/stock-24.jpg",
       description: locale === 'sq' ? "Instalimi i Akumulatorëve për Siguri në Deçan, duke përdorur teknologjitë e fundit për siguri maksimale." : "Battery Backup Installation for Security in Decan, using the latest technologies for maximum security."
     },
     {
@@ -181,7 +181,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "Home",
       location: locale === 'sq' ? "Istog" : "Istog",
       icon: FaBell,
-      image: "/projects/project-29.jpg",
+      image: "/images/stock/stock-25.jpg",
       description: locale === 'sq' ? "Sistemi i Alarmit për Shtëpi në Istog, duke përdorur teknologjitë e fundit për siguri maksimale." : "Home Alarm System in Istog, using the latest technologies for maximum security."
     },
     {
@@ -189,7 +189,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "Electrical",
       location: locale === 'sq' ? "Pejë" : "Peja",
       icon: FaBolt,
-      image: "/projects/project-3.jpg",
+      image: "/images/stock/stock-26.jpg",
       description: locale === 'sq' ? "Instalim Kamerash në Strukturë Metalike në Pejë, duke përdorur teknologjitë e fundit për siguri maksimale." : "Camera Installation on Metal Structure in Peja, using the latest technologies for maximum security."
     },
     {
@@ -197,7 +197,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "Solar",
       location: locale === 'sq' ? "Gjakovë" : "Gjakova",
       icon: FaSun,
-      image: "/projects/project-30.jpg",
+      image: "/images/stock/stock-27.jpg",
       description: locale === 'sq' ? "Kamera me Energji Solare në Gjakovë, duke përdorur teknologjitë e fundit për siguri maksimale." : "Solar Powered Cameras in Gjakova, using the latest technologies for maximum security."
     },
     {
@@ -205,7 +205,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "CCTV",
       location: locale === 'sq' ? "Prishtinë" : "Prishtina",
       icon: FaCamera,
-      image: "/projects/project-4.jpg",
+      image: "/images/stock/stock-28.jpg",
       description: locale === 'sq' ? "Sistem Kamerash për Ambiente të Brendshme në Prishtinë, duke përdorur teknologjitë e fundit për siguri maksimale." : "Indoor Camera System in Prishtina, using the latest technologies for maximum security."
     },
     {
@@ -213,7 +213,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "Security",
       location: locale === 'sq' ? "Gjakovë" : "Gjakova",
       icon: FaShieldAlt,
-      image: "/projects/project-5.jpg",
+      image: "/images/stock/stock-29.jpg",
       description: locale === 'sq' ? "Monitorim 24/7 me Inteligjencë Artificiale në Gjakovë, duke përdorur teknologjitë e fundit për siguri maksimale." : "24/7 Monitoring with AI in Gjakova, using the latest technologies for maximum security."
     },
     {
@@ -221,7 +221,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "Alarms",
       location: locale === 'sq' ? "Pejë" : "Peja",
       icon: FaShieldAlt,
-      image: "/projects/project-6.jpg",
+      image: "/images/stock/stock-30.jpg",
       description: locale === 'sq' ? "Instalim i Sistemit të Alarmit Wireless në Pejë, duke përdorur teknologjitë e fundit për siguri maksimale." : "Wireless Alarm System Installation in Peja, using the latest technologies for maximum security."
     },
     {
@@ -229,7 +229,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "Smart Home",
       location: locale === 'sq' ? "Pejë" : "Peja",
       icon: FaHome,
-      image: "/projects/project-7.jpg",
+      image: "/images/stock/stock-31.jpg",
       description: locale === 'sq' ? "Sistemi Smart Home në Pejë në Pejë, duke përdorur teknologjitë e fundit për siguri maksimale." : "Smart Home System in Peja in Peja, using the latest technologies for maximum security."
     },
     {
@@ -237,7 +237,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "Networking",
       location: locale === 'sq' ? "Prishtinë" : "Prishtina",
       icon: FaNetworkWired,
-      image: "/projects/project-8.jpg",
+      image: "/images/stock/stock-35.jpg",
       description: locale === 'sq' ? "Rrjeti dhe Infrastruktura e Sigurisë në Prishtinë, duke përdorur teknologjitë e fundit për siguri maksimale." : "Security Network & Infrastructure in Prishtina, using the latest technologies for maximum security."
     },
     {
@@ -245,7 +245,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "Industrial",
       location: locale === 'sq' ? "Gjakovë" : "Gjakova",
       icon: FaIndustry,
-      image: "/projects/project-9.jpg",
+      image: "/images/stock/stock-3.webp",
       description: locale === 'sq' ? "Siguria e Fabrikës me Kamera Termike në Gjakovë, duke përdorur teknologjitë e fundit për siguri maksimale." : "Factory Security with Thermal Cameras in Gjakova, using the latest technologies for maximum security."
     },
     {
@@ -253,7 +253,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "Solar",
       location: locale === 'sq' ? "Kosovë" : "Kosovo",
       icon: FaSun,
-      image: "/projects/project-18.jpg",
+      image: "/images/stock/stock-4.webp",
       description: locale === 'sq' ? "Instalimi i Paneleve Solare për Kamera në Kosovë, duke përdorur teknologjitë e fundit për siguri maksimale." : "Solar Panel Installation for Cameras in Kosovo, using the latest technologies for maximum security."
     },
     {
@@ -261,7 +261,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "Access Control",
       location: locale === 'sq' ? "Prizren" : "Prizren",
       icon: FaKey,
-      image: "/projects/project-19.jpg",
+      image: "/images/stock/stock-5.webp",
       description: locale === 'sq' ? "Sistemi i Kontrollit të Qasjes në Prizren, duke përdorur teknologjitë e fundit për siguri maksimale." : "Access Control System in Prizren, using the latest technologies for maximum security."
     },
     {
@@ -269,7 +269,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "Security",
       location: locale === 'sq' ? "Ferizaj" : "Ferizaj",
       icon: FaCar,
-      image: "/projects/project-31.jpg",
+      image: "/images/stock/stock-6.webp",
       description: locale === 'sq' ? "Sistemet e Sigurisë për Parkingje në Ferizaj, duke përdorur teknologjitë e fundit për siguri maksimale." : "Parking Security Systems in Ferizaj, using the latest technologies for maximum security."
     },
     {
@@ -277,7 +277,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "Commercial",
       location: locale === 'sq' ? "Gjilan" : "Gjilan",
       icon: FaStore,
-      image: "/projects/project-32.jpg",
+      image: "/images/stock/stock-11.webp",
       description: locale === 'sq' ? "Zgjidhje për Siguri në Lokale në Gjilan, duke përdorur teknologjitë e fundit për siguri maksimale." : "Security Solutions for Shops in Gjilan, using the latest technologies for maximum security."
     },
     {
@@ -285,7 +285,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "Residential",
       location: locale === 'sq' ? "Prishtinë" : "Prishtina",
       icon: FaHome,
-      image: "/projects/project-33.jpg",
+      image: "/images/stock/stock-22.jpg",
       description: locale === 'sq' ? "Instalim i Kamerave 4K në Vila në Prishtinë, duke përdorur teknologjitë e fundit për siguri maksimale." : "4K Camera Installation in Villas in Prishtina, using the latest technologies for maximum security."
     },
     {
@@ -293,7 +293,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "Education",
       location: locale === 'sq' ? "Mitrovicë" : "Mitrovica",
       icon: FaGraduationCap,
-      image: "/projects/project-34.jpg",
+      image: "/images/stock/stock-23.jpg",
       description: locale === 'sq' ? "Mbrojtja e Shkollave me Kamera në Mitrovicë, duke përdorur teknologjitë e fundit për siguri maksimale." : "School Protection with Cameras in Mitrovica, using the latest technologies for maximum security."
     },
     {
@@ -301,7 +301,7 @@ export default async function PortfolioPage({params}: {params: Promise<{locale: 
       category: "Security",
       location: locale === 'sq' ? "Kosovë" : "Kosovo",
       icon: FaShieldAlt,
-      image: "/projects/project-35.jpg",
+      image: "/images/stock/stock-24.jpg",
       description: locale === 'sq' ? "Sistemi i Avancuar i Sigurisë në Kosovë, duke përdorur teknologjitë e fundit për siguri maksimale." : "Advanced Security System in Kosovo, using the latest technologies for maximum security."
     }
   ];

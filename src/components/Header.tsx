@@ -33,7 +33,7 @@ export default function Header() {
     <>
       <header className={clsx(
         'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
-        isScrolled || isMenuOpen ? 'bg-background/80 backdrop-blur-md border-b border-white/10 py-3' : 'bg-transparent py-5'
+        isScrolled || isMenuOpen ? 'bg-background/80 backdrop-blur-md [-webkit-backdrop-filter:blur(12px)] border-b border-white/10 py-3' : 'bg-transparent py-5'
       )}>
         <div className="container mx-auto px-6 flex items-center justify-between">
           {/* Logo */}
@@ -57,8 +57,8 @@ export default function Header() {
           {/* Actions */}
           <div className="flex items-center gap-4">
             <div className="hidden sm:flex items-center gap-3 mr-4 border-r border-white/10 pr-4">
-              <a href="https://www.facebook.com/profile.php?id=61578235817414" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-primary transition-colors" aria-label="Facebook"><FaFacebook /></a>
-              <a href="https://www.instagram.com/elektronova_" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-primary transition-colors" aria-label="Instagram"><FaInstagram /></a>
+              <a href="https://www.facebook.com/profile.php?id=61578235817414" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-primary transition-colors" aria-label="Facebook"><FaFacebook aria-hidden="true" /></a>
+              <a href="https://www.instagram.com/elektronova_" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-primary transition-colors" aria-label="Instagram"><FaInstagram aria-hidden="true" /></a>
             </div>
             <LanguageSwitcher />
 
@@ -76,7 +76,7 @@ export default function Header() {
 
       {/* Mobile Menu Overlay - Outside header for absolute solid background */}
       <div className={clsx(
-        'fixed inset-0 bg-[#000000] z-[9999] md:hidden transition-all duration-500 ease-in-out',
+        'fixed inset-0 bg-[#000000] z-[9999] md:hidden transition-all duration-500 transform-gpu',
         isMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'
       )}>
         {/* Subtle decorative elements for premium feel */}
@@ -131,8 +131,8 @@ export default function Header() {
             <p className="text-[10px] uppercase tracking-[0.4em] text-white/45 mb-8 font-black">Kontakti & Rrjetet Sociale</p>
             
             <div className="flex justify-center gap-10 mb-10">
-              <a href="https://www.facebook.com/profile.php?id=61578235817414" target="_blank" rel="noopener noreferrer" className="text-3xl text-white/60 hover:text-primary transition-transform hover:scale-110 active:scale-90" aria-label="Facebook"><FaFacebook /></a>
-              <a href="https://www.instagram.com/elektronova_" target="_blank" rel="noopener noreferrer" className="text-3xl text-white/60 hover:text-primary transition-transform hover:scale-110 active:scale-90" aria-label="Instagram"><FaInstagram /></a>
+              <a href="https://www.facebook.com/profile.php?id=61578235817414" target="_blank" rel="noopener noreferrer" className="text-3xl text-white/60 hover:text-primary transition-transform hover:scale-110 active:scale-90" aria-label="Facebook"><FaFacebook aria-hidden="true" /></a>
+              <a href="https://www.instagram.com/elektronova_" target="_blank" rel="noopener noreferrer" className="text-3xl text-white/60 hover:text-primary transition-transform hover:scale-110 active:scale-90" aria-label="Instagram"><FaInstagram aria-hidden="true" /></a>
             </div>
 
             <a 

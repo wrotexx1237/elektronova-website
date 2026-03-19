@@ -53,7 +53,7 @@ export default function LanguageSwitcher() {
           className={clsx(
             'px-2 py-1 text-sm font-medium rounded transition-all uppercase',
             locale === cur 
-              ? 'bg-primary text-white shadow-[0_0_10px_rgba(0,123,255,0.5)]' 
+              ? 'bg-primary text-black font-bold shadow-[0_0_10px_rgba(0,123,255,0.5)]' 
               : 'text-gray-400 hover:text-white hover:bg-white/5'
           )}
           disabled={isPending}

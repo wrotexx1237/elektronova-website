@@ -26,6 +26,7 @@ const Hero = () => {
     <section className="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden bg-[#050505]">
       {/* Dynamic Background */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <link rel="preload" href="/noise.svg" as="image" fetchPriority="high" />
         {/* Animated Glow Following Mouse */}
         <motion.div 
           className="absolute w-[800px] h-[800px] bg-primary/20 rounded-full blur-[150px] opacity-30"
