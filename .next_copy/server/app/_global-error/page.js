@@ -1,0 +1,11 @@
+var R=require("../../chunks/ssr/[turbopack]_runtime.js")("server/app/_global-error/page.js")
+R.c("server/chunks/ssr/[root-of-the-server]__867f2328._.js")
+R.c("server/chunks/ssr/Desktop_elektronova-recovered_ed1bdf5c._.js")
+R.c("server/chunks/ssr/33d1b_next_dist_150b431b._.js")
+R.c("server/chunks/ssr/[root-of-the-server]__8624da05._.js")
+R.c("server/chunks/ssr/[root-of-the-server]__879bd8b1._.js")
+R.c("server/chunks/ssr/33d1b_next_dist_75d089fc._.js")
+R.c("server/chunks/ssr/Desktop_elektronova-recovered_src_app_82436c09._.js")
+R.c("server/chunks/ssr/5d594__next-internal_server_app__global-error_page_actions_88989f5a.js")
+R.m(49623)
+module.exports=R.m(49623).exports

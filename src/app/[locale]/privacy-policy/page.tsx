@@ -1,6 +1,31 @@
 import {useTranslations} from 'next-intl';
 import {Link} from '@/i18n/routing';
 
+import { getPathname } from '@/i18n/routing';
+import { getTranslations } from 'next-intl/server';
+
+export async function generateMetadata({params}: {params: Promise<{locale: string}>}) {
+  const { locale } = await params;
+  const t = await getTranslations({locale, namespace: 'Compliance'});
+
+  const baseUrl = 'https://elektronova.online';
+  const pathname = getPathname({ locale, href: '/privacy-policy' as any });
+
+  const alternates: Record<string, string> = {};
+  ['sq', 'en'].forEach((l) => {
+    alternates[l] = `${baseUrl}${getPathname({ locale: l, href: '/privacy-policy' as any })}`;
+  });
+
+  return {
+    title: `Politika e Privatësisë - Privacy Policy | ElektroNova`,
+    description: "Politika jonë e privatësisë në lidhje me të dhënat tuaja dhe sistemet e instaluara.",
+    alternates: {
+      canonical: alternates[locale] || `${baseUrl}${pathname}`,
+      languages: alternates,
+    }
+  };
+}
+
 export default function PrivacyPolicy() {
   const t = useTranslations('Compliance');
 

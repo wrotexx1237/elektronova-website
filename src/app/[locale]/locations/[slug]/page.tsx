@@ -34,8 +34,8 @@ export async function generateStaticParams() {
   const params: { locale: string; slug: string }[] = [];
 
   locales.forEach(locale => {
-    Object.keys(locationsData[locale as 'sq' | 'en'] || {}).forEach(slug => {
-      params.push({ locale, slug });
+    Object.values(locationsData[locale as 'sq' | 'en'] || {}).forEach(location => {
+      params.push({ locale, slug: location.slug });
     });
   });
 

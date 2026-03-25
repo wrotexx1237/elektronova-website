@@ -1,6 +1,7 @@
 import {useTranslations} from 'next-intl';
 import {getTranslations} from 'next-intl/server';
 import ServiceCard from '@/components/ServiceCard';
+import { getServiceBySlug } from '@/data/services';
 
 export async function generateMetadata({params}: {params: Promise<{locale: string}>}) {
   const { locale } = await params;
@@ -54,40 +55,51 @@ const serviceImages: Record<string, string> = {
   'instalimi-fibres-optike':        '/images/stock/stock-38.jpg',
 };
 
-export default function ServicesPage() {
-  const t = useTranslations('Services');
+export default async function ServicesPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const t = await getTranslations({locale, namespace: 'Services'});
+
+  const getService = (baseKey: string, fallbackTitle: string, fallbackIcon: string) => {
+    const s = getServiceBySlug(baseKey, locale);
+    return {
+      title: s ? s.title : fallbackTitle,
+      iconName: s ? s.iconName : fallbackIcon,
+      href: `/services/${s ? s.slug : baseKey}`,
+      baseKey
+    };
+  };
 
   const categories = [
     {
       name: t('cat_cctv'),
       meta: categoryMeta[0],
       services: [
-        { title: 'Instalimi i Kamerave',  iconName: 'camera',     href: '/services/instalimi-kamerave-sigurise' },
-        { title: 'Sistemet Dahua CCTV',   iconName: 'video',      href: '/services/sistemet-dahua-cctv' },
-        { title: 'Kamerat IP',            iconName: 'stream',     href: '/services/kamerap-ip' },
-        { title: 'Sistemet NVR/DVR',      iconName: 'server',     href: '/services/sistemet-nvr-dvr' },
-        { title: 'Mirëmbajtja e CCTV',    iconName: 'userShield', href: '/services/mirembajtja-cctv' },
+        getService('instalimi-kamerave-sigurise', 'Instalimi i Kamerave', 'camera'),
+        getService('sistemet-dahua-cctv', 'Sistemet Dahua CCTV', 'video'),
+        getService('kamerap-ip', 'Kamerat IP', 'stream'),
+        getService('sistemet-nvr-dvr', 'Sistemet NVR/DVR', 'server'),
+        getService('mirembajtja-cctv', 'Mirëmbajtja e CCTV', 'userShield'),
       ],
     },
     {
       name: t('cat_security'),
       meta: categoryMeta[1],
       services: [
-        { title: 'Sistemet e Alarmit',    iconName: 'shield', href: '/services/sistemet-alarmit' },
-        { title: 'Smart Home Security',   iconName: 'home',   href: '/services/siguria-shtepise-menqur' },
-        { title: 'Kontrolli i Hyrjes',    iconName: 'lock',   href: '/services/kontrolli-hyrjes' },
-        { title: 'Sistemet e Interfonit', iconName: 'door',   href: '/services/sistemet-interfonit' },
-        { title: 'Video Interfoni',       iconName: 'tv',     href: '/services/interfoni-video' },
+        getService('sistemet-alarmit', 'Sistemet e Alarmit', 'shield'),
+        getService('siguria-shtepise-menqur', 'Smart Home Security', 'home'),
+        getService('kontrolli-hyrjes', 'Kontrolli i Hyrjes', 'lock'),
+        getService('sistemet-interfonit', 'Sistemet e Interfonit', 'door'),
+        getService('interfoni-video', 'Video Interfoni', 'tv'),
       ],
     },
     {
       name: t('cat_electrical'),
       meta: categoryMeta[2],
       services: [
-        { title: 'Instalime Elektrike',          iconName: 'bolt',      href: '/services/instalime-elektrike' },
-        { title: 'Riparime Elektrike',           iconName: 'wrench',    href: '/services/riparime-elektrike' },
-        { title: 'Rrjeta & Internet',            iconName: 'wifi',      href: '/services/instalimi-rrjetit-internetit' },
-        { title: 'Fibra Optike',                 iconName: 'microchip', href: '/services/instalimi-fibres-optike' },
+        getService('instalime-elektrike', 'Instalime Elektrike', 'bolt'),
+        getService('riparime-elektrike', 'Riparime Elektrike', 'wrench'),
+        getService('instalimi-rrjetit-internetit', 'Rrjeta & Internet', 'wifi'),
+        getService('instalimi-fibres-optike', 'Fibra Optike', 'microchip'),
       ],
     },
   ];
@@ -184,7 +196,6 @@ export default function ServicesPage() {
               {/* Service Cards Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {cat.services.map((service, sIdx) => {
-                  const slug = service.href.split('/').pop() ?? '';
                   return (
                     <ServiceCard
                       key={sIdx}
@@ -192,8 +203,8 @@ export default function ServicesPage() {
                       title={service.title}
                       iconName={service.iconName}
                       href={service.href}
-                      description={t('service_description')}
-                      image={serviceImages[slug]}
+                      description={(t as any)('service_description')}
+                      image={serviceImages[service.baseKey]}
                       accentColor={cat.meta.accent}
                     />
                   );

@@ -1,0 +1,16 @@
+const { Client } = require('ssh2');
+const fs = require('fs');
+
+const conn = new Client();
+conn.on('ready', () => {
+  conn.exec('ls -la /var/www/elektronova-site/.next', (err, stream) => {
+    if (err) throw err;
+    let out = '';
+    stream.on('data', data => out += data.toString());
+    stream.on('close', () => {
+      fs.writeFileSync('next_ls.txt', out);
+      console.log('List done');
+      conn.end();
+    });
+  });
+}).connect({ host: '46.62.161.81', port: 22, username: 'root', password: 'endibossi123' });

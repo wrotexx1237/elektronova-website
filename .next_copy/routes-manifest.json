@@ -1,0 +1,314 @@
+{
+  "version": 3,
+  "pages404": true,
+  "appType": "app",
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "priority": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    },
+    {
+      "source": "/sherbimet",
+      "destination": "/sq/sherbimet",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/sherbimet(?:/)?$"
+    },
+    {
+      "source": "/blogu",
+      "destination": "/sq/blogu",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/blogu(?:/)?$"
+    },
+    {
+      "source": "/blogu/:slug",
+      "destination": "/sq/blogu/:slug",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/blogu(?:/([^/]+?))(?:/)?$"
+    },
+    {
+      "source": "/rreth-nesh",
+      "destination": "/sq/rreth-nesh",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/rreth-nesh(?:/)?$"
+    },
+    {
+      "source": "/elektricist-:id",
+      "destination": "/sq/elektricist-:id",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/elektricist-([^/]+?)(?:/)?$"
+    },
+    {
+      "source": "/portofolio",
+      "destination": "/sq/portofolio",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/portofolio(?:/)?$"
+    },
+    {
+      "source": "/sq/services/:slug",
+      "destination": "/sq/sherbimet/:slug",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/sq/services(?:/([^/]+?))(?:/)?$"
+    },
+    {
+      "source": "/en/blog/rendesia-e-alarmit-wireless",
+      "destination": "/en/blog/importance-of-wireless-alarms",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/en/blog/rendesia-e-alarmit-wireless(?:/)?$"
+    },
+    {
+      "source": "/sq/blogu/5-common-security-camera-mistakes",
+      "destination": "/sq/blogu/5-gabime-kamera-sigurie",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/sq/blogu/5-common-security-camera-mistakes(?:/)?$"
+    },
+    {
+      "source": "/en/blog/energjia-solare-elektrike",
+      "destination": "/en/blog/solar-energy-kosovo-guide",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/en/blog/energjia-solare-elektrike(?:/)?$"
+    },
+    {
+      "source": "/sq/blogu/security-camera-installation-cost-kosovo",
+      "destination": "/sq/blogu/sa-kushton-instalimi-i-kamerave-te-sigurise-ne-kosove",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/sq/blogu/security-camera-installation-cost-kosovo(?:/)?$"
+    },
+    {
+      "source": "/en/services/sistemet-nvr-dvr",
+      "destination": "/en/services/nvr-dvr-systems",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/en/services/sistemet-nvr-dvr(?:/)?$"
+    },
+    {
+      "source": "/sq/services/instalim-ndricimi",
+      "destination": "/sq/sherbimet/instalim-ndricimi",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/sq/services/instalim-ndricimi(?:/)?$"
+    },
+    {
+      "source": "/sq/locations/:slug",
+      "destination": "/sq/elektricist-:slug",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/sq/locations(?:/([^/]+?))(?:/)?$"
+    },
+    {
+      "source": "/sq/about",
+      "destination": "/sq/rreth-nesh",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/sq/about(?:/)?$"
+    },
+    {
+      "source": "/en/rreth-nesh",
+      "destination": "/en/about",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/en/rreth-nesh(?:/)?$"
+    },
+    {
+      "source": "/en/elektricist-:id",
+      "destination": "/en/electrician-:id",
+      "statusCode": 308,
+      "regex": "^(?!/_next)/en/elektricist-([^/]+?)(?:/)?$"
+    }
+  ],
+  "headers": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [],
+    "fallback": []
+  },
+  "dynamicRoutes": [
+    {
+      "page": "/[locale]",
+      "regex": "^/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/[locale]/about",
+      "regex": "^/([^/]+?)/about(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/about(?:/)?$"
+    },
+    {
+      "page": "/[locale]/blog",
+      "regex": "^/([^/]+?)/blog(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/blog(?:/)?$"
+    },
+    {
+      "page": "/[locale]/blog/[slug]",
+      "regex": "^/([^/]+?)/blog/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale",
+        "nxtPslug": "nxtPslug"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/blog/(?<nxtPslug>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/[locale]/contact",
+      "regex": "^/([^/]+?)/contact(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/contact(?:/)?$"
+    },
+    {
+      "page": "/[locale]/cookie-policy",
+      "regex": "^/([^/]+?)/cookie\\-policy(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/cookie\\-policy(?:/)?$"
+    },
+    {
+      "page": "/[locale]/faq",
+      "regex": "^/([^/]+?)/faq(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/faq(?:/)?$"
+    },
+    {
+      "page": "/[locale]/locations/[slug]",
+      "regex": "^/([^/]+?)/locations/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale",
+        "nxtPslug": "nxtPslug"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/locations/(?<nxtPslug>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/[locale]/portfolio",
+      "regex": "^/([^/]+?)/portfolio(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/portfolio(?:/)?$"
+    },
+    {
+      "page": "/[locale]/privacy-policy",
+      "regex": "^/([^/]+?)/privacy\\-policy(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/privacy\\-policy(?:/)?$"
+    },
+    {
+      "page": "/[locale]/services",
+      "regex": "^/([^/]+?)/services(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/services(?:/)?$"
+    },
+    {
+      "page": "/[locale]/services/[slug]",
+      "regex": "^/([^/]+?)/services/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale",
+        "nxtPslug": "nxtPslug"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/services/(?<nxtPslug>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/[locale]/terms-of-service",
+      "regex": "^/([^/]+?)/terms\\-of\\-service(?:/)?$",
+      "routeKeys": {
+        "nxtPlocale": "nxtPlocale"
+      },
+      "namedRegex": "^/(?<nxtPlocale>[^/]+?)/terms\\-of\\-service(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/_global-error",
+      "regex": "^/_global\\-error(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_global\\-error(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/favicon.ico",
+      "regex": "^/favicon\\.ico(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/favicon\\.ico(?:/)?$"
+    },
+    {
+      "page": "/robots.txt",
+      "regex": "^/robots\\.txt(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/robots\\.txt(?:/)?$"
+    },
+    {
+      "page": "/shtojegooglen",
+      "regex": "^/shtojegooglen(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/shtojegooglen(?:/)?$"
+    },
+    {
+      "page": "/sitemap-blog.xml",
+      "regex": "^/sitemap\\-blog\\.xml(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/sitemap\\-blog\\.xml(?:/)?$"
+    },
+    {
+      "page": "/sitemap-locations.xml",
+      "regex": "^/sitemap\\-locations\\.xml(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/sitemap\\-locations\\.xml(?:/)?$"
+    },
+    {
+      "page": "/sitemap-main.xml",
+      "regex": "^/sitemap\\-main\\.xml(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/sitemap\\-main\\.xml(?:/)?$"
+    },
+    {
+      "page": "/sitemap-services.xml",
+      "regex": "^/sitemap\\-services\\.xml(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/sitemap\\-services\\.xml(?:/)?$"
+    },
+    {
+      "page": "/sitemap.xml",
+      "regex": "^/sitemap\\.xml(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/sitemap\\.xml(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments",
+    "clientParamParsing": false,
+    "dynamicRSCPrerender": false
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}

@@ -1,0 +1,3 @@
+module.exports=[61861,a=>{"use strict";var b=a.i(87787);function c({children:a}){return(0,b.jsxs)("html",{lang:"sq",children:[(0,b.jsxs)("head",{children:[(0,b.jsx)("meta",{name:"robots",content:"noindex, nofollow, noarchive"}),(0,b.jsx)("meta",{name:"googlebot",content:"noindex, nofollow"})]}),(0,b.jsx)("body",{style:{margin:0,padding:0,background:"#0a0a0a"},children:a})]})}a.s(["default",()=>c])}];
+
+//# sourceMappingURL=Desktop_elektronova-recovered_src_app_shtojegooglen_layout_tsx_e84bca25._.js.map

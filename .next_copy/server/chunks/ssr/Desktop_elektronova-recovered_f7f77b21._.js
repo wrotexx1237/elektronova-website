@@ -1,0 +1,4 @@
+module.exports=[64120,(a,b,c)=>{"use strict";Object.defineProperty(c,"__esModule",{value:!0}),Object.defineProperty(c,"registerServerReference",{enumerable:!0,get:function(){return d.registerServerReference}});let d=a.r(33860)},6224,(a,b,c)=>{"use strict";function d(a){for(let b=0;b<a.length;b++){let c=a[b];if("function"!=typeof c)throw Object.defineProperty(Error(`A "use server" file can only export async functions, found ${typeof c}.
+Read more: https://nextjs.org/docs/messages/invalid-use-server-value`),"__NEXT_ERROR_CODE",{value:"E352",enumerable:!1,configurable:!0})}}Object.defineProperty(c,"__esModule",{value:!0}),Object.defineProperty(c,"ensureServerEntryExports",{enumerable:!0,get:function(){return d}})},73886,a=>{"use strict";var b=a.i(92e3);a.s([],54759),a.i(54759),a.s(["406d5e406a19ccdd6222461b12e9d0a43e7f1e1af1",()=>b.sendLeadEmail],73886)}];
+
+//# sourceMappingURL=Desktop_elektronova-recovered_f7f77b21._.js.map

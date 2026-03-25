@@ -1,0 +1,200 @@
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+Error: MISSING_MESSAGE: Index.recent_work_badge (sq)
+    at f (.next/server/chunks/ssr/_42a8213f._.js:15:6878) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'Index.recent_work_badge (sq)'
+}
+Error: MISSING_MESSAGE: Index.view_portfolio (sq)
+    at f (.next/server/chunks/ssr/_42a8213f._.js:15:8752) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'Index.view_portfolio (sq)'
+}
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+Error: MISSING_MESSAGE: Index.recent_work_badge (sq)
+    at f (.next/server/chunks/ssr/_42a8213f._.js:15:6878) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'Index.recent_work_badge (sq)'
+}
+Error: MISSING_MESSAGE: Index.view_portfolio (sq)
+    at f (.next/server/chunks/ssr/_42a8213f._.js:15:8752) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'Index.view_portfolio (sq)'
+}
+Error: MISSING_MESSAGE: Index.recent_work_badge (sq)
+    at f (.next/server/chunks/ssr/_42a8213f._.js:15:6878) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'Index.recent_work_badge (sq)'
+}
+Error: MISSING_MESSAGE: Index.view_portfolio (sq)
+    at f (.next/server/chunks/ssr/_42a8213f._.js:15:8752) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'Index.view_portfolio (sq)'
+}
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+Error: MISSING_MESSAGE: Index.recent_work_badge (sq)
+    at f (.next/server/chunks/ssr/_42a8213f._.js:15:6878) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'Index.recent_work_badge (sq)'
+}
+Error: MISSING_MESSAGE: Index.view_portfolio (sq)
+    at f (.next/server/chunks/ssr/_42a8213f._.js:15:8752) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'Index.view_portfolio (sq)'
+}
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+Error: MISSING_MESSAGE: Index.recent_work_badge (sq)
+    at f (.next/server/chunks/ssr/_42a8213f._.js:15:6878) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'Index.recent_work_badge (sq)'
+}
+Error: MISSING_MESSAGE: Index.view_portfolio (sq)
+    at f (.next/server/chunks/ssr/_42a8213f._.js:15:8752) {
+  code: 'MISSING_MESSAGE',
+  originalMessage: 'Index.view_portfolio (sq)'
+}
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+⨯ The requested resource isn't a valid image for /blog/.webp received null
+Error: Failed to find Server Action "x". This request might be from an older or newer deployment.
+Read more: https://nextjs.org/docs/messages/failed-to-find-server-action
+    at ignore-listed frames
+Error: Failed to find Server Action "x". This request might be from an older or newer deployment.
+Read more: https://nextjs.org/docs/messages/failed-to-find-server-action
+    at ignore-listed frames
+Error: Failed to find Server Action "x". This request might be from an older or newer deployment.
+Read more: https://nextjs.org/docs/messages/failed-to-find-server-action
+    at ignore-listed frames
+Error: Failed to find Server Action "x". This request might be from an older or newer deployment.
+Read more: https://nextjs.org/docs/messages/failed-to-find-server-action
+    at ignore-listed frames
+Error: Failed to find Server Action "x". This request might be from an older or newer deployment.
+Read more: https://nextjs.org/docs/messages/failed-to-find-server-action
+    at ignore-listed frames
+Error: Failed to find Server Action "x". This request might be from an older or newer deployment.
+Read more: https://nextjs.org/docs/messages/failed-to-find-server-action
+    at ignore-listed frames
+Error: Failed to find Server Action "x". This request might be from an older or newer deployment.
+Read more: https://nextjs.org/docs/messages/failed-to-find-server-action
+    at ignore-listed frames
+Error: Failed to find Server Action "x". This request might be from an older or newer deployment.
+Read more: https://nextjs.org/docs/messages/failed-to-find-server-action
+    at ignore-listed frames
+Error: Failed to find Server Action "x". This request might be from an older or newer deployment.
+Read more: https://nextjs.org/docs/messages/failed-to-find-server-action
+    at ignore-listed frames
+Error: Failed to find Server Action "x". This request might be from an older or newer deployment.
+Read more: https://nextjs.org/docs/messages/failed-to-find-server-action
+    at ignore-listed frames
+Error: Failed to find Server Action "x". This request might be from an older or newer deployment.
+Read more: https://nextjs.org/docs/messages/failed-to-find-server-action
+    at ignore-listed frames
+Error: Failed to find Server Action "x". This request might be from an older or newer deployment.
+Read more: https://nextjs.org/docs/messages/failed-to-find-server-action
+    at ignore-listed frames
+Error: Failed to find Server Action "x". This request might be from an older or newer deployment.
+Read more: https://nextjs.org/docs/messages/failed-to-find-server-action
+    at ignore-listed frames
+Error: Failed to find Server Action "x". This request might be from an older or newer deployment.
+Read more: https://nextjs.org/docs/messages/failed-to-find-server-action
+    at ignore-listed frames
+Error: Failed to find Server Action "x". This request might be from an older or newer deployment.
+Read more: https://nextjs.org/docs/messages/failed-to-find-server-action
+    at ignore-listed frames
+Error: Failed to find Server Action "x". This request might be from an older or newer deployment.
+Read more: https://nextjs.org/docs/messages/failed-to-find-server-action
+    at ignore-listed frames
+Error: Failed to find Server Action "x". This request might be from an older or newer deployment.
+Read more: https://nextjs.org/docs/messages/failed-to-find-server-action
+    at ignore-listed frames
+Error: Failed to find Server Action "x". This request might be from an older or newer deployment.
+Read more: https://nextjs.org/docs/messages/failed-to-find-server-action
+    at ignore-listed frames
+Error: Failed to find Server Action "x". This request might be from an older or newer deployment.
+Read more: https://nextjs.org/docs/messages/failed-to-find-server-action
+    at ignore-listed frames
+Error: Failed to find Server Action "x". This request might be from an older or newer deployment.
+Read more: https://nextjs.org/docs/messages/failed-to-find-server-action
+    at ignore-listed frames
+Error: Failed to find Server Action "x". This request might be from an older or newer deployment.
+Read more: https://nextjs.org/docs/messages/failed-to-find-server-action
+    at ignore-listed frames
+Error: Failed to find Server Action "x". This request might be from an older or newer deployment.
+Read more: https://nextjs.org/docs/messages/failed-to-find-server-action
+    at ignore-listed frames
+Error: Failed to find Server Action "x". This request might be from an older or newer deployment.
+Read more: https://nextjs.org/docs/messages/failed-to-find-server-action
+    at ignore-listed frames
+Error: Failed to find Server Action "x". This request might be from an older or newer deployment.
+Read more: https://nextjs.org/docs/messages/failed-to-find-server-action
+    at ignore-listed frames

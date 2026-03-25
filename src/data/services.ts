@@ -812,7 +812,7 @@ export const servicesData: Record<string, Record<string, ServiceContent>> = {
     }
   },
   en: {
-    'security-camera-installation': {
+    'instalimi-kamerave-sigurise': {
       slug: 'security-camera-installation',
       title: 'Security Camera Installation (CCTV)',
       description: 'Professional 24/7 monitoring solutions with latest CCTV technology.',
@@ -852,7 +852,7 @@ export const servicesData: Record<string, Record<string, ServiceContent>> = {
       relatedArticles: ['5-common-security-camera-mistakes', 'security-camera-installation-cost-kosovo', 'security-cameras-kosovo-guide-2026'],
       iconName: 'camera'
     },
-    'dahua-cctv-systems': {
+    'sistemet-dahua-cctv': {
       slug: 'dahua-cctv-systems',
       title: 'Dahua CCTV Systems',
       description: 'World leading technology for maximum security and artificial intelligence.',
@@ -889,7 +889,7 @@ export const servicesData: Record<string, Record<string, ServiceContent>> = {
       relatedArticles: ['dahua-vs-hikvision', 'best-home-security-cameras-2025', '5-common-security-camera-mistakes'],
       iconName: 'video'
     },
-    'alarm-systems': {
+    'sistemet-alarmit': {
       slug: 'alarm-systems',
       title: 'Alarm Systems and Anti-Theft',
       description: 'Uncompromised protection with intelligent alarm systems and proactive detection.',
@@ -928,7 +928,7 @@ export const servicesData: Record<string, Record<string, ServiceContent>> = {
       relatedArticles: ['importance-of-wireless-alarms', 'security-cameras-kosovo-guide-2026', '5-common-security-camera-mistakes'],
       iconName: 'shield'
     },
-    'electrical-installations': {
+    'instalime-elektrike': {
       slug: 'electrical-installations',
       title: 'Professional Electrical Installations',
       description: 'Full electrical installation services for homes, apartments, and businesses across Kosovo.',
@@ -966,7 +966,7 @@ export const servicesData: Record<string, Record<string, ServiceContent>> = {
       relatedArticles: ['electrical-installation-cost-kosovo', '5-signs-house-needs-rewiring', 'emergency-electrician-guide'],
       iconName: 'zap'
     },
-    'electrical-repairs': {
+    'riparime-elektrike': {
       slug: 'electrical-repairs',
       title: 'Electrical Repairs and Maintenance',
       description: 'Fast and safe solutions for any electrical defect in your home or business.',
@@ -1003,7 +1003,7 @@ export const servicesData: Record<string, Record<string, ServiceContent>> = {
       relatedArticles: ['why-does-the-power-trip', 'emergency-electrician-guide'],
       iconName: 'tool'
     },
-    'electrical-rewiring': {
+    'nderrim-instalimi-elektrik': {
       slug: 'electrical-rewiring',
       title: 'Electrical Rewiring Services',
       description: 'Modernize your home safety with a complete replacement of old cabling.',
@@ -1041,7 +1041,7 @@ export const servicesData: Record<string, Record<string, ServiceContent>> = {
       iconName: 'refresh'
     },
 
-    'lighting-installation': {
+    'instalim-ndricimi': {
       slug: 'lighting-installation',
       title: 'Modern and LED Lighting Installation',
       description: 'Transform your environment with intelligent and energy-efficient lighting.',
@@ -1078,7 +1078,7 @@ export const servicesData: Record<string, Record<string, ServiceContent>> = {
       relatedArticles: ['lighting-installation-guide', 'smart-home-kosovo-guide'],
       iconName: 'lightbulb'
     },
-    'electrical-panels': {
+    'panele-elektrike': {
       slug: 'electrical-panels',
       title: 'Electrical Panels and Fuses',
       description: 'Installation and modernization of distribution panels for maximum protection.',
@@ -1115,7 +1115,7 @@ export const servicesData: Record<string, Record<string, ServiceContent>> = {
       relatedArticles: ['electrical-panels-modernization', 'why-does-the-power-trip'],
       iconName: 'grid'
     },
-    'electrical-maintenance-business': {
+    'mirembajtje-elektrike-biznes': {
       slug: 'electrical-maintenance-business',
       title: 'Electrical Maintenance for Businesses',
       description: 'Preventive maintenance programs to ensure your business continuity.',
@@ -1152,7 +1152,7 @@ export const servicesData: Record<string, Record<string, ServiceContent>> = {
       relatedArticles: ['business-electrical-maintenance', 'solar-energy-kosovo-guide'],
       iconName: 'briefcase'
     },
-    'emergency-electrician-24h': {
+    'elektricist-urgjent': {
       slug: 'emergency-electrician-24h',
       title: '24/7 Emergency Electrician',
       description: 'Immediate intervention for critical electrical defects across Kosovo.',
@@ -1190,7 +1190,7 @@ export const servicesData: Record<string, Record<string, ServiceContent>> = {
       iconName: 'alert'
     },
 
-    'smart-home-automation': {
+    'smart-home-automatizimi': {
       slug: 'smart-home-automation',
       title: 'Smart Home and Automation',
       description: 'Transform your home into an intelligent and efficient space.',
@@ -1228,6 +1228,385 @@ export const servicesData: Record<string, Record<string, ServiceContent>> = {
       ],
       relatedArticles: ['smart-home-kosovo-guide', 'lighting-installation-guide'],
       iconName: 'home'
+    },
+    'kamerap-ip': {
+      slug: 'ip-cameras',
+      title: 'IP Cameras and Digital Security',
+      description: 'Modern solutions with high resolution and PoE technology for professional monitoring.',
+      longDescription: "IP (Internet Protocol) cameras represent the highest standard of visual security today. At ElektroNova, we provide **IP camera installation in Kosovo** that offers superior image quality, infinite flexibility, and full integration with existing internet networks. Unlike analog systems, IP cameras transmit digital data, ensuring no detail is lost during transmission.\n\n### Advantages of IP Cameras in Peja\nThe use of PoE (Power over Ethernet) technology means that a single network cable supplies the camera with power and transmits the video signal. This reduces installation costs and increases accuracy. With resolutions reaching up to 12MP and more, these cameras are ideal for spots requiring precise identification, like over cash registers in shops or at the entrances of institutions in Peja and Prishtina.\n\n### Built-in Intelligence\nMany of our IP cameras have powerful processors that perform video analysis directly on the device. This includes facial recognition, people counting, and intelligent alarms that arrive on your phone in seconds. We work with leading brands like Dahua and Hikvision to ensure you have access to the latest in security technology.",
+      benefits: [
+        'Crystal clear image quality up to 4K and above',
+        'Simple installation with a single cable (PoE)',
+        'Secure remote access via high encryption',
+        'Capability for recording on SD memory cards',
+        'Easy integration with other digital systems'
+      ],
+      useCases: [
+        'Businesses requiring maximum details',
+        'Smart homes demanding total control',
+        'Monitoring of open spaces and parking lots',
+        'Solutions for banking and state institutions'
+      ],
+      technology: [
+        'CMOS progressive sensors for blur-free images',
+        'TLS/SSL data encryption',
+        'ONVIF standard for compatibility with other devices',
+        'Hybrid technology for low light'
+      ],
+      installationProcess: [
+        'Audit of existing network infrastructure',
+        'Selection of strategic points for maximum coverage',
+        'CAT6 cabling routing and PoE switch mounting',
+        'Configuration of IP addresses and cybersecurity',
+        'Testing signal stability and recording'
+      ],
+      faq: [
+        { q: 'Can IP cameras work without internet?', a: 'Yes, they record locally on an NVR or SD card; internet is only needed to view them remotely.' },
+        { q: 'How many IP cameras can a simple network handle?', a: 'It depends on network speed, but we apply isolated VLANs so as not to overload your work internet.' }
+      ],
+      relatedArticles: ['best-home-security-cameras-2025', 'dahua-vs-hikvision'],
+      iconName: 'video'
+    },
+    'sistemet-nvr-dvr': {
+      slug: 'nvr-dvr-systems',
+      title: 'NVR and DVR Recorders',
+      description: 'The control center for your surveillance system, with secure data storage.',
+      longDescription: "The recorder is the heart of every security system. ElektroNova offers installation and configuration of **NVR (Network Video Recorder) systems** for IP cameras and **DVR (Digital Video Recorder)** for analog systems. We ensure your monitoring center in Peja is impregnable and reliable 24/7.\n\n### NVR vs DVR: What do you need?\nNVRs are the modern choice that processes digital data directly from the network, providing higher resolution and advanced AI capabilities. DVRs are an economical and stable choice for facilities where coaxial cabling is already present. We use recorders that support high compression standards (H.265+), allowing you to keep recordings for weeks without the need for massive Hard Drive investments.\n\n### Data Security\nWe install dedicated Surveillance Grade Hard Drives designed for intensive 24/7 workloads. Furthermore, we configure automated backup systems and notifications in case of disk failure, guaranteeing that no important second of video is lost.",
+      benefits: [
+        'Continuous recording in full resolution',
+        'Simple management of all cameras from one place',
+        'Automatic backup to Cloud or external servers',
+        'Mobile app for monitoring from anywhere in the world',
+        'High protection with passwords and encryption'
+      ],
+      useCases: [
+        'Private homes and residential facilities',
+        'Industrial solutions with large number of cameras',
+        'Shops and market chains across Kosovo',
+        'Mobile systems for transport and vehicles'
+      ],
+      technology: [
+        'H.265+ compression for memory saving',
+        'Support for Artificial Intelligence (AI Decoding)',
+        'RAID systems for disk security',
+        'HDMI/VGA output for local 4K monitoring'
+      ],
+      installationProcess: [
+        'Selecting recorder based on camera count',
+        'Installing Hard Drives and proper ventilation',
+        'Connecting to the internet network and power sources',
+        'Configuring recording schedules (Motion/Continuous)',
+        'User training for recording retrieval'
+      ],
+      faq: [
+        { q: 'How many days of recording can an NVR hold?', a: 'It depends on the number of cameras and hard drive size. Usually we configure 15 to 30 days.' },
+        { q: 'Can I view old recordings from the phone?', a: 'Yes, via the app you can go back to any recorded time and day stored on the recorder.' }
+      ],
+      relatedArticles: ['security-camera-installation-cost-kosovo', '5-common-security-camera-mistakes'],
+      iconName: 'database'
+    },
+    'mirembajtja-cctv': {
+      slug: 'cctv-maintenance',
+      title: 'CCTV Systems Maintenance',
+      description: 'Ensure longevity and maximum performance for your cameras through periodic servicing.',
+      longDescription: "A security system that is not maintained represents a hidden risk. Dust, spider webs on lenses, and voltage fluctuations can lower the efficiency of your system exactly when you need it most. ElektroNova offers complete packages of **CCTV maintenance in Peja** and all of Kosovo, guaranteeing every camera is in perfect working condition.\n\n### Why is maintenance important?\nMany clients realize a Hard Drive has failed only when they need to review a theft. We perform periodic checks that include physical cleaning of lenses, checking disk health, software updates (Firmware), and testing backup batteries (UPS). This prevents unexpected failures and increases the lifespan of your investment for decades.\n\n### Professional On-site Service\nOur team arrives at your location with all the necessary tools. We re-focus cameras that may have been moved by wind or tampering, and ensure that night vision (IR/FullColor) is as clear as the first day of installation.",
+      benefits: [
+        'Prevention of critical system failures',
+        'Clear images without interference',
+        'Continuous security of recordings on Hard Drive',
+        'Protection from hacking through regular updates',
+        'Reduction of repair costs in the long run'
+      ],
+      useCases: [
+        'Businesses in dusty or humid environments',
+        'Security systems in industrial facilities',
+        'City monitoring and public spaces',
+        'Homes and villas requiring 100% security'
+      ],
+      technology: [
+        'Antistatic cleaning fluids for lenses',
+        'Diagnostic software for Hard Drives',
+        'Meters for voltage and PoE stability',
+        'Remote condition monitoring systems'
+      ],
+      installationProcess: [
+        'Initial audit of system condition',
+        'Physical cleaning of all cameras and boxes',
+        'Verification of all connections and cables',
+        'Control of video quality and focus',
+        'Technical report of works and update advice'
+      ],
+      faq: [
+        { q: 'How often should security cameras be cleaned?', a: 'We recommend a full cleaning every 6 months, especially for outdoor cameras.' },
+        { q: 'Are replacement parts included in maintenance?', a: 'Servicing works are included, whereas damaged components are replaced according to the agreement or warranty.' }
+      ],
+      relatedArticles: ['security-cameras-kosovo-guide-2026', 'dahua-vs-hikvision'],
+      iconName: 'tool'
+    },
+    'siguria-shtepise-menqur': {
+      slug: 'smart-home-security',
+      title: 'Smart Home Security',
+      description: 'Integration of physical protection with smart automation for 360-degree security.',
+      longDescription: "Security is no longer just an alarm or a camera; it is an ecosystem that interacts. At ElektroNova, we are pioneers of **smart home security in Kosovo**. We build systems where lights, cameras, alarms, and smart locks work together to prevent danger before it happens.\n\n### The Philosophy of Proactive Security\nImagine this: If exterior sensors detect movement past midnight, yard lights turn on automatically, window shutters close, and you get an audio notification in your bedroom. That is the power of automation. We use devices operating on Matter, Zigbee, and Z-Wave protocols, guaranteeing your home remains safe even without the need for cables in every room.\n\n### Control from Anywhere\nWhether you are in Peja or on vacation abroad, you have full control. You can lock doors, check who is waiting at the doorbell, or simulate your presence at home by turning on lights remotely. This is the new standard of family protection in Kosovo.",
+      benefits: [
+        'Layered and proactive protection',
+        'Energy savings through smart automation',
+        'Instant notifications for any anomaly',
+        'Ease of use via voice assistants',
+        'Peace of mind 24 hours a day'
+      ],
+      useCases: [
+        'Luxury villas and modern family homes',
+        'Smart apartments in urban centers',
+        'Offices requiring efficient security management',
+        'Vacation properties monitored remotely'
+      ],
+      technology: [
+        'Matter standard for universal connectivity',
+        'Bank-grade encryption for wireless devices',
+        'Multi-functional sensors (Motion, Light, Temperature)',
+        'Integration systems like Apple Home, Google, and Amazon'
+      ],
+      installationProcess: [
+        'Designing the smart security ecosystem',
+        'Installation of the control hub',
+        'Configuration of sensors and actuating devices',
+        'Creation of custom security scenarios',
+        'Integration testing and family training'
+      ],
+      faq: [
+        { q: 'Is wireless security as good as wired?', a: 'Yes, our professional systems use encrypted frequencies immune to common jamming devices.' },
+        { q: 'What happens if the internet goes down?', a: 'The system continues working locally; sensors and alarms will trigger normally inside the house.' }
+      ],
+      relatedArticles: ['smart-home-kosovo-guide', 'importance-of-wireless-alarms'],
+      iconName: 'home'
+    },
+    'kontrolli-hyrjes': {
+      slug: 'access-control',
+      title: 'Access Control Systems',
+      description: 'Manage access to your premises via biometric technology and RFID cards.',
+      longDescription: "Physical security starts at the door. ElektroNova offers elite choices for **access control in Kosovo**, replacing traditional keys with secure digital technology. From small business offices to large factories in Peja, we ensure that only authorized persons enter your sensitive domains.\n\n### Biometric and Modern Technology\nWe install fingerprint readers, facial recognition, and smart card readers. This not only enhances security but also simplifies staff management. Every entry and exit is logged in a database, providing a full overview of who and when someone entered the facility. The system can also be integrated with [Alarm Systems](/en/services/alarm-systems) to automatically disarm when an authorized staff member arrives.\n\n### Security for Staircases and Elevators\nFor residential complexes in Prishtina and Peja, we provide access control for elevators and main entrances. This protects residents from uninvited guests and raises the level of privacy within the building.",
+      benefits: [
+        'Elimination of risk from key duplication',
+        'Full control and reporting of accesses in real-time',
+        'Contactless solutions for maximum hygiene',
+        'Possibility to assign specific entry schedules',
+        'Integration with staff time and attendance systems'
+      ],
+      useCases: [
+        'Business offices, banks, and institutions',
+        'Residential buildings and new complexes',
+        'Hotels and apartments with digital access',
+        'Industrial spaces and warehouses'
+      ],
+      technology: [
+        'Biometric readers (Fingerprint / Face ID)',
+        'RFID and NFC technology (Cards and Smartphone)',
+        'High-quality electric and motor locks',
+        'Access management servers with Web access'
+      ],
+      installationProcess: [
+        'Assessment of passing points and number of users',
+        'Selection of authentication method (Card/Biometrics)',
+        'Mounting readers and door blockers',
+        'Configuration of management software',
+        'User enrollment and security testing'
+      ],
+      faq: [
+        { q: 'What happens if someone loses an access card?', a: 'The card is deleted from the system immediately, rendering it useless to the finder.' },
+        { q: 'Do electric locks work if the power goes out?', a: 'Yes, we install systems that open automatically in emergencies or remain closed via backup batteries.' }
+      ],
+      relatedArticles: ['video-intercom-systems', 'smart-home-automation'],
+      iconName: 'lock'
+    },
+    'sistemet-interfonit': {
+      slug: 'intercom-systems',
+      title: 'Intercom Systems',
+      description: 'Secure and clear communication for the entrance of your home or building.',
+      longDescription: "An intercom is the first step towards building a secure perimeter. ElektroNova provides installation of **intercom systems in Peja** for private homes and multi-residential buildings. We use audio-visual equipment that supports clear communication and easy management of visitors.\n\n### Solutions for Apartments and Homes\nFrom classic audio systems to digital ones connecting tens of apartments, we provide the right choice for any request. We work with renowned brands like Biticino, Hikvision, and Commax, guaranteeing your system is resilient to vandalism and climatic conditions in Kosovo.",
+      benefits: [
+        'Increased security by speaking before opening the door',
+        'Weather-resistant solutions',
+        'Crystal clear audio without noise',
+        'Added value to your property',
+        'Modern devices fitting interior design',
+        'Sturdy installation for long-term use'
+      ],
+      useCases: [
+        'Private homes and villas',
+        'Residential buildings and joint complexes',
+        'Business facilities and receptions',
+        'Offices requiring visitor control'
+      ],
+      technology: [
+        'Analog and digital systems (2-wire / IP)',
+        'Outdoor panels from aluminum or steel',
+        'Connection with standard electric locks'
+      ],
+      installationProcess: [
+        'Positioning of outdoor and indoor panels',
+        'Routing dedicated cabling',
+        'Mounting devices and connecting power',
+        'Syncing with the door electric lock',
+        'Testing sound and door unlocking'
+      ],
+      faq: [
+        { q: 'Can I replace my old intercom with a new one?', a: 'Yes, we modernize existing systems without the need for major changes.' }
+      ],
+      relatedArticles: ['video-intercom-systems', 'access-control-guide'],
+      iconName: 'phone'
+    },
+    'interfoni-video': {
+      slug: 'video-intercom-systems',
+      title: 'Video Intercom Systems',
+      description: 'See and speak with your visitors through an HD screen or directly from your phone.',
+      longDescription: "The video intercom is the evolution of the classic intercom. ElektroNova installs **video intercoms in Peja** that let you see the visitor in real-time, increasing security and comfort. This technology is ideal for homes where you want to see who is waiting at the door before answering.\n\n### IP Video Intercom - Security on your Smartphone\nOur modern IP systems allow you to receive the doorbell call directly on your phone, wherever you are. If someone rings the bell in Peja while you are in Prishtina or abroad, you can talk to the visitor and even unlock the door if you choose. Our devices feature high-resolution cameras and night vision (IR), ensuring you see clearly at any hour.",
+      benefits: [
+        'Visual identification of visitor prior to access',
+        'The call rings on your smartphone in real-time',
+        'Photo/video recording of individuals who ring the bell',
+        'Modern screens with Touch technology',
+        'Link with [Security Cameras](/en/services/security-camera-installation)'
+      ],
+      useCases: [
+        'Private homes and luxury villas',
+        'Modern apartments with centralized monitoring',
+        'Businesses requiring visual entrance control',
+        'Hotels and professional offices'
+      ],
+      technology: [
+        'HD camera with wide viewing angle (180°)',
+        'SIP protocol for stable communication',
+        'Wi-Fi and Ethernet connectivity',
+        'Indoor LCD screens up to 10 inches'
+      ],
+      installationProcess: [
+        'Assessing the camera viewing angle',
+        'Installing CAT6 cabling for IP video',
+        'Mounting indoor monitors and outdoor panels',
+        'Linking with mobile app and Wi-Fi network',
+        'Configuration of recording functions'
+      ],
+      faq: [
+        { q: 'Does the video intercom record who called when I am not at home?', a: 'Yes, our systems save photos of missed visitors in internal memory.' },
+        { q: 'Can the video intercom connect with other cameras?', a: 'Yes, you can view security cameras directly from your intercom screen.' }
+      ],
+      relatedArticles: ['intercom-systems', 'access-control-guide'],
+      iconName: 'eye'
+    },
+    'instalimi-rrjetit-internetit': {
+      slug: 'network-internet-installation',
+      title: 'Network and Internet Installation',
+      description: 'Build a robust and fast internet infrastructure for homes and businesses.',
+      longDescription: "Nowadays, fast and stable internet is as crucial as electricity. ElektroNova provides professional services for **computer network installation in Peja**, guaranteeing maximum Wi-Fi coverage and stable links using CAT6/CAT7 cables. We help businesses and homes have a network that never fails.\n\n### Powerful Wi-Fi without \"Dead Zones\"\nForget about signal issues on the second floor or in the yard. We install professional Access Points that create a unified Mesh network throughout the whole house. This ensures that [IP Security Cameras](/en/services/ip-cameras) and [Smart Home](/en/services/smart-home-automation) run uninterrupted. For businesses, we design secure networks with separate VLANs for staff and visitors.",
+      benefits: [
+        'Maximum data transfer speeds',
+        '100% Wi-Fi coverage in every corner of the property',
+        'High stability for working from home and gaming',
+        'Secure network from cyber threats',
+        'Organized and aesthetic cabling in offices'
+      ],
+      useCases: [
+        'Modern homes with multiple connected devices',
+        'Business offices, Call Centers, and Co-working spaces',
+        'Hotels, restaurants, and cafeterias',
+        'Warehouses and industrial facilities requiring internet'
+      ],
+      technology: [
+        'CAT6A / CAT7 structural cabling (10 Gbps)',
+        'Wi-Fi 6 and Mesh systems (Ubiquiti / TP-Link)',
+        'Gigabit Switches and professional Firewalls',
+        'Organized racks and distribution panels'
+      ],
+      installationProcess: [
+        'Needs analysis for speed and coverage',
+        'Routing cables to strategic points',
+        'Installing routers and access points',
+        'Network security and passwords configuration',
+        'Speed measuring and load tests'
+      ],
+      faq: [
+        { q: 'Why is my internet slow despite having a fast package?', a: 'Often the problem lies with a weak router or old internal cabling.' },
+        { q: 'Can you build an internet network in a finished house?', a: 'Yes, we use wireless Mesh choices or pull cables through existing conduits.' }
+      ],
+      relatedArticles: ['ip-cameras', 'smart-home-automation'],
+      iconName: 'wifi'
+    },
+    'instalimi-fibres-optike': {
+      slug: 'fiber-optic-installation',
+      title: 'Fiber Optic Installation',
+      description: 'Ultra-fast connections through fiber optic technology for long distances.',
+      longDescription: "When traditional copper cables reach their limits, fiber optics come to the rescue. ElektroNova offers **fiber optic services in Kosovo** for projects demanding breakneck speeds and long distances with zero signal loss. This technology is ideal for business campuses, interlinking multiple facilities, or CCTV systems over large distances.\n\n### Speed of Light at your Facility\nFiber optic cables are immune to electrical interferences, making them perfect for industrial environments. We perform fiber installation within buildings (FTTH) and linking with network devices. With our expertise in Peja, we ensure your digital infrastructure is ready for the next decade's standards.",
+      benefits: [
+        'Unlimited internet and data speeds',
+        'Total immunity to lightning and electrical interference',
+        'Cable length spanning kilometers without signal loss',
+        'Future-proof infrastructure',
+        'High security - fiber is difficult to tap'
+      ],
+      useCases: [
+        'Interlinking servers and main offices',
+        'Security systems over long perimeters (factories, borders)',
+        'High-scale smart homes',
+        'Educational and hospital institutions'
+      ],
+      technology: [
+        'Single-mode and Multi-mode fiber',
+        'Media Converters and SFP Switches',
+        'Fiber splicing technology',
+        'Optical Distribution Frames (ODF) and pigtails'
+      ],
+      installationProcess: [
+        'Designing fiber optic pathways',
+        'Physical cable pulling and its protection',
+        'Professional termination and splicing of fibers',
+        'Loss testing with meters (OTDR)',
+        'End-to-end linking and commissioning'
+      ],
+      faq: [
+        { q: 'Does fiber optic remain operational after storms?', a: 'Yes, being glass/plastic, it does not conduct electricity and is immune to atmospheric discharges.' }
+      ],
+      relatedArticles: ['network-internet-installation', 'ip-cameras'],
+      iconName: 'zap'
+    },
+    'sistemet-e-alarmit': {
+      slug: 'alarm-systems-anti-theft',
+      title: 'Alarm Systems and Anti-Theft',
+      description: 'Uncompromised protection with intelligent alarm systems and proactive detection.',
+      longDescription: "The safety of your home or business is our top priority. At ElektroNova, we offer the most secure **alarm systems in Kosovo**, utilizing hybrid technology that combines the reliability of cables with the flexibility of wireless devices. Our systems detect any unauthorized entry in the very first second and notify you immediately on your phone. We work with elite brands like Ajax, DSC, and Paradox, known for their protection against intrusions.\n\n### Why You Need an Alarm in Peja\nAn alarm doesn't just fulfill its function when you're absent. With the 'Stay Mode' function, you can secure your home's perimeter in Peja (doors and windows) while you are inside. This gives you 24-hour protection without restricting movement. Our intelligent systems are immune to pets, avoiding unnecessary alarms that might disturb neighbors. In the city of Peja, where citizen proximity is high, a powerful siren alarm is the best deterrent.\n\nIntegration with [Camera Installation](/en/services/ip-cameras) enables visual verification. If an alarm goes off, you can open the cameras on your phone and see if it is a real risk or human error. This synchronizing technology is what makes a home truly smart and safe. ElektroNova also offers regular maintenance and replacement of backup batteries so your system never fails.",
+      benefits: [
+        'Immediate detection of door or window breaking',
+        'Powerful sirens for external and internal alerting',
+        'Full management via control panel and mobile app',
+        'Backup batteries that keep the system on even without power',
+        'Intelligent sensors that do not react to pets',
+        'Connection to emergency monitoring centers'
+      ],
+      useCases: [
+        'Private homes and apartments',
+        'Warehouses and retail stores',
+        'Business offices and tech labs',
+        'Holiday villas in mountain areas'
+      ],
+      technology: [
+        'Wireless technology with up to 2000 meters range (Ajax)',
+        'Motion (PIR), Acoustic (Glass Break), and Magnetic sensors',
+        'Integrated smoke and gas detectors',
+        'Communication via Wi-Fi, Ethernet, and GPRS/4G'
+      ],
+      installationProcess: [
+        'Detection of weak entry points',
+        'Choice between cable or wireless systems',
+        'Mounting the central panel and strategic sensors',
+        'Programming access codes and remote controls',
+        'Signal and notification verification on the phone'
+      ],
+      faq: [
+        { q: 'Can I install the alarm without damaging the walls?', a: 'Yes, we use professional Wireless systems (like Ajax) that do not require drilling or cables.' },
+        { q: 'What happens if the internet goes down?', a: 'The system continues to work via a SIM card (4G) and alarms via the siren.' }
+      ],
+      relatedArticles: ['importance-of-wireless-alarms', 'security-cameras-kosovo-guide-2026', '5-common-security-camera-mistakes'],
+      iconName: 'shield'
     }
   }
 };
@@ -1235,4 +1614,29 @@ export const servicesData: Record<string, Record<string, ServiceContent>> = {
 export const getServiceBySlug = (slug: string, localeCode: string): ServiceContent | undefined => {
   return servicesData[localeCode]?.[slug] || 
          Object.values(servicesData[localeCode] || {}).find(s => s.slug === slug);
+};
+
+export const getAlternateServiceSlug = (currentSlug: string, targetLocale: string): string => {
+  let baseKey: string | undefined;
+  
+  for (const loc of ['sq', 'en']) {
+    const data = servicesData[loc];
+    if (!data) continue;
+    
+    if (data[currentSlug]) {
+      baseKey = currentSlug;
+      break;
+    }
+    
+    const foundEntry = Object.entries(data).find(([k, v]) => v.slug === currentSlug);
+    if (foundEntry) {
+      baseKey = foundEntry[0];
+      break;
+    }
+  }
+
+  if (baseKey && servicesData[targetLocale]?.[baseKey]) {
+    return servicesData[targetLocale][baseKey].slug;
+  }
+  return currentSlug;
 };

@@ -1,0 +1,94 @@
+{
+  "node": {
+    "406d5e406a19ccdd6222461b12e9d0a43e7f1e1af1": {
+      "workers": {
+        "app/[locale]/blog/[slug]/page": {
+          "moduleId": 73329,
+          "async": false,
+          "exportedName": "sendLeadEmail",
+          "filename": "Desktop/elektronova-recovered/src/app/actions/email.ts"
+        },
+        "app/[locale]/contact/page": {
+          "moduleId": 2211,
+          "async": false,
+          "exportedName": "sendLeadEmail",
+          "filename": "Desktop/elektronova-recovered/src/app/actions/email.ts"
+        },
+        "app/[locale]/locations/[slug]/page": {
+          "moduleId": 40761,
+          "async": false,
+          "exportedName": "sendLeadEmail",
+          "filename": "Desktop/elektronova-recovered/src/app/actions/email.ts"
+        },
+        "app/[locale]/page": {
+          "moduleId": 73886,
+          "async": false,
+          "exportedName": "sendLeadEmail",
+          "filename": "Desktop/elektronova-recovered/src/app/actions/email.ts"
+        },
+        "app/[locale]/services/[slug]/page": {
+          "moduleId": 41099,
+          "async": false,
+          "exportedName": "sendLeadEmail",
+          "filename": "Desktop/elektronova-recovered/src/app/actions/email.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/blog/[slug]/page": "action-browser",
+        "app/[locale]/contact/page": "action-browser",
+        "app/[locale]/locations/[slug]/page": "action-browser",
+        "app/[locale]/page": "action-browser",
+        "app/[locale]/services/[slug]/page": "action-browser"
+      },
+      "filename": "Desktop/elektronova-recovered/src/app/actions/email.ts",
+      "exportedName": "sendLeadEmail"
+    },
+    "402af712ef850463f7f747e4ac4356f45b28099b4b": {
+      "workers": {
+        "app/shtojegooglen/page": {
+          "moduleId": 23101,
+          "async": false,
+          "exportedName": "saveVerificationFile",
+          "filename": "Desktop/elektronova-recovered/src/app/shtojegooglen/actions.ts"
+        }
+      },
+      "layer": {
+        "app/shtojegooglen/page": "action-browser"
+      },
+      "filename": "Desktop/elektronova-recovered/src/app/shtojegooglen/actions.ts",
+      "exportedName": "saveVerificationFile"
+    },
+    "00c0e6a69697ad5517dd545d64dfc7c6e666bdfa77": {
+      "workers": {
+        "app/shtojegooglen/page": {
+          "moduleId": 23101,
+          "async": false,
+          "exportedName": "listVerificationFiles",
+          "filename": "Desktop/elektronova-recovered/src/app/shtojegooglen/actions.ts"
+        }
+      },
+      "layer": {
+        "app/shtojegooglen/page": "action-browser"
+      },
+      "filename": "Desktop/elektronova-recovered/src/app/shtojegooglen/actions.ts",
+      "exportedName": "listVerificationFiles"
+    },
+    "40878e3623000182170c7766a390ab93e1b81accd4": {
+      "workers": {
+        "app/shtojegooglen/page": {
+          "moduleId": 23101,
+          "async": false,
+          "exportedName": "deleteVerificationFile",
+          "filename": "Desktop/elektronova-recovered/src/app/shtojegooglen/actions.ts"
+        }
+      },
+      "layer": {
+        "app/shtojegooglen/page": "action-browser"
+      },
+      "filename": "Desktop/elektronova-recovered/src/app/shtojegooglen/actions.ts",
+      "exportedName": "deleteVerificationFile"
+    }
+  },
+  "edge": {},
+  "encryptionKey": "cZ1OJNfKLQ3WANk0t99yAsxoAtZmS9/o4QruonGIDOM="
+}

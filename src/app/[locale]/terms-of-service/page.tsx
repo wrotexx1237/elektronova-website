@@ -1,4 +1,28 @@
 import {useTranslations} from 'next-intl';
+import { getPathname } from '@/i18n/routing';
+import { getTranslations } from 'next-intl/server';
+
+export async function generateMetadata({params}: {params: Promise<{locale: string}>}) {
+  const { locale } = await params;
+  const t = await getTranslations({locale, namespace: 'Compliance'});
+
+  const baseUrl = 'https://elektronova.online';
+  const pathname = getPathname({ locale, href: '/terms-of-service' as any });
+
+  const alternates: Record<string, string> = {};
+  ['sq', 'en'].forEach((l) => {
+    alternates[l] = `${baseUrl}${getPathname({ locale: l, href: '/terms-of-service' as any })}`;
+  });
+
+  return {
+    title: `Kushtet e Përdorimit - Terms of Service | ElektroNova`,
+    description: "Kushtet e përdorimit të shërbimeve dhe platformës sonë.",
+    alternates: {
+      canonical: alternates[locale] || `${baseUrl}${pathname}`,
+      languages: alternates,
+    }
+  };
+}
 
 export default function TermsOfService() {
   const t = useTranslations('Compliance');

@@ -1,4 +1,4 @@
-import {useTranslations} from 'next-intl';
+import {useTranslations, useLocale} from 'next-intl';
 import {getTranslations} from 'next-intl/server';
 import {Link} from '@/i18n/routing';
 import Image from 'next/image';
@@ -10,6 +10,8 @@ import Brands from '@/components/Brands';
 import MissionSection from '@/components/MissionSection';
 import RecentWorkSection from '@/components/RecentWorkSection';
 import {FaShieldAlt, FaHome, FaNetworkWired, FaTools} from 'react-icons/fa';
+import {blogData} from '@/data/blog';
+import BlogCard from '@/components/BlogCard';
 
 export async function generateMetadata({params}: {params: Promise<{locale: string}>}) {
   const { locale } = await params;
@@ -25,6 +27,9 @@ export default function IndexPage() {
   const t = useTranslations('Index');
   const nav = useTranslations('Navigation');
   const common = useTranslations('Common');
+  const locale = useLocale();
+
+  const latestArticles = Object.values(blogData[locale] || {}).slice(0, 3);
 
   const featuredServices = [
     {
@@ -88,7 +93,7 @@ export default function IndexPage() {
                 {/* Image side */}
                 <div className="relative overflow-hidden order-2 lg:order-1 h-64 lg:h-auto">
                   <Image
-                    src="/blog/.webp"
+                    src="/blog/hero-vs.webp"
                     alt="Sisteme Kamerash"
                     fill
                     sizes="(max-width: 768px) 100vw, 33vw"
@@ -157,7 +162,7 @@ export default function IndexPage() {
 
                 {/* Background image */}
                 <div className="absolute inset-0">
-                  <Image src="/blog/.webp" alt="Systemet e Alarmit" fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover opacity-15 group-hover:opacity-25 transition-opacity duration-700 scale-110 group-hover:scale-100 transition-transform duration-[2s]" />
+                  <Image src="/blog/hero-ajax.webp" alt="Systemet e Alarmit" fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover opacity-15 group-hover:opacity-25 transition-opacity duration-700 scale-110 group-hover:scale-100 transition-transform duration-[2s]" />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#09060a] via-[#09060a]/80 to-[#09060a]/50" />
                 </div>
 
@@ -208,7 +213,7 @@ export default function IndexPage() {
 
                 {/* Background image */}
                 <div className="absolute inset-0">
-                  <Image src="/blog/.webp" alt="Instalime Elektrike" fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover opacity-15 group-hover:opacity-25 transition-opacity duration-700 scale-110 group-hover:scale-100 transition-transform duration-[2s]" />
+                  <Image src="/blog/modern-electrical-panel.webp" alt="Instalime Elektrike" fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover opacity-15 group-hover:opacity-25 transition-opacity duration-700 scale-110 group-hover:scale-100 transition-transform duration-[2s]" />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0a0900] via-[#0a0900]/80 to-[#0a0900]/50" />
                 </div>
 
@@ -381,6 +386,43 @@ export default function IndexPage() {
           </div>
         </div>
       </section>
+
+      {/* Latest Blog Section */}
+      {latestArticles.length > 0 && (
+        <section className="py-24 relative overflow-hidden bg-card/10">
+          <div className="container mx-auto px-6">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-heading font-bold mb-4 italic text-white flex justify-center gap-2">
+                  <span>{nav('blog') || 'Latest'}</span> <span className="text-primary italic">Articles</span>
+              </h2>
+              <p className="text-gray-400">Discover our latest articles and updates.</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {latestArticles.map((article, idx) => (
+                <BlogCard
+                  key={article.slug}
+                  slug={article.slug}
+                  title={article.title}
+                  excerpt={article.excerpt}
+                  mainImage={article.mainImage}
+                  date={article.date}
+                  readTime={article.readTime}
+                  index={idx}
+                  locale={locale}
+                />
+              ))}
+            </div>
+            <div className="flex justify-center mt-12">
+              <Link href="/blog" className="group flex items-center gap-4 text-white font-bold transition-all duration-500 bg-white/5 px-10 py-5 rounded-full border border-white/10 hover:border-primary/50 hover:bg-primary/10 hover:shadow-[0_0_60px_rgba(0,123,255,0.2)] backdrop-blur-md">
+                <span className="text-sm uppercase tracking-[0.15em]">{nav('blog') || 'View All Blogs'}</span>
+                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-primary group-hover:scale-110 transition-all duration-300">
+                  <span className="text-white text-sm">→</span>
+                </div>
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Brands Section */}
       <section className="py-20 border-y border-white/5 bg-background">

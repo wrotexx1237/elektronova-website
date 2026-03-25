@@ -1,4 +1,28 @@
 import {useTranslations} from 'next-intl';
+import { getPathname } from '@/i18n/routing';
+import { getTranslations } from 'next-intl/server';
+
+export async function generateMetadata({params}: {params: Promise<{locale: string}>}) {
+  const { locale } = await params;
+  const t = await getTranslations({locale, namespace: 'Compliance'});
+
+  const baseUrl = 'https://elektronova.online';
+  const pathname = getPathname({ locale, href: '/cookie-policy' as any });
+
+  const alternates: Record<string, string> = {};
+  ['sq', 'en'].forEach((l) => {
+    alternates[l] = `${baseUrl}${getPathname({ locale: l, href: '/cookie-policy' as any })}`;
+  });
+
+  return {
+    title: `Politika e Kukis - Cookie Policy | ElektroNova`,
+    description: "Si i përdorim cookies për të përmirësuar përvojën tuaj.",
+    alternates: {
+      canonical: alternates[locale] || `${baseUrl}${pathname}`,
+      languages: alternates,
+    }
+  };
+}
 
 export default function CookiePolicy() {
   const t = useTranslations('Compliance');

@@ -1,0 +1,32 @@
+
+> elektronova-website@0.1.0 build
+> next build
+
+▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+
+thread 'tokio-runtime-worker' (1365178) panicked at /build/turbopack/crates/turbo-tasks-backend/src/backend/mod.rs:1526:13:
+Dependency tracking is disabled so invalidation is not allowed
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+-----
+[1m[31mFATAL[39m[0m: An unexpected Turbopack error occurred. A panic log has been written to /tmp/next-panic-559f3d6c350c1d0826e9279b50b90718.log.
+
+To help make Turbopack better, report this error by clicking here: https://github.com/vercel/next.js/discussions/new?category=turbopack-error-report&title=Turbopack%20Error%3A%20Dependency%20tracking%20is%20disabled%20so%20invalidation%20is%20not%20allowed%20at%20%2Fbuild%2Fturbopack%2Fcrates%2Fturbo-tasks-backend%2Fsrc%2Fbackend%2Fmod.rs%3A1526%3A13&body=Turbopack%20version%3A%20%600c06f068%60%0ANext.js%20version%3A%20%600.0.0%60%0A%0AError%20message%3A%0A%60%60%60%0ATurbopack%20Error%3A%20Dependency%20tracking%20is%20disabled%20so%20invalidation%20is%20not%20allowed%20at%20%2Fbuild%2Fturbopack%2Fcrates%2Fturbo-tasks-backend%2Fsrc%2Fbackend%2Fmod.rs%3A1526%3A13%0A%60%60%60&labels=Turbopack,Turbopack%20Panic%20Backtrace
+-----
+
+
+thread 'tokio-runtime-worker' (1365178) panicked at /build/turbopack/crates/turbo-tasks-backend/src/backend/mod.rs:1526:13:
+Dependency tracking is disabled so invalidation is not allowed
+
+> Build error occurred
+Error [TurbopackInternalError]: Dependency tracking is disabled so invalidation is not allowed at /build/turbopack/crates/turbo-tasks-backend/src/backend/mod.rs:1526:13
+    at <unknown> (TurbopackInternalError: Dependency tracking is disabled so invalidation is not allowed at /build/turbopack/crates/turbo-tasks-backend/src/backend/mod.rs:1526:13) {
+  type: 'TurbopackInternalError',
+  location: '/build/turbopack/crates/turbo-tasks-backend/src/backend/mod.rs:1526:13'
+}
+
+EXIT CODE: 1

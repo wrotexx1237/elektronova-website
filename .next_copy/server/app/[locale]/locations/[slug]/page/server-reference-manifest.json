@@ -1,0 +1,20 @@
+{
+  "node": {
+    "406d5e406a19ccdd6222461b12e9d0a43e7f1e1af1": {
+      "workers": {
+        "app/[locale]/locations/[slug]/page": {
+          "moduleId": 40761,
+          "async": false,
+          "exportedName": "sendLeadEmail",
+          "filename": "Desktop/elektronova-recovered/src/app/actions/email.ts"
+        }
+      },
+      "layer": {
+        "app/[locale]/locations/[slug]/page": "action-browser"
+      },
+      "exportedName": "sendLeadEmail",
+      "filename": "Desktop/elektronova-recovered/src/app/actions/email.ts"
+    }
+  },
+  "edge": {}
+}

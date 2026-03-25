@@ -1,0 +1,33 @@
+{
+  "version": 3,
+  "middleware": {
+    "/": {
+      "files": [
+        "server/edge/chunks/Desktop_elektronova-recovered_f290b455._.js",
+        "server/edge/chunks/[root-of-the-server]__a89e6740._.js",
+        "server/edge/chunks/50ac8_next_dist_esm_build_templates_edge-wrapper_60f40856.js"
+      ],
+      "name": "middleware",
+      "page": "/",
+      "matchers": [
+        {
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?(?:\\/((?!api|_next|_vercel|.*\\..*).*))(\\\\.json)?[\\/#\\?]?$",
+          "originalSource": "/((?!api|_next|_vercel|.*\\..*).*)"
+        }
+      ],
+      "wasm": [],
+      "assets": [],
+      "env": {
+        "__NEXT_BUILD_ID": "n-J6A4EUdOcY1kslGbSvF",
+        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "cZ1OJNfKLQ3WANk0t99yAsxoAtZmS9/o4QruonGIDOM=",
+        "__NEXT_PREVIEW_MODE_ID": "ebb3bcb8b31743961171337fa7057641",
+        "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "9f1b92a69a9c78da1f87d9ba882155fbedc1c59342aefacb4f3555730fe31760",
+        "__NEXT_PREVIEW_MODE_SIGNING_KEY": "209b82c6111d27499515455a946e03dfe1f3650ae423965cf89289cfbcd3fe8a"
+      }
+    }
+  },
+  "sortedMiddleware": [
+    "/"
+  ],
+  "functions": {}
+}

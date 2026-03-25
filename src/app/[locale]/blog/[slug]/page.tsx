@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getArticleBySlug, blogData } from '@/data/blog';
+import { getArticleBySlug, blogData, getAlternateBlogSlug } from '@/data/blog';
 import { FaCalendarAlt, FaUser, FaClock, FaArrowLeft, FaShareAlt } from 'react-icons/fa';
 import { Link } from '@/i18n/routing';
 import LeadForm from '@/components/LeadForm';
@@ -7,9 +7,23 @@ import { getTranslations } from 'next-intl/server';
 import ShareButtons from '@/components/ShareButtons';
 import { getServiceBySlug, ServiceContent } from '@/data/services';
 import ServiceCard from '@/components/ServiceCard';
+import BlogCard from '@/components/BlogCard';
 
 import { getPathname } from '@/i18n/routing';
 import Schema from '@/components/Schema';
+
+export async function generateStaticParams() {
+  const locales = ['sq', 'en'];
+  const params: { locale: string; slug: string }[] = [];
+
+  locales.forEach(locale => {
+    Object.values(blogData[locale] || {}).forEach(article => {
+      params.push({ locale, slug: article.slug });
+    });
+  });
+
+  return params;
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string, slug: string }> }) {
   const { locale, slug } = await params;
@@ -21,7 +35,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
   const alternates: Record<string, string> = {};
   ['sq', 'en'].forEach((l) => {
-    alternates[l] = `${baseUrl}${getPathname({ locale: l, href: { pathname: '/blog/[slug]', params: { slug } } as any })}`;
+    const alternateSlug = l === locale ? slug : getAlternateBlogSlug(slug);
+    alternates[l] = `${baseUrl}${getPathname({ locale: l, href: { pathname: '/blog/[slug]', params: { slug: alternateSlug } } as any })}`;
   });
 
   return {
@@ -34,18 +49,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   };
 }
 
-export async function generateStaticParams() {
-  const locales = ['sq', 'en'];
-  const params: { locale: string; slug: string }[] = [];
-
-  locales.forEach(locale => {
-    Object.keys(blogData[locale] || {}).forEach(slug => {
-      params.push({ locale, slug });
-    });
-  });
-
-  return params;
-}
+export const dynamic = 'force-dynamic';
 
 export default async function ArticlePage({ params }: { params: Promise<{ locale: string, slug: string }> }) {
   const { locale, slug } = await params;
@@ -64,6 +68,12 @@ export default async function ArticlePage({ params }: { params: Promise<{ locale
   const relatedServicesData = (article.relatedServices || [])
     .map(serviceSlug => getServiceBySlug(serviceSlug, locale))
     .filter((service): service is ServiceContent => service !== undefined);
+
+  // Fetch related articles (excluding the current one)
+  const allArticles = Object.values(blogData[locale] || {});
+  const relatedArticles = allArticles
+    .filter(a => a.slug !== slug)
+    .slice(0, 3);
 
   return (
     <>
@@ -129,6 +139,30 @@ export default async function ArticlePage({ params }: { params: Promise<{ locale
                       description={service.description}
                       iconName={service.iconName}
                       href={`/services/${service.slug}` as any}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Related Articles Section */}
+            {relatedArticles.length > 0 && (
+              <div className="mt-20 pt-20 border-t border-white/10">
+                <h3 className="text-3xl font-heading font-bold mb-12 italic text-center md:text-left">
+                  {t('related_articles') || 'Te Ngjashme / Related'}
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  {relatedArticles.map((relatedArticle, idx) => (
+                    <BlogCard
+                      key={relatedArticle.slug}
+                      slug={relatedArticle.slug}
+                      title={relatedArticle.title}
+                      excerpt={relatedArticle.excerpt}
+                      mainImage={relatedArticle.mainImage}
+                      date={relatedArticle.date}
+                      readTime={relatedArticle.readTime}
+                      index={idx}
+                      locale={locale}
                     />
                   ))}
                 </div>

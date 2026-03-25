@@ -1,0 +1,9 @@
+Active Internet connections (only servers)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name    
+tcp        0      0 127.0.0.1:5432          0.0.0.0:*               LISTEN      792380/postgres     
+tcp        0      0 0.0.0.0:443             0.0.0.0:*               LISTEN      1125948/nginx: mast 
+tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN      1066901/sshd: /usr/ 
+tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN      1125948/nginx: mast 
+tcp        0      0 127.0.0.53:53           0.0.0.0:*               LISTEN      690/systemd-resolve 
+tcp6       0      0 ::1:5432                :::*                    LISTEN      792380/postgres     
+tcp6       0      0 :::22                   :::*                    LISTEN      1066901/sshd: /usr/ 

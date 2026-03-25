@@ -3,12 +3,27 @@ import {getTranslations} from 'next-intl/server';
 import {Link} from '@/i18n/routing';
 import {FaQuestionCircle, FaChevronRight} from 'react-icons/fa';
 
+import { getPathname } from '@/i18n/routing';
+
 export async function generateMetadata({params}: {params: Promise<{locale: string}>}) {
   const { locale } = await params;
   const t = await getTranslations({locale, namespace: 'Navigation'});
+
+  const baseUrl = 'https://elektronova.online';
+  const pathname = getPathname({ locale, href: '/faq' as any });
+
+  const alternates: Record<string, string> = {};
+  ['sq', 'en'].forEach((l) => {
+    alternates[l] = `${baseUrl}${getPathname({ locale: l, href: '/faq' as any })}`;
+  });
+
   return {
     title: `FAQ - Pyetjet e Shpeshta | ElektroNova`,
-    description: "Gjeni përgjigje për të gjitha pyetjet tuaja në lidhje me instalimin e kamerave, sistemeve të alarmit dhe shërbimeve tona elektrike në Kosovë."
+    description: "Gjeni përgjigje për të gjitha pyetjet tuaja në lidhje me instalimin e kamerave, sistemeve të alarmit dhe shërbimeve tona elektrike në Kosovë.",
+    alternates: {
+      canonical: alternates[locale] || `${baseUrl}${pathname}`,
+      languages: alternates,
+    }
   };
 }
 

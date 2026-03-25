@@ -1,7 +1,7 @@
 import { useTranslations } from 'next-intl';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
-import { getServiceBySlug, servicesData } from '@/data/services';
+import { getServiceBySlug, getAlternateServiceSlug, servicesData } from '@/data/services';
 import LeadForm from '@/components/LeadForm';
 import { FaCheckCircle, FaLaptopCode, FaTools, FaQuestionCircle, FaArrowLeft } from 'react-icons/fa';
 import { Link } from '@/i18n/routing';
@@ -21,14 +21,15 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
   const alternates: Record<string, string> = {};
   ['sq', 'en'].forEach((l) => {
-    alternates[l] = `${baseUrl}${getPathname({ locale: l, href: { pathname: '/services/[slug]', params: { slug } } as any })}`;
+    const altSlug = getAlternateServiceSlug(slug, l);
+    alternates[l] = `${baseUrl}${getPathname({ locale: l, href: { pathname: '/services/[slug]', params: { slug: altSlug } } as any })}`;
   });
 
   return {
     title: `ElektroNova | ${service.title}`,
     description: service.description,
     alternates: {
-      canonical: `${baseUrl}${pathname}`,
+      canonical: alternates[locale] || `${baseUrl}${pathname}`,
       languages: alternates,
     },
     openGraph: {
@@ -43,8 +44,8 @@ export async function generateStaticParams() {
   const params: { locale: string; slug: string }[] = [];
 
   locales.forEach(locale => {
-    Object.keys(servicesData[locale] || {}).forEach(slug => {
-      params.push({ locale, slug });
+    Object.values(servicesData[locale] || {}).forEach(service => {
+      params.push({ locale, slug: service.slug });
     });
   });
 

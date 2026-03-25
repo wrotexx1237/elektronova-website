@@ -1,0 +1,50 @@
+{
+  "node": {
+    "402af712ef850463f7f747e4ac4356f45b28099b4b": {
+      "workers": {
+        "app/shtojegooglen/page": {
+          "moduleId": 23101,
+          "async": false,
+          "exportedName": "saveVerificationFile",
+          "filename": "Desktop/elektronova-recovered/src/app/shtojegooglen/actions.ts"
+        }
+      },
+      "layer": {
+        "app/shtojegooglen/page": "action-browser"
+      },
+      "exportedName": "saveVerificationFile",
+      "filename": "Desktop/elektronova-recovered/src/app/shtojegooglen/actions.ts"
+    },
+    "00c0e6a69697ad5517dd545d64dfc7c6e666bdfa77": {
+      "workers": {
+        "app/shtojegooglen/page": {
+          "moduleId": 23101,
+          "async": false,
+          "exportedName": "listVerificationFiles",
+          "filename": "Desktop/elektronova-recovered/src/app/shtojegooglen/actions.ts"
+        }
+      },
+      "layer": {
+        "app/shtojegooglen/page": "action-browser"
+      },
+      "exportedName": "listVerificationFiles",
+      "filename": "Desktop/elektronova-recovered/src/app/shtojegooglen/actions.ts"
+    },
+    "40878e3623000182170c7766a390ab93e1b81accd4": {
+      "workers": {
+        "app/shtojegooglen/page": {
+          "moduleId": 23101,
+          "async": false,
+          "exportedName": "deleteVerificationFile",
+          "filename": "Desktop/elektronova-recovered/src/app/shtojegooglen/actions.ts"
+        }
+      },
+      "layer": {
+        "app/shtojegooglen/page": "action-browser"
+      },
+      "exportedName": "deleteVerificationFile",
+      "filename": "Desktop/elektronova-recovered/src/app/shtojegooglen/actions.ts"
+    }
+  },
+  "edge": {}
+}

@@ -1,0 +1,43 @@
+Active Internet connections (only servers)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name    
+tcp        0      0 127.0.0.1:5432          0.0.0.0:*               LISTEN      792380/postgres     
+tcp        0      0 0.0.0.0:443             0.0.0.0:*               LISTEN      1125948/nginx: mast 
+tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN      1066901/sshd: /usr/ 
+tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN      1125948/nginx: mast 
+tcp        0      0 127.0.0.53:53           0.0.0.0:*               LISTEN      690/systemd-resolve 
+tcp6       0      0 ::1:5432                :::*                    LISTEN      792380/postgres     
+tcp6       0      0 :::22                   :::*                    LISTEN      1066901/sshd: /usr/ 
+{
+  "name": "elektronova-website",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start -p 5000",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.36.0",
+    "lucide-react": "^0.577.0",
+    "next": "16.1.6",
+    "next-intl": "^4.8.3",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-icons": "^5.6.0",
+    "resend": "^6.9.4",
+    "tailwind-merge": "^3.5.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.6",
+    "sharp": "^0.34.5",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
